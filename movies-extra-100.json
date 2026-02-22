@@ -1,0 +1,1002 @@
+[
+  {
+    "id": "movie-051",
+    "title": "The Secret Life of Walter Mitty",
+    "year": 2013,
+    "genre": "Adventure",
+    "mood": "chill",
+    "runtime": 114,
+    "pitch": "A daydreamer finally lives out his fantasies by embarking on a real adventure. Gorgeous cinematography, zero cynicism.",
+    "streaming": ["Disney+"]
+  },
+  {
+    "id": "movie-052",
+    "title": "The Menu",
+    "year": 2022,
+    "genre": "Thriller",
+    "mood": "intense",
+    "runtime": 107,
+    "pitch": "A celebrity chef serves a terrifying multi-course meal to wealthy guests on a private island. Darkly hilarious.",
+    "streaming": ["Disney+"]
+  },
+  {
+    "id": "movie-053",
+    "title": "Challengers",
+    "year": 2024,
+    "genre": "Drama",
+    "mood": "intense",
+    "runtime": 131,
+    "pitch": "A love triangle between tennis players told backwards through a championship match. Luca Guadagnino at his most electric.",
+    "streaming": ["Amazon Prime"]
+  },
+  {
+    "id": "movie-054",
+    "title": "The Holdovers",
+    "year": 2023,
+    "genre": "Comedy",
+    "mood": "make me think",
+    "runtime": 133,
+    "pitch": "A grumpy classics teacher and a troubled student are stuck at boarding school over Christmas 1970. Quietly devastating.",
+    "streaming": ["Amazon Prime"]
+  },
+  {
+    "id": "movie-055",
+    "title": "Borat",
+    "year": 2006,
+    "genre": "Comedy",
+    "mood": "make me laugh",
+    "runtime": 84,
+    "pitch": "A Kazakh journalist travels across America. What he exposes about his hosts is funnier than anything he does.",
+    "streaming": ["Amazon Prime"]
+  },
+  {
+    "id": "movie-056",
+    "title": "Hereditary",
+    "year": 2018,
+    "genre": "Horror",
+    "mood": "intense",
+    "runtime": 127,
+    "pitch": "A family unravels after their grandmother's death. The less you know going in, the harder it hits.",
+    "streaming": ["Netflix"]
+  },
+  {
+    "id": "movie-057",
+    "title": "Chef",
+    "year": 2014,
+    "genre": "Comedy",
+    "mood": "chill",
+    "runtime": 114,
+    "pitch": "A top chef quits his job and starts a food truck with his son. Essentially a warm hug in movie form.",
+    "streaming": ["Netflix"]
+  },
+  {
+    "id": "movie-058",
+    "title": "Poor Things",
+    "year": 2023,
+    "genre": "Sci-Fi",
+    "mood": "make me think",
+    "runtime": 141,
+    "pitch": "A reanimated woman discovers the world with the curiosity of a child and the freedom of someone with nothing to lose.",
+    "streaming": ["Disney+"]
+  },
+  {
+    "id": "movie-059",
+    "title": "Tucker and Dale vs Evil",
+    "year": 2010,
+    "genre": "Comedy",
+    "mood": "make me laugh",
+    "runtime": 89,
+    "pitch": "Two hillbillies are mistaken for murderers by clueless college kids. Every horror trope flipped on its head.",
+    "streaming": ["Amazon Prime"]
+  },
+  {
+    "id": "movie-060",
+    "title": "Uncut Gems",
+    "year": 2019,
+    "genre": "Thriller",
+    "mood": "intense",
+    "runtime": 135,
+    "pitch": "Adam Sandler as a gambling-addicted jeweler in a two-hour anxiety attack. You won't breathe for the last 30 minutes.",
+    "streaming": ["Netflix"]
+  },
+  {
+    "id": "movie-061",
+    "title": "Puss in Boots: The Last Wish",
+    "year": 2022,
+    "genre": "Animation",
+    "mood": "chill",
+    "runtime": 102,
+    "pitch": "A swashbuckling cat confronts mortality. Way better than it has any right to be — the animation style is breathtaking.",
+    "streaming": ["Netflix"]
+  },
+  {
+    "id": "movie-062",
+    "title": "The Zone of Interest",
+    "year": 2023,
+    "genre": "Drama",
+    "mood": "make me think",
+    "runtime": 105,
+    "pitch": "The commandant of Auschwitz and his family live an idyllic life next door to the camp. Horror through absence.",
+    "streaming": ["Amazon Prime"]
+  },
+  {
+    "id": "movie-063",
+    "title": "Step Brothers",
+    "year": 2008,
+    "genre": "Comedy",
+    "mood": "make me laugh",
+    "runtime": 98,
+    "pitch": "Two middle-aged men become stepbrothers and act like children. Stupid in the most brilliant way possible.",
+    "streaming": ["Netflix"]
+  },
+  {
+    "id": "movie-064",
+    "title": "Killers of the Flower Moon",
+    "year": 2023,
+    "genre": "Drama",
+    "mood": "intense",
+    "runtime": 206,
+    "pitch": "The systematic murder of Osage Nation members for oil money in 1920s Oklahoma. Scorsese, DiCaprio, De Niro. A slow burn that sears.",
+    "streaming": ["Apple TV+"]
+  },
+  {
+    "id": "movie-065",
+    "title": "Spirited Away",
+    "year": 2001,
+    "genre": "Animation",
+    "mood": "chill",
+    "runtime": 125,
+    "pitch": "A girl enters a world of spirits and must work in a bathhouse to save her parents. Miyazaki's masterpiece.",
+    "streaming": ["Netflix"]
+  },
+  {
+    "id": "movie-066",
+    "title": "Anatomy of a Fall",
+    "year": 2023,
+    "genre": "Thriller",
+    "mood": "make me think",
+    "runtime": 152,
+    "pitch": "A woman is accused of killing her husband. The trial dissects their marriage. You'll argue about the verdict for days.",
+    "streaming": ["MUBI"]
+  },
+  {
+    "id": "movie-067",
+    "title": "The Hangover",
+    "year": 2009,
+    "genre": "Comedy",
+    "mood": "make me laugh",
+    "runtime": 100,
+    "pitch": "Three groomsmen wake up in Vegas with no memory, a tiger, and a missing groom. The blueprint for modern comedy.",
+    "streaming": ["Netflix"]
+  },
+  {
+    "id": "movie-068",
+    "title": "Dunkirk",
+    "year": 2017,
+    "genre": "War",
+    "mood": "intense",
+    "runtime": 106,
+    "pitch": "The evacuation of Dunkirk told from land, sea, and air simultaneously. Almost no dialogue, all tension.",
+    "streaming": ["Amazon Prime"]
+  },
+  {
+    "id": "movie-069",
+    "title": "Fantastic Mr. Fox",
+    "year": 2009,
+    "genre": "Animation",
+    "mood": "chill",
+    "runtime": 87,
+    "pitch": "A fox can't resist one last heist against three nasty farmers. Wes Anderson in stop-motion. Pure charm.",
+    "streaming": ["Disney+"]
+  },
+  {
+    "id": "movie-070",
+    "title": "Her",
+    "year": 2013,
+    "genre": "Sci-Fi",
+    "mood": "make me think",
+    "runtime": 126,
+    "pitch": "A lonely man falls in love with his AI assistant. Sounds ridiculous. Feels painfully real.",
+    "streaming": ["Netflix"]
+  },
+  {
+    "id": "movie-071",
+    "title": "Bridesmaids",
+    "year": 2011,
+    "genre": "Comedy",
+    "mood": "make me laugh",
+    "runtime": 125,
+    "pitch": "A maid of honour slowly loses her mind planning a wedding. Kristen Wiig is a force of nature.",
+    "streaming": ["Netflix"]
+  },
+  {
+    "id": "movie-072",
+    "title": "Saltburn",
+    "year": 2023,
+    "genre": "Thriller",
+    "mood": "intense",
+    "runtime": 131,
+    "pitch": "An Oxford student insinuates himself into an aristocratic family's country estate. Seductive and deeply unsettling.",
+    "streaming": ["Amazon Prime"]
+  },
+  {
+    "id": "movie-073",
+    "title": "Studio Ghibli: My Neighbor Totoro",
+    "year": 1988,
+    "genre": "Animation",
+    "mood": "chill",
+    "runtime": 86,
+    "pitch": "Two sisters discover friendly forest spirits in rural Japan. No villain, no conflict, just warmth and wonder.",
+    "streaming": ["Netflix"]
+  },
+  {
+    "id": "movie-074",
+    "title": "12 Angry Men",
+    "year": 1957,
+    "genre": "Drama",
+    "mood": "make me think",
+    "runtime": 96,
+    "pitch": "Twelve jurors deliberate a murder verdict in a single room. Made in 1957, still the tensest courtroom drama ever.",
+    "streaming": ["Amazon Prime"]
+  },
+  {
+    "id": "movie-075",
+    "title": "The Death of Stalin",
+    "year": 2017,
+    "genre": "Comedy",
+    "mood": "make me laugh",
+    "runtime": 107,
+    "pitch": "Soviet leaders scramble for power after Stalin dies. A farce played completely straight. Armando Iannucci's sharpest work.",
+    "streaming": ["Amazon Prime"]
+  },
+  {
+    "id": "movie-076",
+    "title": "Oppenheimer",
+    "year": 2023,
+    "genre": "Drama",
+    "mood": "intense",
+    "runtime": 180,
+    "pitch": "The man who built the bomb and the world that judged him for it. Three hours that feel like a detonation.",
+    "streaming": ["Amazon Prime"]
+  },
+  {
+    "id": "movie-077",
+    "title": "Little Miss Sunshine",
+    "year": 2006,
+    "genre": "Comedy",
+    "mood": "chill",
+    "runtime": 101,
+    "pitch": "A dysfunctional family road-trips to a children's beauty pageant. The van scene. The dance scene. Perfection.",
+    "streaming": ["Disney+"]
+  },
+  {
+    "id": "movie-078",
+    "title": "Eternal Sunshine of the Spotless Mind",
+    "year": 2004,
+    "genre": "Sci-Fi",
+    "mood": "make me think",
+    "runtime": 108,
+    "pitch": "A man erases memories of his ex-girlfriend and then fights to keep them. The most honest love story ever made.",
+    "streaming": ["Amazon Prime"]
+  },
+  {
+    "id": "movie-079",
+    "title": "Palm Springs",
+    "year": 2020,
+    "genre": "Comedy",
+    "mood": "make me laugh",
+    "runtime": 90,
+    "pitch": "Two wedding guests get stuck in a time loop. Smarter than Groundhog Day, funnier than it should be.",
+    "streaming": ["Amazon Prime"]
+  },
+  {
+    "id": "movie-080",
+    "title": "The Revenant",
+    "year": 2015,
+    "genre": "Drama",
+    "mood": "intense",
+    "runtime": 156,
+    "pitch": "A frontiersman is left for dead after a bear attack and crawls through the wilderness for revenge. Raw survival cinema.",
+    "streaming": ["Disney+"]
+  },
+  {
+    "id": "movie-081",
+    "title": "Howl's Moving Castle",
+    "year": 2004,
+    "genre": "Animation",
+    "mood": "chill",
+    "runtime": 119,
+    "pitch": "A girl cursed with old age finds refuge in a wizard's walking castle. Miyazaki at his most romantic.",
+    "streaming": ["Netflix"]
+  },
+  {
+    "id": "movie-082",
+    "title": "The Master",
+    "year": 2012,
+    "genre": "Drama",
+    "mood": "make me think",
+    "runtime": 138,
+    "pitch": "A WWII veteran falls under the spell of a charismatic cult leader. Hoffman and Phoenix in a psychological cage match.",
+    "streaming": ["Amazon Prime"]
+  },
+  {
+    "id": "movie-083",
+    "title": "Eurovision Song Contest: The Story of Fire Saga",
+    "year": 2020,
+    "genre": "Comedy",
+    "mood": "make me laugh",
+    "runtime": 123,
+    "pitch": "An Icelandic duo enters Eurovision. Will Ferrell sings with passion. The song-along scene is genuine magic.",
+    "streaming": ["Netflix"]
+  },
+  {
+    "id": "movie-084",
+    "title": "Gone Girl",
+    "year": 2014,
+    "genre": "Thriller",
+    "mood": "intense",
+    "runtime": 149,
+    "pitch": "A wife disappears. The husband looks guilty. Then the story flips inside out. Fincher and Rosamund Pike at their coldest.",
+    "streaming": ["Disney+"]
+  },
+  {
+    "id": "movie-085",
+    "title": "The Mitchells vs. the Machines",
+    "year": 2021,
+    "genre": "Animation",
+    "mood": "chill",
+    "runtime": 114,
+    "pitch": "A dysfunctional family accidentally becomes humanity's last hope against a robot apocalypse. Frenetic, heartfelt, hilarious.",
+    "streaming": ["Netflix"]
+  },
+  {
+    "id": "movie-086",
+    "title": "Minari",
+    "year": 2020,
+    "genre": "Drama",
+    "mood": "make me think",
+    "runtime": 115,
+    "pitch": "A Korean-American family starts a farm in Arkansas. Quiet, deeply felt, and the grandmother steals every scene.",
+    "streaming": ["Amazon Prime"]
+  },
+  {
+    "id": "movie-087",
+    "title": "Spy",
+    "year": 2015,
+    "genre": "Comedy",
+    "mood": "make me laugh",
+    "runtime": 120,
+    "pitch": "A CIA desk analyst goes undercover as a spy. Melissa McCarthy and Jason Statham are comedy gold together.",
+    "streaming": ["Disney+"]
+  },
+  {
+    "id": "movie-088",
+    "title": "There Will Be Blood",
+    "year": 2007,
+    "genre": "Drama",
+    "mood": "intense",
+    "runtime": 158,
+    "pitch": "An oil prospector's ambition consumes everything. Daniel Day-Lewis gives the most terrifying performance of all time.",
+    "streaming": ["Amazon Prime"]
+  },
+  {
+    "id": "movie-089",
+    "title": "The Darjeeling Limited",
+    "year": 2007,
+    "genre": "Comedy",
+    "mood": "chill",
+    "runtime": 91,
+    "pitch": "Three brothers take a train across India to find their mother. Peak Wes Anderson melancholy disguised as a travelogue.",
+    "streaming": ["Disney+"]
+  },
+  {
+    "id": "movie-090",
+    "title": "Being John Malkovich",
+    "year": 1999,
+    "genre": "Sci-Fi",
+    "mood": "make me think",
+    "runtime": 113,
+    "pitch": "A puppeteer discovers a portal into John Malkovich's brain. Charlie Kaufman's brain is weirder than any sci-fi.",
+    "streaming": ["Amazon Prime"]
+  },
+  {
+    "id": "movie-091",
+    "title": "Tropic Thunder",
+    "year": 2008,
+    "genre": "Comedy",
+    "mood": "make me laugh",
+    "runtime": 107,
+    "pitch": "Actors filming a war movie accidentally stumble into a real conflict. Tom Cruise's cameo alone is worth it.",
+    "streaming": ["Netflix"]
+  },
+  {
+    "id": "movie-092",
+    "title": "Annihilation",
+    "year": 2018,
+    "genre": "Sci-Fi",
+    "mood": "intense",
+    "runtime": 115,
+    "pitch": "Five scientists enter a mutating zone where the laws of nature break down. The lighthouse scene will haunt you.",
+    "streaming": ["Amazon Prime"]
+  },
+  {
+    "id": "movie-093",
+    "title": "Kiki's Delivery Service",
+    "year": 1989,
+    "genre": "Animation",
+    "mood": "chill",
+    "runtime": 103,
+    "pitch": "A young witch moves to a new city and starts a delivery service on her broomstick. Pure Ghibli comfort.",
+    "streaming": ["Netflix"]
+  },
+  {
+    "id": "movie-094",
+    "title": "American Fiction",
+    "year": 2023,
+    "genre": "Comedy",
+    "mood": "make me think",
+    "runtime": 117,
+    "pitch": "A Black novelist writes a satirical book playing into stereotypes — and it becomes a bestseller. Razor-sharp on race and publishing.",
+    "streaming": ["Amazon Prime"]
+  },
+  {
+    "id": "movie-095",
+    "title": "The Grand Escape",
+    "year": 1963,
+    "genre": "War",
+    "mood": "chill",
+    "runtime": 172,
+    "pitch": "Allied POWs plan a massive escape from a German camp. Steve McQueen on a motorcycle. Old-school adventure at its finest.",
+    "streaming": ["Amazon Prime"]
+  },
+  {
+    "id": "movie-096",
+    "title": "The Gentlemen",
+    "year": 2019,
+    "genre": "Thriller",
+    "mood": "make me laugh",
+    "runtime": 113,
+    "pitch": "A British drug lord tries to sell his empire. Guy Ritchie at his sharpest, Hugh Grant at his slimiest.",
+    "streaming": ["Amazon Prime"]
+  },
+  {
+    "id": "movie-097",
+    "title": "Blade Runner 2049",
+    "year": 2017,
+    "genre": "Sci-Fi",
+    "mood": "make me think",
+    "runtime": 164,
+    "pitch": "A replicant cop uncovers a secret that could shatter society. Somehow a worthy sequel to a masterpiece.",
+    "streaming": ["Amazon Prime"]
+  },
+  {
+    "id": "movie-098",
+    "title": "The Other Guys",
+    "year": 2010,
+    "genre": "Comedy",
+    "mood": "make me laugh",
+    "runtime": 107,
+    "pitch": "Two mismatched NYPD detectives accidentally uncover a massive financial crime. Will Ferrell and Mark Wahlberg are a perfect pair.",
+    "streaming": ["Netflix"]
+  },
+  {
+    "id": "movie-099",
+    "title": "Nope",
+    "year": 2022,
+    "genre": "Sci-Fi",
+    "mood": "intense",
+    "runtime": 130,
+    "pitch": "Siblings at a horse ranch discover something terrifying in the sky. Jordan Peele's most ambitious and spectacular film.",
+    "streaming": ["Amazon Prime"]
+  },
+  {
+    "id": "movie-100",
+    "title": "Up",
+    "year": 2009,
+    "genre": "Animation",
+    "mood": "chill",
+    "runtime": 96,
+    "pitch": "An old man ties thousands of balloons to his house and flies to South America. The first 10 minutes will wreck you.",
+    "streaming": ["Disney+"]
+  },
+  {
+    "id": "movie-101",
+    "title": "Triangle of Sadness",
+    "year": 2022,
+    "genre": "Comedy",
+    "mood": "make me think",
+    "runtime": 147,
+    "pitch": "Influencers and billionaires on a luxury yacht. Then the yacht sinks. Class dynamics invert violently. The dinner scene is legendary.",
+    "streaming": ["MUBI"]
+  },
+  {
+    "id": "movie-102",
+    "title": "Shaun of the Dead",
+    "year": 2004,
+    "genre": "Comedy",
+    "mood": "make me laugh",
+    "runtime": 99,
+    "pitch": "A slacker tries to get his life together during a zombie apocalypse. The first and best of the Cornetto trilogy.",
+    "streaming": ["Netflix"]
+  },
+  {
+    "id": "movie-103",
+    "title": "The Departed",
+    "year": 2006,
+    "genre": "Thriller",
+    "mood": "intense",
+    "runtime": 151,
+    "pitch": "A cop infiltrates the mob while a mobster infiltrates the police. Nobody knows who's who. Scorsese finally gets his Oscar.",
+    "streaming": ["Netflix"]
+  },
+  {
+    "id": "movie-104",
+    "title": "WALL·E",
+    "year": 2008,
+    "genre": "Animation",
+    "mood": "chill",
+    "runtime": 98,
+    "pitch": "A lonely robot on an abandoned Earth falls in love with a sleek probe. Almost no dialogue. All heart.",
+    "streaming": ["Disney+"]
+  },
+  {
+    "id": "movie-105",
+    "title": "Call Me by Your Name",
+    "year": 2017,
+    "genre": "Romance",
+    "mood": "make me think",
+    "runtime": 132,
+    "pitch": "A summer romance in 1980s Italy between a teenager and his father's research assistant. The final monologue by Michael Stuhlbarg is everything.",
+    "streaming": ["Amazon Prime"]
+  },
+  {
+    "id": "movie-106",
+    "title": "Hot Fuzz",
+    "year": 2007,
+    "genre": "Comedy",
+    "mood": "make me laugh",
+    "runtime": 121,
+    "pitch": "A supercop is reassigned to a sleepy village where nothing happens. Then people start dying. Edgar Wright's tightest comedy.",
+    "streaming": ["Netflix"]
+  },
+  {
+    "id": "movie-107",
+    "title": "Oldboy",
+    "year": 2003,
+    "genre": "Thriller",
+    "mood": "intense",
+    "runtime": 120,
+    "pitch": "A man is imprisoned for 15 years with no explanation, then released. The reason why is the most shocking twist in cinema.",
+    "streaming": ["MUBI"]
+  },
+  {
+    "id": "movie-108",
+    "title": "Encanto",
+    "year": 2021,
+    "genre": "Animation",
+    "mood": "chill",
+    "runtime": 102,
+    "pitch": "A Colombian family all have magical powers — except one. The music is impossibly catchy and the family dynamics feel real.",
+    "streaming": ["Disney+"]
+  },
+  {
+    "id": "movie-109",
+    "title": "Inside Out 2",
+    "year": 2024,
+    "genre": "Animation",
+    "mood": "make me think",
+    "runtime": 100,
+    "pitch": "Anxiety shows up in Riley's teenage brain and takes over. Pixar makes you cry about emotions having emotions. Again.",
+    "streaming": ["Disney+"]
+  },
+  {
+    "id": "movie-110",
+    "title": "21 Jump Street",
+    "year": 2012,
+    "genre": "Comedy",
+    "mood": "make me laugh",
+    "runtime": 109,
+    "pitch": "Two cops go undercover at a high school and discover they're no longer cool. Channing Tatum's comedy awakening.",
+    "streaming": ["Netflix"]
+  },
+  {
+    "id": "movie-111",
+    "title": "Apocalypto",
+    "year": 2006,
+    "genre": "Action",
+    "mood": "intense",
+    "runtime": 139,
+    "pitch": "A Mayan villager is captured for sacrifice and runs for his life through the jungle. Relentless, visceral, entirely in Yucatec Maya.",
+    "streaming": ["Disney+"]
+  },
+  {
+    "id": "movie-112",
+    "title": "Lost in Translation",
+    "year": 2003,
+    "genre": "Drama",
+    "mood": "chill",
+    "runtime": 102,
+    "pitch": "Two Americans adrift in Tokyo form an unlikely bond. Sofia Coppola captures loneliness without a single dramatic beat.",
+    "streaming": ["Amazon Prime"]
+  },
+  {
+    "id": "movie-113",
+    "title": "Conclave",
+    "year": 2024,
+    "genre": "Thriller",
+    "mood": "make me think",
+    "runtime": 120,
+    "pitch": "Cardinals gather in the Vatican to elect a new pope. Political intrigue, secrets, and a final twist that reframes everything.",
+    "streaming": ["Amazon Prime"]
+  },
+  {
+    "id": "movie-114",
+    "title": "This Is Spinal Tap",
+    "year": 1984,
+    "genre": "Comedy",
+    "mood": "make me laugh",
+    "runtime": 82,
+    "pitch": "A documentary crew follows Britain's loudest band on their disastrous American tour. These go to eleven.",
+    "streaming": ["Amazon Prime"]
+  },
+  {
+    "id": "movie-115",
+    "title": "Memoria",
+    "year": 2021,
+    "genre": "Drama",
+    "mood": "make me think",
+    "runtime": 136,
+    "pitch": "A woman in Colombia hears a mysterious bang that nobody else can hear. Apichatpong Weerasethakul's most hypnotic film.",
+    "streaming": ["MUBI"]
+  },
+  {
+    "id": "movie-116",
+    "title": "Se7en",
+    "year": 1995,
+    "genre": "Thriller",
+    "mood": "intense",
+    "runtime": 127,
+    "pitch": "Two detectives hunt a serial killer using the seven deadly sins. The final scene is cinema's cruelest gut punch.",
+    "streaming": ["Netflix"]
+  },
+  {
+    "id": "movie-117",
+    "title": "About Time",
+    "year": 2013,
+    "genre": "Romance",
+    "mood": "chill",
+    "runtime": 123,
+    "pitch": "A man discovers he can travel back in time. He uses it to find love. The real story is about his dad.",
+    "streaming": ["Netflix"]
+  },
+  {
+    "id": "movie-118",
+    "title": "The Florida Project",
+    "year": 2017,
+    "genre": "Drama",
+    "mood": "make me think",
+    "runtime": 111,
+    "pitch": "A six-year-old has a magical summer in a motel near Disney World. The gap between her joy and her reality is heartbreaking.",
+    "streaming": ["Amazon Prime"]
+  },
+  {
+    "id": "movie-119",
+    "title": "Airplane!",
+    "year": 1980,
+    "genre": "Comedy",
+    "mood": "make me laugh",
+    "runtime": 88,
+    "pitch": "A parody of disaster films with more jokes per minute than any movie before or since. Don't call me Shirley.",
+    "streaming": ["Amazon Prime"]
+  },
+  {
+    "id": "movie-120",
+    "title": "The Batman",
+    "year": 2022,
+    "genre": "Action",
+    "mood": "intense",
+    "runtime": 176,
+    "pitch": "Batman as a detective noir. Gotham has never looked this rain-soaked or felt this corrupt. Pattinson nails the damaged vigilante.",
+    "streaming": ["HBO Max"]
+  },
+  {
+    "id": "movie-121",
+    "title": "Porco Rosso",
+    "year": 1992,
+    "genre": "Animation",
+    "mood": "chill",
+    "runtime": 94,
+    "pitch": "A WWI flying ace has been cursed into a pig and now hunts air pirates over the Adriatic. Peak Ghibli vibes.",
+    "streaming": ["Netflix"]
+  },
+  {
+    "id": "movie-122",
+    "title": "The Substance",
+    "year": 2024,
+    "genre": "Horror",
+    "mood": "intense",
+    "runtime": 140,
+    "pitch": "An aging celebrity uses a black-market drug that creates a younger version of herself. Body horror meets Hollywood satire.",
+    "streaming": ["MUBI"]
+  },
+  {
+    "id": "movie-123",
+    "title": "Monty Python and the Holy Grail",
+    "year": 1975,
+    "genre": "Comedy",
+    "mood": "make me laugh",
+    "runtime": 91,
+    "pitch": "King Arthur and his knights quest for the Holy Grail. The Black Knight. The French taunters. The killer rabbit. Timeless.",
+    "streaming": ["Netflix"]
+  },
+  {
+    "id": "movie-124",
+    "title": "Manchester by the Sea",
+    "year": 2016,
+    "genre": "Drama",
+    "mood": "make me think",
+    "runtime": 137,
+    "pitch": "A man returns to his hometown to care for his nephew after tragedy. Casey Affleck carries the weight of the world.",
+    "streaming": ["Amazon Prime"]
+  },
+  {
+    "id": "movie-125",
+    "title": "School of Rock",
+    "year": 2003,
+    "genre": "Comedy",
+    "mood": "chill",
+    "runtime": 109,
+    "pitch": "A failing musician poses as a substitute teacher and turns his class into a rock band. Jack Black's most lovable performance.",
+    "streaming": ["Amazon Prime"]
+  },
+  {
+    "id": "movie-126",
+    "title": "Anora",
+    "year": 2024,
+    "genre": "Comedy",
+    "mood": "make me think",
+    "runtime": 139,
+    "pitch": "A Brooklyn stripper marries the son of a Russian oligarch. Then his parents find out. Palme d'Or winner for a reason.",
+    "streaming": ["MUBI"]
+  },
+  {
+    "id": "movie-127",
+    "title": "Burn After Reading",
+    "year": 2008,
+    "genre": "Comedy",
+    "mood": "make me laugh",
+    "runtime": 96,
+    "pitch": "Gym employees find a CIA agent's memoir and try to blackmail him. Everyone is an idiot. The Coens' most cynical farce.",
+    "streaming": ["Amazon Prime"]
+  },
+  {
+    "id": "movie-128",
+    "title": "Tenet",
+    "year": 2020,
+    "genre": "Sci-Fi",
+    "mood": "intense",
+    "runtime": 150,
+    "pitch": "Time moves forwards and backwards simultaneously. You won't fully understand it. You'll want to watch it again immediately.",
+    "streaming": ["Amazon Prime"]
+  },
+  {
+    "id": "movie-129",
+    "title": "Studio Ghibli: The Wind Rises",
+    "year": 2013,
+    "genre": "Animation",
+    "mood": "make me think",
+    "runtime": 126,
+    "pitch": "The life of the engineer who designed Japan's WWII fighter planes. Miyazaki's most personal and morally complex film.",
+    "streaming": ["Netflix"]
+  },
+  {
+    "id": "movie-130",
+    "title": "Mid90s",
+    "year": 2018,
+    "genre": "Drama",
+    "mood": "chill",
+    "runtime": 85,
+    "pitch": "A 13-year-old finds belonging with a group of skaters in 90s LA. Jonah Hill's directorial debut, shot on 16mm. Nostalgic and tender.",
+    "streaming": ["Amazon Prime"]
+  },
+  {
+    "id": "movie-131",
+    "title": "Napoleon Dynamite",
+    "year": 2004,
+    "genre": "Comedy",
+    "mood": "make me laugh",
+    "runtime": 96,
+    "pitch": "An awkward Idaho teenager helps his friend run for class president. The dance scene is cinema's greatest underdog moment.",
+    "streaming": ["Disney+"]
+  },
+  {
+    "id": "movie-132",
+    "title": "Prisoners of the Ghostland",
+    "year": 2021,
+    "genre": "Action",
+    "mood": "intense",
+    "runtime": 103,
+    "pitch": "Nic Cage in a leather suit rigged with explosives in a post-apocalyptic Japan. It's exactly as unhinged as it sounds.",
+    "streaming": ["Amazon Prime"]
+  },
+  {
+    "id": "movie-133",
+    "title": "Sing Street",
+    "year": 2016,
+    "genre": "Musical",
+    "mood": "chill",
+    "runtime": 106,
+    "pitch": "A Dublin teenager starts a band to impress a girl in 1980s Ireland. The songs are genuinely great. John Carney's best.",
+    "streaming": ["Netflix"]
+  },
+  {
+    "id": "movie-134",
+    "title": "Never Let Me Go",
+    "year": 2010,
+    "genre": "Sci-Fi",
+    "mood": "make me think",
+    "runtime": 103,
+    "pitch": "Students at an idyllic English boarding school discover the horrifying purpose they were created for. Quiet devastation.",
+    "streaming": ["Amazon Prime"]
+  },
+  {
+    "id": "movie-135",
+    "title": "Deadpool",
+    "year": 2016,
+    "genre": "Action",
+    "mood": "make me laugh",
+    "runtime": 108,
+    "pitch": "A mercenary with accelerated healing becomes the world's most irritating superhero. Breaks the fourth wall and every R-rated boundary.",
+    "streaming": ["Disney+"]
+  },
+  {
+    "id": "movie-136",
+    "title": "The Lighthouse",
+    "year": 2019,
+    "genre": "Horror",
+    "mood": "intense",
+    "runtime": 109,
+    "pitch": "Two lighthouse keepers go mad on a remote island. Shot in black and white, square format. Dafoe and Pattinson screaming into the void.",
+    "streaming": ["Amazon Prime"]
+  },
+  {
+    "id": "movie-137",
+    "title": "Moonrise Kingdom",
+    "year": 2012,
+    "genre": "Comedy",
+    "mood": "chill",
+    "runtime": 94,
+    "pitch": "Two 12-year-olds run away together on a New England island. Wes Anderson's most tender film, somehow.",
+    "streaming": ["Disney+"]
+  },
+  {
+    "id": "movie-138",
+    "title": "The Lives of Others",
+    "year": 2006,
+    "genre": "Drama",
+    "mood": "make me think",
+    "runtime": 137,
+    "pitch": "A Stasi agent in East Berlin begins to sympathize with the couple he's spying on. The final line will stay with you forever.",
+    "streaming": ["Amazon Prime"]
+  },
+  {
+    "id": "movie-139",
+    "title": "Bottoms",
+    "year": 2023,
+    "genre": "Comedy",
+    "mood": "make me laugh",
+    "runtime": 91,
+    "pitch": "Two unpopular girls start a fight club to hook up with cheerleaders. Absurdist high school comedy that goes completely off the rails.",
+    "streaming": ["Amazon Prime"]
+  },
+  {
+    "id": "movie-140",
+    "title": "Civil War",
+    "year": 2024,
+    "genre": "Thriller",
+    "mood": "intense",
+    "runtime": 109,
+    "pitch": "War journalists cross a fractured America during a second civil war. Alex Garland makes you feel every bullet and moral compromise.",
+    "streaming": ["Apple TV+"]
+  },
+  {
+    "id": "movie-141",
+    "title": "Whisper of the Heart",
+    "year": 1995,
+    "genre": "Animation",
+    "mood": "chill",
+    "runtime": 111,
+    "pitch": "A bookish girl follows the trail of a mysterious boy through Tokyo's streets. Ghibli's most grounded and romantic coming-of-age.",
+    "streaming": ["Netflix"]
+  },
+  {
+    "id": "movie-142",
+    "title": "Shoplifters",
+    "year": 2018,
+    "genre": "Drama",
+    "mood": "make me think",
+    "runtime": 121,
+    "pitch": "A family of petty thieves in Tokyo takes in an abused child. Hirokazu Kore-eda asks what makes a family real.",
+    "streaming": ["Amazon Prime"]
+  },
+  {
+    "id": "movie-143",
+    "title": "Dodgeball",
+    "year": 2004,
+    "genre": "Comedy",
+    "mood": "make me laugh",
+    "runtime": 92,
+    "pitch": "A ragtag gym enters a dodgeball tournament to save their business. Ben Stiller's villain is peak absurdity.",
+    "streaming": ["Disney+"]
+  },
+  {
+    "id": "movie-144",
+    "title": "The Raid",
+    "year": 2011,
+    "genre": "Action",
+    "mood": "intense",
+    "runtime": 101,
+    "pitch": "A SWAT team is trapped in a building full of killers and must fight their way up. The most intense action film ever made. Indonesian.",
+    "streaming": ["Netflix"]
+  },
+  {
+    "id": "movie-145",
+    "title": "The Princess Bride",
+    "year": 1987,
+    "genre": "Adventure",
+    "mood": "chill",
+    "runtime": 98,
+    "pitch": "A fairy tale with fencing, giants, true love, and Inigo Montoya. Inconceivable that you haven't seen it.",
+    "streaming": ["Disney+"]
+  },
+  {
+    "id": "movie-146",
+    "title": "I'm Still Here",
+    "year": 2024,
+    "genre": "Drama",
+    "mood": "make me think",
+    "runtime": 135,
+    "pitch": "A Brazilian woman's husband is taken by the military dictatorship in the 1970s. She refuses to be silent. Fernanda Torres is extraordinary.",
+    "streaming": ["MUBI"]
+  },
+  {
+    "id": "movie-147",
+    "title": "Snatch",
+    "year": 2000,
+    "genre": "Comedy",
+    "mood": "make me laugh",
+    "runtime": 102,
+    "pitch": "A stolen diamond, bare-knuckle boxing, and Brad Pitt speaking incomprehensible Irish. Guy Ritchie's tightest, funniest script.",
+    "streaming": ["Amazon Prime"]
+  },
+  {
+    "id": "movie-148",
+    "title": "Under the Skin",
+    "year": 2013,
+    "genre": "Sci-Fi",
+    "mood": "intense",
+    "runtime": 108,
+    "pitch": "Scarlett Johansson drives around Scotland picking up men. She's not human. Nothing will prepare you for this film.",
+    "streaming": ["MUBI"]
+  },
+  {
+    "id": "movie-149",
+    "title": "The Boy and the Heron",
+    "year": 2023,
+    "genre": "Animation",
+    "mood": "chill",
+    "runtime": 124,
+    "pitch": "A grieving boy follows a mysterious heron into a fantastical world. Miyazaki's farewell film — strange, beautiful, deeply personal.",
+    "streaming": ["Netflix"]
+  },
+  {
+    "id": "movie-150",
+    "title": "A Separation",
+    "year": 2011,
+    "genre": "Drama",
+    "mood": "make me think",
+    "runtime": 123,
+    "pitch": "An Iranian couple's divorce unravels into a moral crisis where everyone is right and everyone is wrong. Farhadi's masterpiece.",
+    "streaming": ["Amazon Prime"]
+  }
+]
