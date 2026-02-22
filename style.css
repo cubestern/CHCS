@@ -1561,20 +1561,22 @@ button {
 
 .result-action-btn {
   flex: 1;
-  display: inline-flex;
+  display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 10px 16px;
+  gap: 5px;
+  padding: 10px 6px;
   background: var(--bg-card);
   border: 1px solid var(--border);
-  border-radius: var(--radius-pill);
-  font-size: 0.8rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.68rem;
   font-weight: 600;
   font-family: var(--font-body);
   color: var(--text-secondary);
   cursor: pointer;
   transition: all 0.2s;
+  line-height: 1.2;
 }
 
 .result-action-btn:hover {
@@ -1584,8 +1586,8 @@ button {
 }
 
 .result-action-btn svg {
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
   flex-shrink: 0;
 }
 

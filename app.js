@@ -126,21 +126,15 @@ class CHCSApp {
   // ══════════════════════════════════════════════════════════
 
   renderHome() {
-    const picks = [
-      { cat: 'food',   title: 'Cooking Adventure', desc: 'Try a random recipe tonight or plan your whole week.' },
-      { cat: 'movies', title: 'Movie Night',       desc: 'Spin the wheel and find something great to watch.' },
-      { cat: 'food',   title: 'Surprise Dinner',   desc: 'A gentle nudge towards something delicious.' },
-      { cat: 'movies', title: 'Cinema Roulette',   desc: 'Let fate pick your evening entertainment.' },
-    ];
-    const pick = picks[Math.floor(Date.now() / 86400000) % picks.length];
+    const dailyMeal = MEALS[Math.floor(Date.now() / 86400000) % MEALS.length];
 
     document.getElementById('mainContent').innerHTML = `
       <section class="view" style="animation:fadeInUp .3s ease">
         <div class="hero-card">
-          <span class="hero-label">TODAY'S PICK</span>
-          <h2 class="hero-title">${pick.title}</h2>
-          <p class="hero-desc">${pick.desc}</p>
-          <button class="hero-btn" onclick="app.${pick.cat === 'food' ? 'showFood' : 'showMovies'}()">Start now &rarr;</button>
+          <span class="hero-label">Surprise dinner</span>
+          <h2 class="hero-title">${dailyMeal.name}</h2>
+          <p class="hero-desc">${dailyMeal.description}</p>
+          <button class="hero-btn" onclick="app.showDailyMeal()">Show me &rarr;</button>
         </div>
         <div class="stats-row">
           <div class="stat-card"><span class="stat-number">${this.stats.choices}</span><span class="stat-label">Choices made</span></div>
@@ -167,6 +161,12 @@ class CHCSApp {
   }
 
   // ── Food: mood selection ──────────────────────────────
+  showDailyMeal() {
+    this.foodMode = 'tonight';
+    this.currentMeal = MEALS[Math.floor(Date.now() / 86400000) % MEALS.length];
+    this._renderFoodResult(this.currentMeal);
+  }
+
   showFood() {
     this.usedMealIds.clear();
     this.selectedFoodMood = localStorage.getItem('chcs_food_mood_last') || null;
