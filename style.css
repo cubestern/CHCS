@@ -1110,14 +1110,14 @@ button {
 }
 
 .swipe-hint-accept {
-  right: 16px;
+  left: 16px;
   color: var(--teal);
   background: var(--teal-soft);
   border: 2px solid rgba(27, 107, 109, 0.25);
 }
 
 .swipe-hint-reject {
-  left: 16px;
+  right: 16px;
   color: #B8443A;
   background: rgba(184, 68, 58, 0.08);
   border: 2px solid rgba(184, 68, 58, 0.25);
