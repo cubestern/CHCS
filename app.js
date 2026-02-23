@@ -620,13 +620,7 @@ class CHCSApp {
     if (mood && mood !== 'surprise') localStorage.setItem('chcs_playlist_mood_last', mood);
     else localStorage.removeItem('chcs_playlist_mood_last');
     this.currentPlaylist = this._pickPlaylist(mood === 'surprise' ? null : mood);
-    this._renderPlaylistResult(this.currentPlaylist);
-  }
-
-  pickAnotherPlaylist() {
-    this.usedPlaylistIds.add(this.currentPlaylist.id);
-    this.currentPlaylist = this._pickPlaylist(this.selectedPlaylistMood === 'surprise' ? null : this.selectedPlaylistMood);
-    this._renderPlaylistResult(this.currentPlaylist);
+    this.renderPlaylistCard();
   }
 
   _renderMusicMoodScreen() {
@@ -662,36 +656,53 @@ class CHCSApp {
       </section>`;
   }
 
-  _renderPlaylistResult(p) {
-    const moodEmoji = { chill: '😌', energy: '⚡', focus: '🎯', melancholy: '🌧️' };
+  renderPlaylistCard() {
+    const p = this.currentPlaylist;
+    const moodKey = this.selectedPlaylistMood === 'surprise' ? null : this.selectedPlaylistMood;
+    const next = this._pickPlaylist(moodKey);
     document.getElementById('mainContent').innerHTML = `
       <section class="view" style="animation:fadeInUp .3s ease">
         ${this._backBtn('app.showMusic()')}
-        <div class="result-card result-music">
-          <p class="result-label">Now listening to</p>
-          <h2 class="result-title">${p.name}</h2>
-          <div class="result-emoji">${moodEmoji[p.mood] || '🎵'}</div>
-          <div class="result-meta">by ${p.curator} · ${p.trackCount} tracks</div>
-          <div class="result-divider"></div>
-          <div class="result-details">
-            <p>"${p.vibe}"</p>
+        <div class="swipe-stack">
+          ${next && next.id !== p.id ? `<div class="swipe-card swipe-card-behind">${this._swipePlaylistInner(next)}</div>` : ''}
+          <div class="swipe-card swipe-card-front" id="swipeCard">
+            ${this._swipeHints()}
+            ${this._swipePlaylistInner(p)}
           </div>
-          <div class="result-tags">
-            ${p.tags.map(t => `<span class="streaming-badge">${t}</span>`).join('')}
-          </div>
-          <div class="result-divider"></div>
-          <div class="result-branding">CHCS</div>
         </div>
-        <div class="result-actions">
-          <a class="result-action-btn spotify-open-btn" href="${p.spotifyUrl}" target="_blank" rel="noopener noreferrer">
-            <svg viewBox="0 0 24 24" fill="currentColor" stroke="none" width="16" height="16"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
+        <div class="card-actions">
+          <button class="action-btn action-reject" onclick="app.rejectPlaylist()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            Nah, next
+          </button>
+          <button class="action-btn action-accept" onclick="app.acceptPlaylist()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
             Open in Spotify
-          </a>
-          <button class="result-action-btn" onclick="app.pickAnotherPlaylist()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.95"/></svg> Pick again
           </button>
         </div>
       </section>`;
+    this._initSwipe(document.getElementById('swipeCard'), () => this.acceptPlaylist(), () => this.rejectPlaylist());
+  }
+
+  _swipePlaylistInner(p) {
+    const moodEmoji = { chill: '😌', energy: '⚡', focus: '🎯', melancholy: '🌧️' };
+    return `
+      <div class="swipe-card-emoji">${moodEmoji[p.mood] || '🎵'}</div>
+      <h3 class="swipe-card-title">${p.name}</h3>
+      <div class="swipe-card-meta">by ${p.curator} · ${p.trackCount} tracks</div>
+      <p class="swipe-card-desc">"${p.vibe}"</p>
+      <div class="swipe-card-streaming">${p.tags.slice(0, 3).map(t => `<span class="streaming-badge">${t}</span>`).join('')}</div>`;
+  }
+
+  rejectPlaylist() {
+    this.usedPlaylistIds.add(this.currentPlaylist.id);
+    this.currentPlaylist = this._pickPlaylist(this.selectedPlaylistMood === 'surprise' ? null : this.selectedPlaylistMood);
+    this.renderPlaylistCard();
+  }
+
+  acceptPlaylist() {
+    window.open(this.currentPlaylist.spotifyUrl, '_blank', 'noopener,noreferrer');
+    this._toast('Opening in Spotify 🎵');
   }
 
   // ── Shopping checklist ─────────────────────────────────
