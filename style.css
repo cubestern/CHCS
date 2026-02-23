@@ -1483,6 +1483,24 @@ button {
   background: linear-gradient(90deg, var(--teal), #6B5CA5);
 }
 
+.result-music::before {
+  background: linear-gradient(90deg, #1DB954, #147a37);
+}
+
+.result-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+  padding: 8px 0 4px;
+}
+
+.spotify-open-btn {
+  color: #1DB954 !important;
+  text-decoration: none;
+  border-color: rgba(29, 185, 84, 0.4) !important;
+}
+
 .result-label {
   font-size: 0.65rem;
   font-weight: 700;

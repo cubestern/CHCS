@@ -8,7 +8,7 @@
 const CATEGORIES = {
   food:   { id: 'food',   name: 'Food',   question: 'What should I eat?',      desc: 'Tonight or plan your whole week',    icon: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>`, color: '#FF6B35', cssClass: 'cat-food',   active: true },
   movies: { id: 'movies', name: 'Movies', question: 'What should I watch?',    desc: 'Spin for a random movie pick',        icon: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="2" y1="7" x2="7" y2="7"/><line x1="2" y1="17" x2="7" y2="17"/><line x1="17" y1="7" x2="22" y2="7"/><line x1="17" y1="17" x2="22" y2="17"/></svg>`, color: '#E53935', cssClass: 'cat-movies', active: true },
-  music:  { id: 'music',  name: 'Music',  question: 'What should I listen to?', desc: 'Curated playlists for every mood',     icon: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>`, color: '#1DB954', cssClass: 'cat-music',  active: false },
+  music:  { id: 'music',  name: 'Music',  question: 'What should I listen to?', desc: 'Curated playlists for every mood',     icon: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>`, color: '#1DB954', cssClass: 'cat-music',  active: true },
   books:  { id: 'books',  name: 'Books',  question: 'What should I read?',      desc: 'Random book recommendations',         icon: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>`, color: '#2196F3', cssClass: 'cat-books',  active: false },
   travel: { id: 'travel', name: 'Travel', question: 'Where should I go?',       desc: 'Random destinations worldwide',       icon: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>`, color: '#00BCD4', cssClass: 'cat-travel', active: false },
   other:  { id: 'other',  name: 'Other',  question: 'Help me choose',           desc: 'Custom options to randomize',         icon: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>`, color: '#9C27B0', cssClass: 'cat-other',  active: false }
@@ -38,6 +38,9 @@ class CHCSApp {
     this.currentMovie = null;
     this.usedMealIds = new Set();
     this.usedMovieIds = new Set();
+    this.currentPlaylist = null;
+    this.selectedPlaylistMood = null;
+    this.usedPlaylistIds = new Set();
     this.isSpinning = false;
     this.checkedItems = new Set(JSON.parse(localStorage.getItem('chcs_checked') || '[]'));
     document.documentElement.setAttribute('data-theme', this.theme);
@@ -144,7 +147,7 @@ class CHCSApp {
         <div class="category-grid stagger-in">
           ${Object.values(CATEGORIES).map(c => `
             <div class="category-card ${c.cssClass}${c.active ? '' : ' coming-soon'}"
-                 ${c.active ? `onclick="app.${c.id === 'food' ? 'showFood' : 'showMovies'}()"` : ''}>
+                 ${c.active ? `onclick="app.${c.id === 'food' ? 'showFood' : c.id === 'movies' ? 'showMovies' : 'showMusic'}()"` : ''}>
               <div class="category-icon">${c.icon}</div>
               <h4>${c.name}</h4>
               <p>${c.active ? c.question : ''}</p>
@@ -596,6 +599,99 @@ class CHCSApp {
         </div>
       </section>`;
     this._buildShareCard('movie', m);
+  }
+
+  // ── Music: mood selection ──────────────────────────────
+  showMusic() {
+    this.usedPlaylistIds.clear();
+    this.selectedPlaylistMood = localStorage.getItem('chcs_playlist_mood_last') || null;
+    this._renderMusicMoodScreen();
+  }
+
+  _pickPlaylist(mood) {
+    let pool = PLAYLISTS.filter(p => !this.usedPlaylistIds.has(p.id));
+    if (mood) pool = pool.filter(p => p.mood === mood);
+    if (pool.length === 0) { this.usedPlaylistIds.clear(); return this._pickPlaylist(mood); }
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
+
+  selectPlaylistMood(mood) {
+    this.selectedPlaylistMood = mood;
+    if (mood && mood !== 'surprise') localStorage.setItem('chcs_playlist_mood_last', mood);
+    else localStorage.removeItem('chcs_playlist_mood_last');
+    this.currentPlaylist = this._pickPlaylist(mood === 'surprise' ? null : mood);
+    this._renderPlaylistResult(this.currentPlaylist);
+  }
+
+  pickAnotherPlaylist() {
+    this.usedPlaylistIds.add(this.currentPlaylist.id);
+    this.currentPlaylist = this._pickPlaylist(this.selectedPlaylistMood === 'surprise' ? null : this.selectedPlaylistMood);
+    this._renderPlaylistResult(this.currentPlaylist);
+  }
+
+  _renderMusicMoodScreen() {
+    const moods = [
+      { key: 'chill',      emoji: '😌', label: 'Chill',      desc: 'Relaxed & mellow' },
+      { key: 'energy',     emoji: '⚡', label: 'Energy',     desc: 'High-octane & pumping' },
+      { key: 'focus',      emoji: '🎯', label: 'Focus',      desc: 'Concentration mode' },
+      { key: 'melancholy', emoji: '🌧️', label: 'Melancholy', desc: 'Feels & introspection' },
+    ];
+    const last = this.selectedPlaylistMood;
+    document.getElementById('mainContent').innerHTML = `
+      <section class="view" style="animation:fadeInUp .3s ease">
+        ${this._backBtn('app.renderHome()')}
+        <div class="mood-screen">
+          <div class="mood-header">
+            <span class="mood-header-icon">🎵</span>
+            <h2>What's the mood?</h2>
+            <p>Pick a vibe and we'll find a playlist</p>
+          </div>
+          <div class="mood-grid stagger-in">
+            ${moods.map(m => `
+              <button class="mood-pill${last===m.key?' active':''}" onclick="app.selectPlaylistMood('${m.key}')">
+                <span class="mood-pill-emoji">${m.emoji}</span>
+                <span class="mood-pill-label">${m.label}</span>
+                <span class="mood-pill-desc">${m.desc}</span>
+              </button>`).join('')}
+          </div>
+          <button class="mood-surprise" onclick="app.selectPlaylistMood('surprise')">
+            <span class="mood-pill-emoji">🎲</span>
+            <span class="mood-pill-label">Surprise me</span>
+          </button>
+        </div>
+      </section>`;
+  }
+
+  _renderPlaylistResult(p) {
+    const moodEmoji = { chill: '😌', energy: '⚡', focus: '🎯', melancholy: '🌧️' };
+    document.getElementById('mainContent').innerHTML = `
+      <section class="view" style="animation:fadeInUp .3s ease">
+        ${this._backBtn('app.showMusic()')}
+        <div class="result-card result-music">
+          <p class="result-label">Now listening to</p>
+          <h2 class="result-title">${p.name}</h2>
+          <div class="result-emoji">${moodEmoji[p.mood] || '🎵'}</div>
+          <div class="result-meta">by ${p.curator} · ${p.trackCount} tracks</div>
+          <div class="result-divider"></div>
+          <div class="result-details">
+            <p>"${p.vibe}"</p>
+          </div>
+          <div class="result-tags">
+            ${p.tags.map(t => `<span class="streaming-badge">${t}</span>`).join('')}
+          </div>
+          <div class="result-divider"></div>
+          <div class="result-branding">CHCS</div>
+        </div>
+        <div class="result-actions">
+          <a class="result-action-btn spotify-open-btn" href="${p.spotifyUrl}" target="_blank" rel="noopener noreferrer">
+            <svg viewBox="0 0 24 24" fill="currentColor" stroke="none" width="16" height="16"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
+            Open in Spotify
+          </a>
+          <button class="result-action-btn" onclick="app.pickAnotherPlaylist()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.95"/></svg> Pick again
+          </button>
+        </div>
+      </section>`;
   }
 
   // ── Shopping checklist ─────────────────────────────────
