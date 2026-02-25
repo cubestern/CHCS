@@ -887,21 +887,28 @@ class CHCSApp {
 
   _doSearch(q) {
     const results = document.getElementById('searchResults');
-    if (!q.trim()) { results.innerHTML = '<p class="search-hint">Start typing to explore meals and movies.</p>'; return; }
+    if (!q.trim()) { results.innerHTML = '<p class="search-hint">Start typing to explore meals, movies and playlists.</p>'; return; }
     const term = q.toLowerCase();
     const meals = MEALS.filter(m => m.name.toLowerCase().includes(term) || m.cuisine.toLowerCase().includes(term) || (m.description && m.description.toLowerCase().includes(term)));
     const movies = MOVIES.filter(m => m.title.toLowerCase().includes(term) || m.genre.toLowerCase().includes(term) || (m.pitch && m.pitch.toLowerCase().includes(term)));
-    if (!meals.length && !movies.length) { results.innerHTML = '<p class="search-hint">No results found.</p>'; return; }
+    const playlists = PLAYLISTS.filter(p => p.name.toLowerCase().includes(term) || p.mood.toLowerCase().includes(term) || (p.vibe && p.vibe.toLowerCase().includes(term)) || p.tags.some(t => t.toLowerCase().includes(term)));
+    if (!meals.length && !movies.length && !playlists.length) { results.innerHTML = '<p class="search-hint">No results found.</p>'; return; }
+    const gap = (prev) => prev ? 'margin-top:20px' : '';
     results.innerHTML = `
       ${meals.length ? `<h4 class="search-group-label">Meals (${meals.length})</h4>${meals.map(m => `
         <div class="search-result-item" onclick="app.currentMeal=MEALS.find(x=>x.id===${JSON.stringify(m.id)});app.foodMode='tonight';app._renderFoodResult(app.currentMeal)">
           <div class="sri-title">${m.name}</div>
           <div class="sri-meta">${m.cuisine} · ${m.effort} · ${m.prepTime} min</div>
         </div>`).join('')}` : ''}
-      ${movies.length ? `<h4 class="search-group-label" style="margin-top:${meals.length ? '20px' : '0'}">Movies (${movies.length})</h4>${movies.map(m => `
+      ${movies.length ? `<h4 class="search-group-label" style="${gap(meals.length)}">Movies (${movies.length})</h4>${movies.map(m => `
         <div class="search-result-item" onclick="app.currentMovie=MOVIES.find(x=>x.id===${JSON.stringify(m.id)});app._renderMovieResult(app.currentMovie)">
           <div class="sri-title">${m.title}</div>
           <div class="sri-meta">${m.year} · ${m.genre} · ${m.runtime} min</div>
+        </div>`).join('')}` : ''}
+      ${playlists.length ? `<h4 class="search-group-label" style="${gap(meals.length || movies.length)}">Playlists (${playlists.length})</h4>${playlists.map(p => `
+        <div class="search-result-item" onclick="app.currentPlaylist=PLAYLISTS.find(x=>x.id===${JSON.stringify(p.id)});app.selectedPlaylistMood=null;app.renderPlaylistCard()">
+          <div class="sri-title">${p.name}</div>
+          <div class="sri-meta">${p.mood} · by ${p.curator} · ${p.trackCount} tracks</div>
         </div>`).join('')}` : ''}`;
   }
 
