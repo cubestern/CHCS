@@ -155,6 +155,7 @@ class CHCSApp {
             </div>
           `).join('')}
         </div>
+        <p class="home-footer-hint">New features and suggestions added weekly.</p>
       </section>`;
     this._updateNav('home');
     if (this._statsDirty) {
