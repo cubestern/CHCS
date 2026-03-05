@@ -10,7 +10,7 @@ const CATEGORIES = {
   movies: { id: 'movies', name: 'Movies', question: 'What should I watch?',    desc: 'Spin for a random movie pick',        icon: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="2" y1="7" x2="7" y2="7"/><line x1="2" y1="17" x2="7" y2="17"/><line x1="17" y1="7" x2="22" y2="7"/><line x1="17" y1="17" x2="22" y2="17"/></svg>`, color: '#E53935', cssClass: 'cat-movies', active: true },
   music:  { id: 'music',  name: 'Music',  question: 'What should I listen to?', desc: 'Curated playlists for every mood',     icon: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>`, color: '#1DB954', cssClass: 'cat-music',  active: true },
   books:  { id: 'books',  name: 'Books',  question: 'What should I read?',      desc: 'Random book recommendations',         icon: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>`, color: '#2196F3', cssClass: 'cat-books',  active: false },
-  travel: { id: 'travel', name: 'Travel', question: 'Where should I go?',       desc: 'Random destinations worldwide',       icon: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>`, color: '#00BCD4', cssClass: 'cat-travel', active: false },
+  travel: { id: 'travel', name: 'Travel', question: 'Where should I go?',       desc: 'Random destinations worldwide',       icon: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>`, color: '#00BCD4', cssClass: 'cat-travel', active: true },
   other:  { id: 'other',  name: 'Other',  question: 'Help me choose',           desc: 'Custom options to randomize',         icon: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>`, color: '#9C27B0', cssClass: 'cat-other',  active: false }
 };
 
@@ -41,6 +41,11 @@ class CHCSApp {
     this.currentPlaylist = null;
     this.selectedPlaylistMood = null;
     this.usedPlaylistIds = new Set();
+    this.currentTravel = null;
+    this.selectedTravelMood = null;
+    this.selectedContinents = [];
+    this.travelFilters = { mood: null, continents: null };
+    this.usedTravelIds = new Set();
     this.isSpinning = false;
     this.checkedItems = new Set(JSON.parse(localStorage.getItem('chcs_checked') || '[]'));
     document.documentElement.setAttribute('data-theme', this.theme);
@@ -147,7 +152,7 @@ class CHCSApp {
         <div class="category-grid stagger-in">
           ${Object.values(CATEGORIES).map(c => `
             <div class="category-card ${c.cssClass}${c.active ? '' : ' coming-soon'}"
-                 ${c.active ? `onclick="app.${c.id === 'food' ? 'showFood' : c.id === 'movies' ? 'showMovies' : 'showMusic'}()"` : ''}>
+                 ${c.active ? `onclick="app.${c.id === 'food' ? 'showFood' : c.id === 'movies' ? 'showMovies' : c.id === 'travel' ? 'showTravel' : 'showMusic'}()"` : ''}>
               <div class="category-icon">${c.icon}</div>
               <h4>${c.name}</h4>
               <p>${c.active ? c.question : ''}</p>
@@ -706,6 +711,189 @@ class CHCSApp {
     this._toast('Opening in Spotify 🎵');
   }
 
+  // ── Travel: mood + continent selection ────────────────
+  showTravel() {
+    this.usedTravelIds.clear();
+    this.selectedTravelMood = localStorage.getItem('chcs_travel_mood_last') || null;
+    this.selectedContinents = JSON.parse(localStorage.getItem('chcs_travel_continents') || '[]');
+    this._renderTravelMoodScreen();
+  }
+
+  _applyTravelMood(mood) {
+    this.selectedTravelMood = mood;
+    if (mood && mood !== 'surprise') localStorage.setItem('chcs_travel_mood_last', mood);
+    else localStorage.removeItem('chcs_travel_mood_last');
+    this.travelFilters = { mood: null, continents: this.selectedContinents.length ? this.selectedContinents : null };
+    if (mood === 'culture')   this.travelFilters.mood = 'culture';
+    else if (mood === 'adventure') this.travelFilters.mood = 'adventure';
+    else if (mood === 'unwind')    this.travelFilters.mood = 'unwind';
+    else if (mood === 'romance')   this.travelFilters.mood = 'romance';
+    else if (mood === 'cozy')      this.travelFilters.mood = 'cozy';
+    // 'surprise' → no mood filter
+  }
+
+  toggleContinent(continent) {
+    const idx = this.selectedContinents.indexOf(continent);
+    if (idx >= 0) this.selectedContinents.splice(idx, 1);
+    else this.selectedContinents.push(continent);
+    localStorage.setItem('chcs_travel_continents', JSON.stringify(this.selectedContinents));
+    document.querySelectorAll('.continent-pill').forEach(b => {
+      const c = b.getAttribute('data-continent');
+      b.classList.toggle('active', this.selectedContinents.includes(c));
+    });
+    const hint = document.getElementById('continent-hint');
+    if (hint) hint.textContent = this.selectedContinents.length ? `${this.selectedContinents.length} continent${this.selectedContinents.length > 1 ? 's' : ''} selected` : 'All continents';
+  }
+
+  selectTravelMood(mood) {
+    this._applyTravelMood(mood);
+    this.currentTravel = this._pickTravel();
+    this.renderTravelCard();
+  }
+
+  _pickTravel() {
+    let pool = TRAVEL.filter(t => !this.usedTravelIds.has(t.id));
+    const f = this.travelFilters;
+    if (f.mood) pool = pool.filter(t => t.mood === f.mood);
+    if (f.continents && f.continents.length) pool = pool.filter(t => f.continents.includes(t.continent));
+    // Fallback: relax mood only — continent filter is always respected
+    if (pool.length < 3 && f.mood) {
+      let relaxed = TRAVEL.filter(t => !this.usedTravelIds.has(t.id));
+      if (f.continents && f.continents.length) relaxed = relaxed.filter(t => f.continents.includes(t.continent));
+      if (relaxed.length >= 1) return relaxed[Math.floor(Math.random() * relaxed.length)];
+    }
+    if (pool.length === 0) { this.usedTravelIds.clear(); return this._pickTravel(); }
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
+
+  _renderTravelMoodScreen() {
+    const moods = [
+      { key: 'culture',   emoji: '🏛️', label: 'Culture',    desc: 'History, cities & art' },
+      { key: 'adventure', emoji: '🧗', label: 'Adventure',  desc: 'Hiking, wild & roads' },
+      { key: 'unwind',    emoji: '🌊', label: 'Unwind',     desc: 'Beach, nature & chill' },
+      { key: 'romance',   emoji: '💑', label: 'Romance',    desc: 'Dreamy & beautiful' },
+      { key: 'cozy',      emoji: '🧣', label: 'Cozy',       desc: 'Gezellig & close to home' },
+    ];
+    const continents = ['Europe', 'Asia', 'Africa', 'North America', 'South America', 'Oceania'];
+    const last = this.selectedTravelMood;
+    const sel = this.selectedContinents;
+    document.getElementById('mainContent').innerHTML = `
+      <section class="view" style="animation:fadeInUp .3s ease">
+        ${this._backBtn('app.renderHome()')}
+        <div class="mood-screen">
+          <div class="mood-header">
+            <span class="mood-header-icon">✈️</span>
+            <h2>Where do you want to go?</h2>
+            <p>Pick a vibe and we'll find a destination</p>
+          </div>
+          <div class="mood-grid stagger-in">
+            ${moods.map(m => `
+              <button class="mood-pill${last===m.key?' active':''}" onclick="app.selectTravelMood('${m.key}')">
+                <span class="mood-pill-emoji">${m.emoji}</span>
+                <span class="mood-pill-label">${m.label}</span>
+                <span class="mood-pill-desc">${m.desc}</span>
+              </button>`).join('')}
+          </div>
+          <div class="continent-filter">
+            <div class="continent-filter-header">
+              <span class="continent-filter-label">Filter by continent</span>
+              <span class="continent-hint" id="continent-hint">${sel.length ? `${sel.length} continent${sel.length>1?'s':''} selected` : 'All continents'}</span>
+            </div>
+            <div class="continent-pills">
+              ${continents.map(c => `
+                <button class="continent-pill${sel.includes(c)?' active':''}" data-continent="${c}" onclick="app.toggleContinent('${c}')">${c}</button>`).join('')}
+            </div>
+          </div>
+          <button class="mood-surprise" onclick="app.selectTravelMood('surprise')">
+            <span class="mood-pill-emoji">🎲</span>
+            <span class="mood-pill-label">Surprise me</span>
+          </button>
+        </div>
+      </section>`;
+  }
+
+  renderTravelCard() {
+    const t = this.currentTravel;
+    const next = this._pickTravel();
+    document.getElementById('mainContent').innerHTML = `
+      <section class="view" style="animation:fadeInUp .3s ease">
+        ${this._backBtn('app.showTravel()')}
+        <div class="swipe-stack">
+          ${next && next.id !== t.id ? `<div class="swipe-card swipe-card-behind">${this._swipeTravelInner(next)}</div>` : ''}
+          <div class="swipe-card swipe-card-front" id="swipeCard">
+            ${this._swipeHints()}
+            ${this._swipeTravelInner(t)}
+          </div>
+        </div>
+        <div class="card-actions">
+          <button class="action-btn action-reject" onclick="app.rejectTravel()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            Nah, next
+          </button>
+          <button class="action-btn action-accept" onclick="app.acceptTravel()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            I'm going!
+          </button>
+        </div>
+      </section>`;
+    this._initSwipe(document.getElementById('swipeCard'), () => this.acceptTravel(), () => this.rejectTravel());
+  }
+
+  _swipeTravelInner(t) {
+    const typeEmoji = { 'city trip': '🏙️', 'nature': '🌲', 'beach & coast': '🏖️', 'road trip': '🚗', 'day trip': '🚶' };
+    const budgetLabel = { budget: '€', moderate: '€€', expensive: '€€€' };
+    return `
+      <div class="swipe-card-emoji">${typeEmoji[t.type] || '✈️'}</div>
+      <h3 class="swipe-card-title">${t.name}</h3>
+      <div class="swipe-card-meta">${t.country} · ${t.duration}</div>
+      <div class="swipe-card-meta">${t.type} · ${budgetLabel[t.budget] || t.budget}</div>
+      <p class="swipe-card-desc">"${t.pitch}"</p>
+      <div class="swipe-card-badge">🗺️ ${t.continent}</div>`;
+  }
+
+  rejectTravel() {
+    this.usedTravelIds.add(this.currentTravel.id);
+    this.currentTravel = this._pickTravel();
+    this.renderTravelCard();
+  }
+
+  acceptTravel() {
+    this.recordChoice();
+    this.usedTravelIds.add(this.currentTravel.id);
+    this._renderTravelResult(this.currentTravel);
+  }
+
+  _renderTravelResult(t) {
+    const typeEmoji = { 'city trip': '🏙️', 'nature': '🌲', 'beach & coast': '🏖️', 'road trip': '🚗', 'day trip': '🚶' };
+    const budgetLabel = { budget: 'Budget (€)', moderate: 'Moderate (€€)', expensive: 'Splurge (€€€)' };
+    const moodLabel = { culture: '🏛️ Culture', adventure: '🧗 Adventure', unwind: '🌊 Unwind', romance: '💑 Romance', cozy: '🧣 Cozy' };
+    document.getElementById('mainContent').innerHTML = `
+      <section class="view" style="animation:fadeInUp .3s ease">
+        ${this._backBtn('app.renderHome()')}
+        <div class="result-card result-travel">
+          <p class="result-label">Next stop</p>
+          <h2 class="result-title">${t.name}</h2>
+          <div class="result-emoji">${typeEmoji[t.type] || '✈️'}</div>
+          <div class="result-meta">${t.country} · ${t.continent}</div>
+          <div class="result-meta">${t.type} · ${t.duration}</div>
+          <div class="result-divider"></div>
+          <div class="result-details">
+            <p>💰 ${budgetLabel[t.budget] || t.budget}</p>
+            <p>📅 Best in: ${t.best_season}</p>
+            <p>${moodLabel[t.mood] || t.mood}</p>
+          </div>
+          <div class="result-divider"></div>
+          <div class="result-branding">CHCS</div>
+        </div>
+        <div class="result-actions">
+          ${this._favBtn('travel', t.id)}
+          <button class="result-action-btn" onclick="app.rejectTravel();app.showTravel();">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.95"/></svg> Pick again
+          </button>
+        </div>
+      </section>`;
+  }
+
   // ── Shopping checklist ─────────────────────────────────
   toggleCheck(item) {
     if (this.checkedItems.has(item)) this.checkedItems.delete(item);
@@ -876,10 +1064,10 @@ class CHCSApp {
           <h2 class="section-title" style="margin-bottom:16px">Search</h2>
           <div class="search-input-wrap">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-            <input type="text" class="search-input" id="searchInput" placeholder="Meals, movies…" oninput="app._doSearch(this.value)" autofocus>
+            <input type="text" class="search-input" id="searchInput" placeholder="Meals, movies, destinations…" oninput="app._doSearch(this.value)" autofocus>
           </div>
           <div class="search-results" id="searchResults">
-            <p class="search-hint">Start typing to explore meals and movies.</p>
+            <p class="search-hint">Start typing to explore meals, movies, playlists and destinations.</p>
           </div>
         </div>
       </section>`;
@@ -887,28 +1075,34 @@ class CHCSApp {
 
   _doSearch(q) {
     const results = document.getElementById('searchResults');
-    if (!q.trim()) { results.innerHTML = '<p class="search-hint">Start typing to explore meals, movies and playlists.</p>'; return; }
+    if (!q.trim()) { results.innerHTML = '<p class="search-hint">Start typing to explore meals, movies, playlists and destinations.</p>'; return; }
     const term = q.toLowerCase();
-    const meals = MEALS.filter(m => m.name.toLowerCase().includes(term) || m.cuisine.toLowerCase().includes(term) || (m.description && m.description.toLowerCase().includes(term)));
-    const movies = MOVIES.filter(m => m.title.toLowerCase().includes(term) || m.genre.toLowerCase().includes(term) || (m.pitch && m.pitch.toLowerCase().includes(term)));
+    const meals     = MEALS.filter(m => m.name.toLowerCase().includes(term) || m.cuisine.toLowerCase().includes(term) || (m.description && m.description.toLowerCase().includes(term)));
+    const movies    = MOVIES.filter(m => m.title.toLowerCase().includes(term) || m.genre.toLowerCase().includes(term) || (m.pitch && m.pitch.toLowerCase().includes(term)));
     const playlists = PLAYLISTS.filter(p => p.name.toLowerCase().includes(term) || p.mood.toLowerCase().includes(term) || (p.vibe && p.vibe.toLowerCase().includes(term)) || p.tags.some(t => t.toLowerCase().includes(term)));
-    if (!meals.length && !movies.length && !playlists.length) { results.innerHTML = '<p class="search-hint">No results found.</p>'; return; }
+    const travels   = TRAVEL.filter(t => t.name.toLowerCase().includes(term) || t.country.toLowerCase().includes(term) || t.continent.toLowerCase().includes(term) || t.type.toLowerCase().includes(term) || (t.pitch && t.pitch.toLowerCase().includes(term)));
+    if (!meals.length && !movies.length && !playlists.length && !travels.length) { results.innerHTML = '<p class="search-hint">No results found.</p>'; return; }
     const gap = (prev) => prev ? 'margin-top:20px' : '';
     results.innerHTML = `
       ${meals.length ? `<h4 class="search-group-label">Meals (${meals.length})</h4>${meals.map(m => `
-        <div class="search-result-item" onclick="app.currentMeal=MEALS.find(x=>x.id===${JSON.stringify(m.id)});app.foodMode='tonight';app._renderFoodResult(app.currentMeal)">
+        <div class="search-result-item" onclick="app._openMeal('${m.id}')">
           <div class="sri-title">${m.name}</div>
           <div class="sri-meta">${m.cuisine} · ${m.effort} · ${m.prepTime} min</div>
         </div>`).join('')}` : ''}
       ${movies.length ? `<h4 class="search-group-label" style="${gap(meals.length)}">Movies (${movies.length})</h4>${movies.map(m => `
-        <div class="search-result-item" onclick="app.currentMovie=MOVIES.find(x=>x.id===${JSON.stringify(m.id)});app._renderMovieResult(app.currentMovie)">
+        <div class="search-result-item" onclick="app._openMovie('${m.id}')">
           <div class="sri-title">${m.title}</div>
           <div class="sri-meta">${m.year} · ${m.genre} · ${m.runtime} min</div>
         </div>`).join('')}` : ''}
       ${playlists.length ? `<h4 class="search-group-label" style="${gap(meals.length || movies.length)}">Playlists (${playlists.length})</h4>${playlists.map(p => `
-        <div class="search-result-item" onclick="app.currentPlaylist=PLAYLISTS.find(x=>x.id===${JSON.stringify(p.id)});app.selectedPlaylistMood=null;app.renderPlaylistCard()">
+        <div class="search-result-item" onclick="app._openPlaylist('${p.id}')">
           <div class="sri-title">${p.name}</div>
           <div class="sri-meta">${p.mood} · by ${p.curator} · ${p.trackCount} tracks</div>
+        </div>`).join('')}` : ''}
+      ${travels.length ? `<h4 class="search-group-label" style="${gap(meals.length || movies.length || playlists.length)}">Destinations (${travels.length})</h4>${travels.map(t => `
+        <div class="search-result-item" onclick="app._openTravel('${t.id}')">
+          <div class="sri-title">${t.name}</div>
+          <div class="sri-meta">${t.country} · ${t.continent} · ${t.type}</div>
         </div>`).join('')}` : ''}`;
   }
 
@@ -917,22 +1111,28 @@ class CHCSApp {
     this._updateNav('favorites');
     const favItems = [...this.favorites].map(key => {
       const [type, id] = key.split(':');
-      if (type === 'food') { const m = MEALS.find(x => x.id === id); return m ? { type, item: m } : null; }
-      if (type === 'movie') { const m = MOVIES.find(x => x.id === id); return m ? { type, item: m } : null; }
+      if (type === 'food')   { const m = MEALS.find(x => x.id === id);   return m ? { type, item: m } : null; }
+      if (type === 'movie')  { const m = MOVIES.find(x => x.id === id);  return m ? { type, item: m } : null; }
+      if (type === 'travel') { const t = TRAVEL.find(x => x.id === id);  return t ? { type, item: t } : null; }
       return null;
     }).filter(Boolean);
+
+    const iconFor  = type => ({ food: '🍽️', movie: '🎬', travel: '✈️' }[type] || '📌');
+    const titleFor = ({ type, item }) => type === 'food' ? item.name : type === 'movie' ? item.title : item.name;
+    const metaFor  = ({ type, item }) => type === 'food' ? `${item.cuisine} · ${item.prepTime} min` : type === 'movie' ? `${item.year} · ${item.genre}` : `${item.country} · ${item.type}`;
+    const openFn   = ({ type, item }) => type === 'food' ? `app._openMeal('${item.id}')` : type === 'movie' ? `app._openMovie('${item.id}')` : `app._openTravel('${item.id}')`;
 
     document.getElementById('mainContent').innerHTML = `
       <section class="view" style="animation:fadeInUp .3s ease">
         <h2 class="section-title" style="margin-bottom:24px">Saved</h2>
-        ${favItems.length ? `<div class="fav-list">${favItems.map(({ type, item }) => `
-          <div class="fav-item" onclick="app.${type === 'food' ? `currentMeal=MEALS.find(x=>x.id===${JSON.stringify(item.id)});app.foodMode='tonight';app._renderFoodResult(app.currentMeal)` : `currentMovie=MOVIES.find(x=>x.id===${JSON.stringify(item.id)});app._renderMovieResult(app.currentMovie)`}">
-            <div class="fav-icon">${type === 'food' ? '🍽️' : '🎬'}</div>
+        ${favItems.length ? `<div class="fav-list">${favItems.map(fav => `
+          <div class="fav-item" onclick="${openFn(fav)}">
+            <div class="fav-icon">${iconFor(fav.type)}</div>
             <div class="fav-info">
-              <div class="fav-title">${type === 'food' ? item.name : item.title}</div>
-              <div class="fav-meta">${type === 'food' ? `${item.cuisine} · ${item.prepTime} min` : `${item.year} · ${item.genre}`}</div>
+              <div class="fav-title">${titleFor(fav)}</div>
+              <div class="fav-meta">${metaFor(fav)}</div>
             </div>
-            <button class="fav-remove" onclick="event.stopPropagation();app.toggleFavorite('${type}','${item.id}');app.renderFavorites()" title="Remove">
+            <button class="fav-remove" onclick="event.stopPropagation();app.toggleFavorite('${fav.type}','${fav.item.id}');app.renderFavorites()" title="Remove">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
             </button>
           </div>`).join('')}</div>`
@@ -956,6 +1156,29 @@ class CHCSApp {
           <p class="account-hint">Coming soon — sync your picks, manage preferences, and more.</p>
         </div>
       </section>`;
+  }
+
+  // ── Item openers (safe for onclick attributes) ─────────
+  _openMeal(id) {
+    this.currentMeal = MEALS.find(x => x.id === id);
+    this.foodMode = 'tonight';
+    this._renderFoodResult(this.currentMeal);
+  }
+
+  _openMovie(id) {
+    this.currentMovie = MOVIES.find(x => x.id === id);
+    this._renderMovieResult(this.currentMovie);
+  }
+
+  _openPlaylist(id) {
+    this.currentPlaylist = PLAYLISTS.find(x => x.id === id);
+    this.selectedPlaylistMood = null;
+    this.renderPlaylistCard();
+  }
+
+  _openTravel(id) {
+    this.currentTravel = TRAVEL.find(x => x.id === id);
+    this._renderTravelResult(this.currentTravel);
   }
 
   _sIcon(p) {

@@ -503,9 +503,19 @@ button {
 
 /* Coming soon */
 .category-card.coming-soon {
-  opacity: 0.45;
+  opacity: 0.5;
   cursor: default;
   pointer-events: none;
+  filter: grayscale(0.6) saturate(0.5);
+}
+
+.category-card.coming-soon .category-icon {
+  background: var(--bg-secondary) !important;
+  color: var(--text-tertiary);
+}
+
+.category-card.coming-soon h4 {
+  color: var(--text-secondary);
 }
 
 .category-card.coming-soon:hover {
@@ -521,7 +531,76 @@ button {
   letter-spacing: 1.5px;
   text-transform: uppercase;
   color: var(--text-tertiary);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  padding: 2px 8px;
   margin-top: 6px;
+}
+
+/* Continent filter */
+.continent-filter {
+  margin-top: 20px;
+  padding: 16px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-xl);
+}
+
+.continent-filter-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.continent-filter-label {
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-secondary);
+}
+
+.continent-hint {
+  font-size: 0.72rem;
+  color: var(--teal);
+  font-weight: 500;
+}
+
+.continent-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.continent-pill {
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  font-weight: 500;
+  padding: 5px 12px;
+  border-radius: var(--radius-pill);
+  border: 1.5px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.continent-pill.active {
+  border-color: var(--teal);
+  background: rgba(27, 107, 109, 0.1);
+  color: var(--teal);
+  font-weight: 600;
+}
+
+/* Travel result card */
+.result-travel {
+  background: linear-gradient(145deg, #e8f4f5 0%, #d4ecee 100%);
+}
+
+[data-theme="dark"] .result-travel {
+  background: linear-gradient(145deg, #1a3a3b 0%, #132e2f 100%);
 }
 
 .home-footer-hint {
