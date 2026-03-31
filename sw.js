@@ -1,5 +1,5 @@
 // CHCS Service Worker – cache-first for app shell
-const CACHE = 'chcs-v1';
+const CACHE = 'chcs-v2';
 const SHELL = [
   '/',
   '/index.html',
