@@ -867,6 +867,10 @@ class CHCSApp {
     const typeEmoji = { 'city trip': '🏙️', 'nature': '🌲', 'beach & coast': '🏖️', 'road trip': '🚗', 'day trip': '🚶' };
     const budgetLabel = { budget: 'Budget (€)', moderate: 'Moderate (€€)', expensive: 'Splurge (€€€)' };
     const moodLabel = { culture: '🏛️ Culture', adventure: '🧗 Adventure', unwind: '🌊 Unwind', romance: '💑 Romance', cozy: '🧣 Cozy' };
+    const mapQuery = encodeURIComponent(`${t.name}, ${t.country}`);
+    const mapUrl = `https://maps.google.com/maps?q=${mapQuery}&t=&z=7&ie=UTF8&iwloc=&output=embed`;
+    const safeName = t.name.replace(/'/g, "\\'");
+    const safeCountry = t.country.replace(/'/g, "\\'");
     document.getElementById('mainContent').innerHTML = `
       <section class="view" style="animation:fadeInUp .3s ease">
         ${this._backBtn('app.renderHome()')}
@@ -883,15 +887,46 @@ class CHCSApp {
             <p>${moodLabel[t.mood] || t.mood}</p>
           </div>
           <div class="result-divider"></div>
+          <div class="travel-map-wrap">
+            <iframe class="travel-map" src="${mapUrl}" loading="lazy" allowfullscreen referrerpolicy="no-referrer-when-downgrade"></iframe>
+          </div>
+          <div class="result-divider"></div>
           <div class="result-branding">CHCS</div>
         </div>
         <div class="result-actions">
           ${this._favBtn('travel', t.id)}
+          <button class="result-action-btn rome2rio-btn" onclick="app.openRome2Rio('${safeName}', '${safeCountry}')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h18M3 6h18M3 18h12"/><circle cx="19" cy="18" r="2"/><path d="M17 18H3"/></svg>
+            Plan route
+          </button>
           <button class="result-action-btn" onclick="app.rejectTravel();app.showTravel();">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.95"/></svg> Pick again
           </button>
         </div>
       </section>`;
+  }
+
+  openRome2Rio(name, country) {
+    const toSlug = s => s.trim().replace(/\s+/g, '-');
+    const dest = toSlug(`${name}, ${country}`);
+    const fallback = () => window.open(`https://www.rome2rio.com/map/-/${encodeURIComponent(name)}`, '_blank');
+
+    if (!navigator.geolocation) { fallback(); return; }
+
+    navigator.geolocation.getCurrentPosition(
+      async pos => {
+        try {
+          const { latitude: lat, longitude: lon } = pos.coords;
+          const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&zoom=10`, { headers: { 'Accept-Language': 'en' } });
+          const data = await res.json();
+          const city = data.address.city || data.address.town || data.address.village || data.address.county || data.address.state;
+          const from = toSlug(city || '');
+          window.open(from ? `https://www.rome2rio.com/map/${encodeURIComponent(from)}/${encodeURIComponent(name)}` : `https://www.rome2rio.com/map/-/${encodeURIComponent(name)}`, '_blank');
+        } catch { fallback(); }
+      },
+      () => fallback(),
+      { timeout: 6000 }
+    );
   }
 
   // ── Shopping checklist ─────────────────────────────────

@@ -2359,3 +2359,31 @@ button {
 .mt-20 { margin-top: 20px; }
 .mb-12 { margin-bottom: 12px; }
 .mb-20 { margin-bottom: 20px; }
+
+/* ========== TRAVEL MAP ========== */
+.travel-map-wrap {
+  margin: 0 -28px;
+  overflow: hidden;
+}
+
+.travel-map {
+  width: 100%;
+  height: 220px;
+  border: none;
+  display: block;
+  filter: saturate(0.85) contrast(0.95);
+}
+
+[data-theme="dark"] .travel-map {
+  filter: saturate(0.6) contrast(0.9) brightness(0.85) hue-rotate(180deg) invert(1);
+}
+
+.rome2rio-btn {
+  color: var(--teal) !important;
+  border-color: rgba(var(--teal-rgb, 27, 107, 109), 0.35) !important;
+}
+
+.rome2rio-btn:hover {
+  background: var(--teal-soft) !important;
+  border-color: var(--teal) !important;
+}
