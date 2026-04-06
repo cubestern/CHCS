@@ -2378,12 +2378,8 @@ button {
   filter: saturate(0.6) contrast(0.9) brightness(0.85) hue-rotate(180deg) invert(1);
 }
 
-.rome2rio-btn {
-  color: var(--teal) !important;
-  border-color: rgba(var(--teal-rgb, 27, 107, 109), 0.35) !important;
-}
-
-.rome2rio-btn:hover {
-  background: var(--teal-soft) !important;
+.rome2rio-btn:hover, .rome2rio-btn:active {
   border-color: var(--teal) !important;
+  color: var(--teal) !important;
+  background: var(--teal-soft) !important;
 }

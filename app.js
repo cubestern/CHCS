@@ -908,10 +908,12 @@ class CHCSApp {
 
   openRome2Rio(name, country) {
     const toSlug = s => s.trim().replace(/\s+/g, '-');
-    const dest = toSlug(`${name}, ${country}`);
-    const fallback = () => window.open(`https://www.rome2rio.com/map/-/${encodeURIComponent(name)}`, '_blank');
+    const fallbackUrl = `https://www.rome2rio.com/map/-/${encodeURIComponent(name)}`;
 
-    if (!navigator.geolocation) { fallback(); return; }
+    // Open window immediately (tied to user gesture) to avoid mobile popup blocker
+    const win = window.open(fallbackUrl, '_blank');
+
+    if (!navigator.geolocation) return;
 
     navigator.geolocation.getCurrentPosition(
       async pos => {
@@ -920,11 +922,12 @@ class CHCSApp {
           const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&zoom=10`, { headers: { 'Accept-Language': 'en' } });
           const data = await res.json();
           const city = data.address.city || data.address.town || data.address.village || data.address.county || data.address.state;
-          const from = toSlug(city || '');
-          window.open(from ? `https://www.rome2rio.com/map/${encodeURIComponent(from)}/${encodeURIComponent(name)}` : `https://www.rome2rio.com/map/-/${encodeURIComponent(name)}`, '_blank');
-        } catch { fallback(); }
+          if (city && win && !win.closed) {
+            win.location.href = `https://www.rome2rio.com/map/${encodeURIComponent(toSlug(city))}/${encodeURIComponent(name)}`;
+          }
+        } catch { /* win stays on fallback URL */ }
       },
-      () => fallback(),
+      () => { /* win stays on fallback URL */ },
       { timeout: 6000 }
     );
   }
