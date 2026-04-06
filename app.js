@@ -909,11 +909,15 @@ class CHCSApp {
   openRome2Rio(name, country) {
     const toSlug = s => s.trim().replace(/\s+/g, '-');
     const fallbackUrl = `https://www.rome2rio.com/map/-/${encodeURIComponent(name)}`;
+    const cityUrl = city => `https://www.rome2rio.com/map/${encodeURIComponent(toSlug(city))}/${encodeURIComponent(name)}`;
 
-    // Open window immediately (tied to user gesture) to avoid mobile popup blocker
+    // Try to open a new tab synchronously (tied to user gesture).
+    // On iOS Safari standalone / popup blocker this returns null — we fall back to
+    // direct navigation so the location prompt still fires.
     const win = window.open(fallbackUrl, '_blank');
+    const go = url => win && !win.closed ? (win.location.href = url) : (window.location.href = url);
 
-    if (!navigator.geolocation) return;
+    if (!navigator.geolocation) { if (!win) window.location.href = fallbackUrl; return; }
 
     navigator.geolocation.getCurrentPosition(
       async pos => {
@@ -922,12 +926,10 @@ class CHCSApp {
           const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&zoom=10`, { headers: { 'Accept-Language': 'en' } });
           const data = await res.json();
           const city = data.address.city || data.address.town || data.address.village || data.address.county || data.address.state;
-          if (city && win && !win.closed) {
-            win.location.href = `https://www.rome2rio.com/map/${encodeURIComponent(toSlug(city))}/${encodeURIComponent(name)}`;
-          }
-        } catch { /* win stays on fallback URL */ }
+          go(city ? cityUrl(city) : fallbackUrl);
+        } catch { go(fallbackUrl); }
       },
-      () => { /* win stays on fallback URL */ },
+      () => go(fallbackUrl),
       { timeout: 6000 }
     );
   }
