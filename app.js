@@ -870,7 +870,7 @@ class CHCSApp {
     const mapQuery = encodeURIComponent(`${t.name}, ${t.country}`);
     const mapUrl = `https://maps.google.com/maps?q=${mapQuery}&t=&z=7&ie=UTF8&iwloc=&output=embed`;
     const safeName = t.name.replace(/'/g, "\\'");
-    const safeCountry = t.country.replace(/'/g, "\\'");
+    const savedFrom = (localStorage.getItem('chcs_travel_from') || '').replace(/"/g, '&quot;');
     document.getElementById('mainContent').innerHTML = `
       <section class="view" style="animation:fadeInUp .3s ease">
         ${this._backBtn('app.renderHome()')}
@@ -890,12 +890,19 @@ class CHCSApp {
           <div class="travel-map-wrap">
             <iframe class="travel-map" src="${mapUrl}" loading="lazy" allowfullscreen referrerpolicy="no-referrer-when-downgrade"></iframe>
           </div>
+          <div class="travel-from">
+            <label class="travel-from-label" for="travelFrom">Vertrek</label>
+            <input class="travel-from-input" id="travelFrom" type="text"
+              placeholder="bijv. Amsterdam"
+              value="${savedFrom}"
+              autocomplete="off" autocorrect="off" spellcheck="false">
+          </div>
           <div class="result-divider"></div>
           <div class="result-branding">CHCS</div>
         </div>
         <div class="result-actions">
           ${this._favBtn('travel', t.id)}
-          <button class="result-action-btn rome2rio-btn" onclick="app.openRome2Rio('${safeName}', '${safeCountry}')">
+          <button class="result-action-btn rome2rio-btn" onclick="app.openRome2Rio('${safeName}')">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h18M3 6h18M3 18h12"/><circle cx="19" cy="18" r="2"/><path d="M17 18H3"/></svg>
             Plan route
           </button>
@@ -906,32 +913,15 @@ class CHCSApp {
       </section>`;
   }
 
-  openRome2Rio(name, country) {
-    const toSlug = s => s.trim().replace(/\s+/g, '-');
-    const fallbackUrl = `https://www.rome2rio.com/map/-/${encodeURIComponent(name)}`;
-    const cityUrl = city => `https://www.rome2rio.com/map/${encodeURIComponent(toSlug(city))}/${encodeURIComponent(name)}`;
-
-    // Try to open a new tab synchronously (tied to user gesture).
-    // On iOS Safari standalone / popup blocker this returns null — we fall back to
-    // direct navigation so the location prompt still fires.
-    const win = window.open(fallbackUrl, '_blank');
-    const go = url => win && !win.closed ? (win.location.href = url) : (window.location.href = url);
-
-    if (!navigator.geolocation) { if (!win) window.location.href = fallbackUrl; return; }
-
-    navigator.geolocation.getCurrentPosition(
-      async pos => {
-        try {
-          const { latitude: lat, longitude: lon } = pos.coords;
-          const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&zoom=10`, { headers: { 'Accept-Language': 'en' } });
-          const data = await res.json();
-          const city = data.address.city || data.address.town || data.address.village || data.address.county || data.address.state;
-          go(city ? cityUrl(city) : fallbackUrl);
-        } catch { go(fallbackUrl); }
-      },
-      () => go(fallbackUrl),
-      { timeout: 6000 }
-    );
+  openRome2Rio(name) {
+    const from = (document.getElementById('travelFrom')?.value || '').trim();
+    if (from) localStorage.setItem('chcs_travel_from', from);
+    const toSlug = s => s.replace(/\s+/g, '-');
+    const url = from
+      ? `https://www.rome2rio.com/map/${encodeURIComponent(toSlug(from))}/${encodeURIComponent(name)}`
+      : `https://www.rome2rio.com/map/-/${encodeURIComponent(name)}`;
+    const win = window.open(url, '_blank');
+    if (!win) window.location.href = url;
   }
 
   // ── Shopping checklist ─────────────────────────────────

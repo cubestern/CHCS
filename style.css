@@ -2378,6 +2378,43 @@ button {
   filter: saturate(0.6) contrast(0.9) brightness(0.85) hue-rotate(180deg) invert(1);
 }
 
+.travel-from {
+  padding: 16px 0 4px;
+  text-align: left;
+}
+
+.travel-from-label {
+  display: block;
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--text-tertiary);
+  margin-bottom: 8px;
+}
+
+.travel-from-input {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+}
+
+.travel-from-input::placeholder {
+  color: var(--text-tertiary);
+}
+
+.travel-from-input:focus {
+  border-color: var(--teal);
+}
+
 .rome2rio-btn:hover, .rome2rio-btn:active {
   border-color: var(--teal) !important;
   color: var(--teal) !important;
