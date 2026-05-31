@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-CHCS ("Can't Handle Choosing Stuff") is a zero-dependency static web app — no build step, no package manager, no framework. Open `index.html` directly in a browser or serve with any static file server.
+CHCS ("Can't Handle Choosing Stuff") is a zero-dependency static web app — no build step, no package manager, no framework. Open `index.html` directly in a browser or serve with any static file server. Deployed via Vercel (config in [vercel.json](vercel.json) — just `{"version": 2}`, no functions or rewrites).
 
 ## Running the app
 
@@ -15,23 +15,30 @@ python -m http.server 8080
 # or just open index.html directly in a browser
 ```
 
-Cache-busting is manual: bump the `?v=N` query string on `<script>` and `<link>` tags in the HTML when making CSS/JS changes that need to bypass browser cache.
+Cache-busting is manual: bump the `?v=N` query string on `<script>` and `<link>` tags in `index.html` when making CSS/JS/data changes that need to bypass browser cache. For the service worker (PWA), also bump the `CACHE` constant in [sw.js](sw.js) when the shell file list changes.
 
 ## Architecture
 
-Everything lives in three files:
-
-- **`app.js`** — the entire application. One class (`CHCSApp`) that renders all views by setting `#mainContent.innerHTML`. No routing library, no virtual DOM. Views are: Home, FoodCategory (mood → swipe → result), MovieCategory (mood → swipe → result).
+- **`app.js`** — the entire application. One class (`CHCSApp`) that renders all views by setting `#mainContent.innerHTML`. No routing library, no virtual DOM. Categories: Food, Movies, Music (playlists), Travel. Plus Favorites, Search, Account, and a week planner.
 - **`index.html`** — shell with sticky header, `#mainContent` mount point, fixed bottom bar, footer. Instantiates `app` on load.
 - **`style.css`** — all styles. CSS custom properties handle light/dark theming via `[data-theme]` on `<html>`.
+- **`data/*.js`** — content as top-level `const` arrays. Loaded via `<script>` tags in `index.html` so each global is available to `app.js`.
+- **`sw.js`** + **`manifest.json`** — PWA support. Service worker is network-first for HTML (so deploys are visible immediately) and cache-first for assets.
 
 ### Data
 
-`app.js` contains the authoritative data as top-level constants — **`MEALS` and `MOVIES` arrays**. This is what the running app uses.
+Content lives in four data files, each exporting a top-level `const`:
 
-`meals.json` and `movies.json` are reference files and should be kept in sync with `app.js`. **When adding a new meal or movie, update `app.js` first** — edits to the JSON files alone have no effect at runtime.
+| File | Global | Schema |
+|---|---|---|
+| [data/meals.js](data/meals.js) | `MEALS` | `{ id, name, cuisine, effort, prepTime, dietary, description, ingredients }` |
+| [data/movies.js](data/movies.js) | `MOVIES` | `{ id, title, year, genre, mood, runtime, pitch, streaming }` |
+| [data/travel.js](data/travel.js) | `TRAVEL` | `{ id, name, country, continent, mood, type, budget, duration, best_season, pitch }` |
+| [data/playlists.js](data/playlists.js) | `PLAYLISTS` | `{ id, name, curator, mood, vibe, tags, spotifyUrl, trackCount, featured }` |
 
-`movies-extra-100.json` is a staging file, not yet imported into `app.js`.
+IDs follow the pattern `<type>-NNN`, sequential, no gaps. The running app reads from these arrays directly — there are no separate JSON files anymore.
+
+After any data edit, run **`node check-data.js`** to verify no duplicate IDs, no numbering gaps, no missing required fields, and no sparse-array holes (stray commas). Output must be `All data files clean.` before committing.
 
 ### State
 
@@ -39,6 +46,7 @@ All persistent state is `localStorage`:
 - `chcs_theme` — `'light'` or `'dark'`
 - `chcs_stats` — `{ choices, weekPlans, streak, lastDate }`
 - `chcs_checked` — JSON array of checked shopping list item strings
+- Plus favorites and last-selected-mood per category
 
 ### Theming
 
@@ -52,36 +60,53 @@ Visual decisions follow the **steven-design** skill (`~/.claude/skills/steven-de
 - Radius: `--radius-xl: 20px` (cards), `--radius-pill: 50px` (buttons)
 - Shadows: warm-tinted, never harsh
 
-## Alternative skin
-
-`index2.html` + `style2.css` is an experimental dark/precision variant (Barlow Condensed, amber accent, near-square radius). It uses the same `app.js`. Not the primary version — `index.html` is.
-
 ## Adding content
 
-**New meal** — add an object to the `MEALS` array in `app.js` and mirror it in `meals.json`:
+**New meal** — add to the `MEALS` array in [data/meals.js](data/meals.js):
 ```js
 { id: "meal-NNN", name: "…", cuisine: "…", effort: "easy|medium|involved",
   prepTime: 30, dietary: "vegetarian|fish|meat|vegan",
   description: "…", ingredients: ["…"] }
 ```
 
-**New movie** — add to `MOVIES` in `app.js` and mirror in `movies.json`:
+**New movie** — add to `MOVIES` in [data/movies.js](data/movies.js):
 ```js
 { id: "movie-NNN", title: "…", year: 2024, genre: "…",
   mood: "light|intense|thought-provoking|funny",
   runtime: 110, pitch: "…", streaming: ["Netflix"] }
 ```
 
+**New travel destination** — add to `TRAVEL` in [data/travel.js](data/travel.js):
+```js
+{ id: "travel-NNN", name: "…", country: "…", continent: "Europe|Asia|…",
+  mood: "culture|adventure|unwind|romance|cozy", type: "city trip|beach & coast|nature|road trip",
+  budget: "budget|moderate|expensive", duration: "…", best_season: "spring|summer|autumn|winter",
+  pitch: "…" }
+```
+
+**New playlist** — add to `PLAYLISTS` in [data/playlists.js](data/playlists.js):
+```js
+{ id: "playlist-NNN", name: "…", curator: "…", mood: "chill|energy|focus|melancholy|light",
+  vibe: "…", tags: ["…"], spotifyUrl: "https://open.spotify.com/playlist/…",
+  trackCount: 100, featured: false }
+```
+
+After any addition: bump the `?v=N` for that data file in [index.html](index.html), run `node check-data.js`, and confirm `All data files clean.`
+
+## Routines
+
+The monthly content-batch routine prompt lives in [routines/monthly-content-batch.md](routines/monthly-content-batch.md). Activated via the `schedule` skill / `/schedule` command.
+
 ## Key rendering methods
 
 | Method | What it renders |
 |---|---|
 | `renderHome()` | Hero card, stats row, category grid |
-| `renderFoodCategory()` | Mood selection → swipe stack → result |
-| `renderMovieCategory()` | Mood selection → swipe stack → result |
-| `renderSwipeStack(items, type)` | The card stack + accept/reject buttons |
-| `renderResult(item, type)` | Accepted result card with share actions |
-| `renderWeekPlanner()` | 5-day meal plan builder |
-| `surpriseMe()` | Global "Surprise me" — picks random category and item |
+| `renderFoodMoodScreen()` / `renderMovieMoodScreen()` / `renderMusicMoodScreen()` / `renderTravelMoodScreen()` | Mood selection per category |
+| `renderMealCard()` / `renderMovieCard()` / `renderPlaylistCard()` / `renderTravelCard()` | Individual swipe cards / result cards |
+| `renderFavorites()` | Saved items across categories |
+| `renderSearch()` | Cross-category search |
+| `renderWeekPlan()` | 5-day meal plan builder |
+| `renderAccount()` | Stats and settings |
 
 The share image feature uses `html2canvas` (loaded from CDN in `index.html`) to screenshot a hidden `.share-card` div, then `navigator.share()` with fallback to direct download.
