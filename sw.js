@@ -4,16 +4,12 @@
 //     Ensures users always get the latest shell after a deploy.
 //   - JS/CSS/assets: cache-first. Query-string bumps (?v=N) act as cache busters.
 //   - Bump CACHE on each deploy that changes the shell list.
-const CACHE = 'chcs-v3';
+const CACHE = 'chcs-v4';
 const SHELL = [
   '/',
   '/index.html',
   '/style.css',
   '/app.js',
-  '/data/meals.js',
-  '/data/movies.js',
-  '/data/playlists.js',
-  '/data/travel.js',
   '/manifest.json',
   '/icons/icon-192.png',
   '/icons/icon-512.png',

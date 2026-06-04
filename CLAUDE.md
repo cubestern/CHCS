@@ -15,7 +15,7 @@ python -m http.server 8080
 # or just open index.html directly in a browser
 ```
 
-Cache-busting is manual: bump the `?v=N` query string on `<script>` and `<link>` tags in `index.html` when making CSS/JS/data changes that need to bypass browser cache. For the service worker (PWA), also bump the `CACHE` constant in [sw.js](sw.js) when the shell file list changes.
+Cache-busting is manual: bump the `?v=N` query string on `<script>` and `<link>` tags in `index.html` when making CSS/JS/data changes that need to bypass browser cache. Data files (`data/*.js`) are loaded with `?v=N` and are NOT pre-cached by the service worker — bumping the version string is sufficient. Only bump the `CACHE` constant in [sw.js](sw.js) when the shell file list itself changes (adding/removing entries from `SHELL`).
 
 ## Architecture
 
