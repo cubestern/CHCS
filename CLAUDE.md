@@ -35,6 +35,7 @@ Content lives in four data files, each exporting a top-level `const`:
 | [data/movies.js](data/movies.js) | `MOVIES` | `{ id, title, year, genre, mood, runtime, pitch, streaming }` |
 | [data/travel.js](data/travel.js) | `TRAVEL` | `{ id, name, country, continent, mood, type, budget, duration, best_season, pitch }` |
 | [data/playlists.js](data/playlists.js) | `PLAYLISTS` | `{ id, name, curator, mood, vibe, tags, spotifyUrl, trackCount, featured }` |
+| [data/books.js](data/books.js) | `BOOKS` | `{ id, title, author, year, mood, pages, pitch }` |
 
 IDs follow the pattern `<type>-NNN`, sequential, no gaps. The running app reads from these arrays directly — there are no separate JSON files anymore.
 

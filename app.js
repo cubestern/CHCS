@@ -9,7 +9,7 @@ const CATEGORIES = {
   food:   { id: 'food',   name: 'Food',   question: 'What should I eat?',      desc: 'Tonight or plan your whole week',    icon: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>`, color: '#FF6B35', cssClass: 'cat-food',   active: true },
   movies: { id: 'movies', name: 'Movies', question: 'What should I watch?',    desc: 'Spin for a random movie pick',        icon: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="2" y1="7" x2="7" y2="7"/><line x1="2" y1="17" x2="7" y2="17"/><line x1="17" y1="7" x2="22" y2="7"/><line x1="17" y1="17" x2="22" y2="17"/></svg>`, color: '#E53935', cssClass: 'cat-movies', active: true },
   music:  { id: 'music',  name: 'Music',  question: 'What should I listen to?', desc: 'Curated playlists for every mood',     icon: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>`, color: '#1DB954', cssClass: 'cat-music',  active: true },
-  books:  { id: 'books',  name: 'Books',  question: 'What should I read?',      desc: 'Random book recommendations',         icon: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>`, color: '#2196F3', cssClass: 'cat-books',  active: false },
+  books:  { id: 'books',  name: 'Books',  question: 'What should I read?',      desc: 'Random book recommendations',         icon: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>`, color: '#2196F3', cssClass: 'cat-books',  active: true },
   travel: { id: 'travel', name: 'Travel', question: 'Where should I go?',       desc: 'Random destinations worldwide',       icon: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>`, color: '#00BCD4', cssClass: 'cat-travel', active: true },
   other:  { id: 'other',  name: 'Other',  question: 'Help me choose',           desc: 'Custom options to randomize',         icon: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>`, color: '#9C27B0', cssClass: 'cat-other',  active: false }
 };
@@ -46,6 +46,9 @@ class CHCSApp {
     this.selectedContinents = [];
     this.travelFilters = { mood: null, continents: null };
     this.usedTravelIds = new Set();
+    this.currentBook = null;
+    this.selectedBookMood = null;
+    this.usedBookIds = new Set();
     this.isSpinning = false;
     this.checkedItems = new Set(JSON.parse(localStorage.getItem('chcs_checked') || '[]'));
     document.documentElement.setAttribute('data-theme', this.theme);
@@ -152,7 +155,7 @@ class CHCSApp {
         <div class="category-grid stagger-in">
           ${Object.values(CATEGORIES).map(c => `
             <div class="category-card ${c.cssClass}${c.active ? '' : ' coming-soon'}"
-                 ${c.active ? `onclick="app.${c.id === 'food' ? 'showFood' : c.id === 'movies' ? 'showMovies' : c.id === 'travel' ? 'showTravel' : 'showMusic'}()"` : ''}>
+                 ${c.active ? `onclick="app.${c.id === 'food' ? 'showFood' : c.id === 'movies' ? 'showMovies' : c.id === 'travel' ? 'showTravel' : c.id === 'books' ? 'showBooks' : 'showMusic'}()"` : ''}>
               <div class="category-icon">${c.icon}</div>
               <h4>${c.name}</h4>
               <p>${c.active ? c.question : ''}</p>
@@ -1085,6 +1088,142 @@ class CHCSApp {
     </button>`;
   }
 
+  // ── Books: mood selection ──────────────────────────────
+  showBooks() {
+    this.usedBookIds.clear();
+    this.selectedBookMood = localStorage.getItem('chcs_book_mood_last') || null;
+    this._renderBookMoodScreen();
+  }
+
+  _pickBook(mood) {
+    let pool = BOOKS.filter(b => !this.usedBookIds.has(b.id));
+    if (mood) pool = pool.filter(b => b.mood === mood);
+    if (pool.length === 0) { this.usedBookIds.clear(); return this._pickBook(mood); }
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
+
+  selectBookMood(mood) {
+    this.selectedBookMood = mood;
+    if (mood && mood !== 'surprise') localStorage.setItem('chcs_book_mood_last', mood);
+    else localStorage.removeItem('chcs_book_mood_last');
+    this.currentBook = this._pickBook(mood === 'surprise' ? null : mood);
+    this.renderBookCard();
+  }
+
+  _renderBookMoodScreen() {
+    const moods = [
+      { key: 'spannend',   emoji: '😰', label: 'Spannend',   desc: 'Thriller, misdaad & horror' },
+      { key: 'grappig',    emoji: '😂', label: 'Grappig',    desc: 'Humor & satire' },
+      { key: 'fantasy',    emoji: '🧙', label: 'Fantasy',    desc: 'Fantasy & sci-fi' },
+      { key: 'ontroerend', emoji: '😢', label: 'Ontroerend', desc: 'Literatuur & gevoel' },
+      { key: 'non-fictie', emoji: '🔍', label: 'Non-fictie', desc: 'Kennis & memoires' },
+    ];
+    const last = this.selectedBookMood;
+    document.getElementById('mainContent').innerHTML = `
+      <section class="view" style="animation:fadeInUp .3s ease">
+        ${this._backBtn('app.renderHome()')}
+        <div class="mood-screen">
+          <div class="mood-header">
+            <span class="mood-header-icon">📚</span>
+            <h2>Wat wil je lezen?</h2>
+            <p>Kies een stemming en we vinden een boek</p>
+          </div>
+          <div class="mood-grid stagger-in">
+            ${moods.map(m => `
+              <button class="mood-pill${last===m.key?' active':''}" onclick="app.selectBookMood('${m.key}')">
+                <span class="mood-pill-emoji">${m.emoji}</span>
+                <span class="mood-pill-label">${m.label}</span>
+                <span class="mood-pill-desc">${m.desc}</span>
+              </button>`).join('')}
+          </div>
+          <button class="mood-surprise" onclick="app.selectBookMood('surprise')">
+            <span class="mood-pill-emoji">🎲</span>
+            <span class="mood-pill-label">Surprise me</span>
+          </button>
+        </div>
+      </section>`;
+  }
+
+  renderBookCard() {
+    const b = this.currentBook;
+    const moodKey = this.selectedBookMood === 'surprise' ? null : this.selectedBookMood;
+    const next = this._pickBook(moodKey);
+    const moodEmoji = { spannend: '😰', grappig: '😂', fantasy: '🧙', ontroerend: '😢', 'non-fictie': '🔍' };
+    document.getElementById('mainContent').innerHTML = `
+      <section class="view" style="animation:fadeInUp .3s ease">
+        ${this._backBtn('app.showBooks()')}
+        <div class="swipe-stack">
+          ${next && next.id !== b.id ? `<div class="swipe-card swipe-card-behind">${this._swipeBookInner(next)}</div>` : ''}
+          <div class="swipe-card swipe-card-front" id="swipeCard">
+            ${this._swipeHints()}
+            ${this._swipeBookInner(b)}
+          </div>
+        </div>
+        <div class="card-actions">
+          <button class="action-btn action-reject" onclick="app.rejectBook()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            Nah, next
+          </button>
+          <button class="action-btn action-accept" onclick="app.acceptBook()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+            Dit ga ik lezen
+          </button>
+        </div>
+      </section>`;
+    this._initSwipe(document.getElementById('swipeCard'), () => this.acceptBook(), () => this.rejectBook());
+  }
+
+  _swipeBookInner(b) {
+    const moodEmoji = { spannend: '😰', grappig: '😂', fantasy: '🧙', ontroerend: '😢', 'non-fictie': '🔍' };
+    return `
+      <div class="swipe-card-emoji">${moodEmoji[b.mood] || '📚'}</div>
+      <h3 class="swipe-card-title">${b.title}</h3>
+      <div class="swipe-card-meta">${b.author} · ${b.year} · ${b.pages} p.</div>
+      <p class="swipe-card-desc">${b.pitch}</p>`;
+  }
+
+  rejectBook() {
+    this.usedBookIds.add(this.currentBook.id);
+    this.currentBook = this._pickBook(this.selectedBookMood === 'surprise' ? null : this.selectedBookMood);
+    this.renderBookCard();
+  }
+
+  acceptBook() {
+    this.recordChoice();
+    this._renderBookResult(this.currentBook);
+  }
+
+  _renderBookResult(b) {
+    const moodEmoji = { spannend: '😰', grappig: '😂', fantasy: '🧙', ontroerend: '😢', 'non-fictie': '🔍' };
+    const searchUrl = `https://www.goodreads.com/search?q=${encodeURIComponent(b.title + ' ' + b.author)}`;
+    document.getElementById('mainContent').innerHTML = `
+      <section class="view" style="animation:fadeInUp .3s ease">
+        ${this._backBtn('app.renderHome()')}
+        <div class="result-card result-book">
+          <p class="result-label">Dit ga je lezen</p>
+          <h2 class="result-title">${b.title}</h2>
+          <div class="result-emoji">📚</div>
+          <div class="result-meta">${b.author} · ${b.year}</div>
+          <div class="result-divider"></div>
+          <div class="result-details">
+            <p>${moodEmoji[b.mood]} ${b.mood.charAt(0).toUpperCase() + b.mood.slice(1)}</p>
+            <p>📖 ${b.pages} pagina's</p>
+          </div>
+          <div class="result-divider"></div>
+          <div class="result-branding">CHCS</div>
+        </div>
+        <div class="result-actions">
+          ${this._favBtn('book', b.id)}
+          <button class="result-action-btn" onclick="window.open('${searchUrl}','_blank','noopener,noreferrer')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Goodreads
+          </button>
+          <button class="result-action-btn" onclick="app.showBooks()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.95"/></svg> Pick again
+          </button>
+        </div>
+      </section>`;
+  }
+
   // ── Search ─────────────────────────────────────────────
   renderSearch() {
     this._updateNav('search');
@@ -1094,7 +1233,7 @@ class CHCSApp {
           <h2 class="section-title" style="margin-bottom:16px">Search</h2>
           <div class="search-input-wrap">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-            <input type="text" class="search-input" id="searchInput" placeholder="Meals, movies, destinations…" oninput="app._doSearch(this.value)" autofocus>
+            <input type="text" class="search-input" id="searchInput" placeholder="Meals, movies, books, destinations…" oninput="app._doSearch(this.value)" autofocus>
           </div>
           <div class="search-results" id="searchResults">
             <p class="search-hint">Start typing to explore meals, movies, playlists and destinations.</p>
@@ -1105,13 +1244,14 @@ class CHCSApp {
 
   _doSearch(q) {
     const results = document.getElementById('searchResults');
-    if (!q.trim()) { results.innerHTML = '<p class="search-hint">Start typing to explore meals, movies, playlists and destinations.</p>'; return; }
+    if (!q.trim()) { results.innerHTML = '<p class="search-hint">Start typing to explore meals, movies, books, playlists and destinations.</p>'; return; }
     const term = q.toLowerCase();
     const meals     = MEALS.filter(m => m.name.toLowerCase().includes(term) || m.cuisine.toLowerCase().includes(term) || (m.description && m.description.toLowerCase().includes(term)));
     const movies    = MOVIES.filter(m => m.title.toLowerCase().includes(term) || m.genre.toLowerCase().includes(term) || (m.pitch && m.pitch.toLowerCase().includes(term)));
+    const books     = BOOKS.filter(b => b.title.toLowerCase().includes(term) || b.author.toLowerCase().includes(term) || b.mood.toLowerCase().includes(term) || (b.pitch && b.pitch.toLowerCase().includes(term)));
     const playlists = PLAYLISTS.filter(p => p.name.toLowerCase().includes(term) || p.mood.toLowerCase().includes(term) || (p.vibe && p.vibe.toLowerCase().includes(term)) || p.tags.some(t => t.toLowerCase().includes(term)));
     const travels   = TRAVEL.filter(t => t.name.toLowerCase().includes(term) || t.country.toLowerCase().includes(term) || t.continent.toLowerCase().includes(term) || t.type.toLowerCase().includes(term) || (t.pitch && t.pitch.toLowerCase().includes(term)));
-    if (!meals.length && !movies.length && !playlists.length && !travels.length) { results.innerHTML = '<p class="search-hint">No results found.</p>'; return; }
+    if (!meals.length && !movies.length && !books.length && !playlists.length && !travels.length) { results.innerHTML = '<p class="search-hint">No results found.</p>'; return; }
     const gap = (prev) => prev ? 'margin-top:20px' : '';
     results.innerHTML = `
       ${meals.length ? `<h4 class="search-group-label">Meals (${meals.length})</h4>${meals.map(m => `
@@ -1124,12 +1264,17 @@ class CHCSApp {
           <div class="sri-title">${m.title}</div>
           <div class="sri-meta">${m.year} · ${m.genre} · ${m.runtime} min</div>
         </div>`).join('')}` : ''}
-      ${playlists.length ? `<h4 class="search-group-label" style="${gap(meals.length || movies.length)}">Playlists (${playlists.length})</h4>${playlists.map(p => `
+      ${books.length ? `<h4 class="search-group-label" style="${gap(meals.length || movies.length)}">Books (${books.length})</h4>${books.map(b => `
+        <div class="search-result-item" onclick="app._openBook('${b.id}')">
+          <div class="sri-title">${b.title}</div>
+          <div class="sri-meta">${b.author} · ${b.year} · ${b.pages} p.</div>
+        </div>`).join('')}` : ''}
+      ${playlists.length ? `<h4 class="search-group-label" style="${gap(meals.length || movies.length || books.length)}">Playlists (${playlists.length})</h4>${playlists.map(p => `
         <div class="search-result-item" onclick="app._openPlaylist('${p.id}')">
           <div class="sri-title">${p.name}</div>
           <div class="sri-meta">${p.mood} · by ${p.curator} · ${p.trackCount} tracks</div>
         </div>`).join('')}` : ''}
-      ${travels.length ? `<h4 class="search-group-label" style="${gap(meals.length || movies.length || playlists.length)}">Destinations (${travels.length})</h4>${travels.map(t => `
+      ${travels.length ? `<h4 class="search-group-label" style="${gap(meals.length || movies.length || books.length || playlists.length)}">Destinations (${travels.length})</h4>${travels.map(t => `
         <div class="search-result-item" onclick="app._openTravel('${t.id}')">
           <div class="sri-title">${t.name}</div>
           <div class="sri-meta">${t.country} · ${t.continent} · ${t.type}</div>
@@ -1143,14 +1288,15 @@ class CHCSApp {
       const [type, id] = key.split(':');
       if (type === 'food')   { const m = MEALS.find(x => x.id === id);   return m ? { type, item: m } : null; }
       if (type === 'movie')  { const m = MOVIES.find(x => x.id === id);  return m ? { type, item: m } : null; }
+      if (type === 'book')   { const b = BOOKS.find(x => x.id === id);   return b ? { type, item: b } : null; }
       if (type === 'travel') { const t = TRAVEL.find(x => x.id === id);  return t ? { type, item: t } : null; }
       return null;
     }).filter(Boolean);
 
-    const iconFor  = type => ({ food: '🍽️', movie: '🎬', travel: '✈️' }[type] || '📌');
-    const titleFor = ({ type, item }) => type === 'food' ? item.name : type === 'movie' ? item.title : item.name;
-    const metaFor  = ({ type, item }) => type === 'food' ? `${item.cuisine} · ${item.prepTime} min` : type === 'movie' ? `${item.year} · ${item.genre}` : `${item.country} · ${item.type}`;
-    const openFn   = ({ type, item }) => type === 'food' ? `app._openMeal('${item.id}')` : type === 'movie' ? `app._openMovie('${item.id}')` : `app._openTravel('${item.id}')`;
+    const iconFor  = type => ({ food: '🍽️', movie: '🎬', book: '📚', travel: '✈️' }[type] || '📌');
+    const titleFor = ({ type, item }) => type === 'movie' ? item.title : type === 'book' ? item.title : item.name;
+    const metaFor  = ({ type, item }) => type === 'food' ? `${item.cuisine} · ${item.prepTime} min` : type === 'movie' ? `${item.year} · ${item.genre}` : type === 'book' ? `${item.author} · ${item.year}` : `${item.country} · ${item.type}`;
+    const openFn   = ({ type, item }) => type === 'food' ? `app._openMeal('${item.id}')` : type === 'movie' ? `app._openMovie('${item.id}')` : type === 'book' ? `app._openBook('${item.id}')` : `app._openTravel('${item.id}')`;
 
     document.getElementById('mainContent').innerHTML = `
       <section class="view" style="animation:fadeInUp .3s ease">
@@ -1209,6 +1355,12 @@ class CHCSApp {
   _openTravel(id) {
     this.currentTravel = TRAVEL.find(x => x.id === id);
     this._renderTravelResult(this.currentTravel);
+  }
+
+  _openBook(id) {
+    this.currentBook = BOOKS.find(x => x.id === id);
+    this.selectedBookMood = null;
+    this._renderBookResult(this.currentBook);
   }
 
   _sIcon(p) {

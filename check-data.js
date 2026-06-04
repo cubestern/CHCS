@@ -32,6 +32,12 @@ const DATASETS = [
     prefix: 'playlist',
     required: ['id', 'name', 'curator', 'mood', 'vibe', 'tags', 'spotifyUrl', 'trackCount', 'featured'],
   },
+  {
+    file: 'data/books.js',
+    global: 'BOOKS',
+    prefix: 'book',
+    required: ['id', 'title', 'author', 'year', 'mood', 'pages', 'pitch'],
+  },
 ];
 
 function loadDataset({ file, global }) {
