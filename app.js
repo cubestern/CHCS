@@ -11,8 +11,12 @@ const CATEGORIES = {
   music:  { id: 'music',  name: 'Music',  question: 'What should I listen to?', desc: 'Curated playlists for every mood',     icon: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>`, color: '#1DB954', cssClass: 'cat-music',  active: true },
   books:  { id: 'books',  name: 'Books',  question: 'What should I read?',      desc: 'Random book recommendations',         icon: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>`, color: '#2196F3', cssClass: 'cat-books',  active: true },
   travel: { id: 'travel', name: 'Travel', question: 'Where should I go?',       desc: 'Random destinations worldwide',       icon: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>`, color: '#00BCD4', cssClass: 'cat-travel', active: true },
-  other:  { id: 'other',  name: 'Other',  question: 'Help me choose',           desc: 'Custom options to randomize',         icon: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>`, color: '#9C27B0', cssClass: 'cat-other',  active: false }
+  other:  { id: 'other',  name: 'Other',  question: 'Help me choose',           desc: 'Custom options to randomize',         icon: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>`, color: '#9C27B0', cssClass: 'cat-other',  active: true }
 };
+
+const FREE_SWIPE_LIMIT = 25; // "Nah, next" swipes per day for free users; accepting is always free
+const PLUS_CODE_HASHES = ['60d51bda', 'c7fee8bb', 'fb0a462d'];
+const HISTORY_MAX = 60;
 
 const WEEKDAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
 const CUISINES = [...new Set(MEALS.map(m => m.cuisine))].sort();
@@ -27,6 +31,13 @@ const DIETARY_EMOJI = { vegetarian: '🌿', fish: '🐟', meat: '🥩', vegan: '
 class CHCSApp {
   constructor() {
     this.theme = localStorage.getItem('chcs_theme') || 'light';
+    this.design = localStorage.getItem('chcs_design') || 'elegant';
+    this.userName = localStorage.getItem('chcs_name') || '';
+    this.plus = localStorage.getItem('chcs_plus') === '1';
+    this.history = JSON.parse(localStorage.getItem('chcs_history') || '[]');
+    this.customOptions = JSON.parse(localStorage.getItem('chcs_custom_options') || '[]');
+    this.customLists = JSON.parse(localStorage.getItem('chcs_custom_lists') || '[]');
+    this.duo = null;
     this.stats = this.loadStats();
     this.favorites = new Set(JSON.parse(localStorage.getItem('chcs_favorites') || '[]'));
     this.foodFilters = { effort: null, cuisine: null, dietary: null, effortList: null, dietaryList: null, maxPrepTime: null };
@@ -52,13 +63,23 @@ class CHCSApp {
     this.isSpinning = false;
     this.checkedItems = new Set(JSON.parse(localStorage.getItem('chcs_checked') || '[]'));
     document.documentElement.setAttribute('data-theme', this.theme);
-    this.renderHome();
+    document.documentElement.setAttribute('data-design', this.design);
+    if (!localStorage.getItem('chcs_onboarded')) this.renderOnboarding();
+    else this.renderHome();
   }
 
   toggleTheme() {
     this.theme = this.theme === 'light' ? 'dark' : 'light';
     document.documentElement.setAttribute('data-theme', this.theme);
     localStorage.setItem('chcs_theme', this.theme);
+  }
+
+  setDesign(design) {
+    this.design = design;
+    document.documentElement.setAttribute('data-design', design);
+    localStorage.setItem('chcs_design', design);
+    document.querySelectorAll('.seg-btn[data-design-opt]').forEach(b =>
+      b.classList.toggle('active', b.getAttribute('data-design-opt') === design));
   }
 
   // ── Stats ──────────────────────────────────────────────
@@ -79,6 +100,45 @@ class CHCSApp {
     }
     this.saveStats();
     this._statsDirty = true;
+  }
+
+  // ── Choice history ─────────────────────────────────────
+  _addHistory(type, label, id = null) {
+    this.history.unshift({ t: type, n: label, id, ts: Date.now() });
+    if (this.history.length > HISTORY_MAX) this.history.length = HISTORY_MAX;
+    localStorage.setItem('chcs_history', JSON.stringify(this.history));
+  }
+
+  clearHistory() {
+    this.history = [];
+    localStorage.removeItem('chcs_history');
+    this.renderAccount();
+  }
+
+  // ── Swipe metering (free vs Plus) ──────────────────────
+  _todayKey() { return new Date().toISOString().slice(0, 10); }
+
+  _swipesToday() {
+    const s = JSON.parse(localStorage.getItem('chcs_swipes') || '{}');
+    return s.date === this._todayKey() ? s.count : 0;
+  }
+
+  swipesLeft() { return Math.max(0, FREE_SWIPE_LIMIT - this._swipesToday()); }
+
+  // Returns true if the swipe may proceed. Counts one swipe for free users;
+  // when the daily budget is spent, shows the Plus screen instead.
+  _gateSwipe() {
+    if (this.plus) return true;
+    if (this.swipesLeft() <= 0) { this.renderPlus(true); return false; }
+    localStorage.setItem('chcs_swipes', JSON.stringify({ date: this._todayKey(), count: this._swipesToday() + 1 }));
+    return true;
+  }
+
+  _swipesLeftHint() {
+    if (this.plus) return '';
+    const left = this.swipesLeft();
+    if (left > 5) return '';
+    return `<p class="swipes-left-hint">${left === 0 ? 'No free swipes left today' : `${left} free swipe${left === 1 ? '' : 's'} left today`} · <a href="#" onclick="event.preventDefault();app.renderPlus()">Go unlimited</a></p>`;
   }
 
   // ── Food logic ─────────────────────────────────────────
@@ -137,25 +197,29 @@ class CHCSApp {
   // ══════════════════════════════════════════════════════════
 
   renderHome() {
+    localStorage.setItem('chcs_onboarded', '1'); // any route to home counts as onboarded
     const dailyMeal = MEALS[Math.floor(Date.now() / 86400000) % MEALS.length];
+    const hour = new Date().getHours();
+    const daypart = hour < 6 ? 'Good night' : hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+    const showFnFor = { food: 'showFood', movies: 'showMovies', music: 'showMusic', books: 'showBooks', travel: 'showTravel', other: 'showOther' };
 
     document.getElementById('mainContent').innerHTML = `
       <section class="view" style="animation:fadeInUp .3s ease">
+        <div class="home-greeting">
+          <span class="home-greeting-label">${daypart}${this.userName ? `, ${this.userName}` : ''}</span>
+          <h1 class="home-greeting-title">What are we <em>deciding</em> today?</h1>
+        </div>
         <div class="hero-card">
           <span class="hero-label">Surprise dinner</span>
           <h2 class="hero-title">${dailyMeal.name}</h2>
           <p class="hero-desc">${dailyMeal.description}</p>
           <button class="hero-btn" onclick="app.showDailyMeal()">Show me &rarr;</button>
         </div>
-        <div class="stats-row">
-          <div class="stat-card"><span class="stat-number">${this.stats.choices}</span><span class="stat-label">Choices made</span></div>
-          <div class="stat-card"><span class="stat-number">${this.stats.streak}</span><span class="stat-label">Day streak</span></div>
-        </div>
         <h3 class="section-title">Browse</h3>
         <div class="category-grid stagger-in">
           ${Object.values(CATEGORIES).map(c => `
             <div class="category-card ${c.cssClass}${c.active ? '' : ' coming-soon'}"
-                 ${c.active ? `onclick="app.${c.id === 'food' ? 'showFood' : c.id === 'movies' ? 'showMovies' : c.id === 'travel' ? 'showTravel' : c.id === 'books' ? 'showBooks' : 'showMusic'}()"` : ''}>
+                 ${c.active ? `onclick="app.${showFnFor[c.id]}()"` : ''}>
               <div class="category-icon">${c.icon}</div>
               <h4>${c.name}</h4>
               <p>${c.active ? c.question : ''}</p>
@@ -163,13 +227,19 @@ class CHCSApp {
             </div>
           `).join('')}
         </div>
+        <div class="duo-banner" onclick="app.showDuo()">
+          <div class="duo-banner-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+          <div class="duo-banner-text">
+            <h4>Duo mode</h4>
+            <p>Can't agree either? Swipe together, first match wins.</p>
+          </div>
+          <svg class="mode-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
         <p class="home-footer-hint">New features and suggestions added weekly.</p>
       </section>`;
     this._updateNav('home');
-    if (this._statsDirty) {
-      this._statsDirty = false;
-      document.querySelectorAll('.stat-number').forEach(el => el.classList.add('stat-pop'));
-    }
   }
 
   // ── Food: mood selection ──────────────────────────────
@@ -352,6 +422,7 @@ class CHCSApp {
           </button>
         </div>
         ${!isWeek ? `<button class="plan-week-btn" onclick="app.startWeek()">📅 Plan this mood for the week — 5 dinners</button>` : ''}
+        ${this._swipesLeftHint()}
       </section>`;
     this._initSwipe(document.getElementById('swipeCard'), () => this.acceptMeal(), () => this.rejectMeal());
   }
@@ -368,6 +439,7 @@ class CHCSApp {
   }
 
   rejectMeal() {
+    if (!this._gateSwipe()) return;
     this.usedMealIds.add(this.currentMeal.id);
     this.currentMeal = this.pickMeal();
     this.renderMealCard();
@@ -379,12 +451,13 @@ class CHCSApp {
     if (this.foodMode === 'week') {
       this.weekPlan.push({ day: WEEKDAYS[this.weekDay], meal: this.currentMeal });
       this.weekDay++;
-      if (this.weekDay >= 5) { this.stats.weekPlans++; this.saveStats(); this.renderWeekPlan(); return; }
+      if (this.weekDay >= 5) { this.stats.weekPlans++; this.saveStats(); this._addHistory('week', 'Week plan · 5 dinners'); this.renderWeekPlan(); return; }
       this.currentMeal = this.pickMeal();
       this.renderMealCard();
     } else {
       this.checkedItems.clear();
       localStorage.removeItem('chcs_checked');
+      this._addHistory('food', this.currentMeal.name, this.currentMeal.id);
       this._renderFoodResult(this.currentMeal);
     }
   }
@@ -544,6 +617,7 @@ class CHCSApp {
             This one!
           </button>
         </div>
+        ${this._swipesLeftHint()}
       </section>`;
     this._initSwipe(document.getElementById('swipeCard'), () => this.acceptMovie(), () => this.rejectMovie());
   }
@@ -569,6 +643,7 @@ class CHCSApp {
   }
 
   rejectMovie() {
+    if (!this._gateSwipe()) return;
     this.usedMovieIds.add(this.currentMovie.id);
     this.currentMovie = this.pickMovie();
     this.renderMovieCard();
@@ -576,6 +651,7 @@ class CHCSApp {
 
   acceptMovie() {
     this.recordChoice();
+    this._addHistory('movie', this.currentMovie.title, this.currentMovie.id);
     this._renderMovieResult(this.currentMovie);
   }
 
@@ -689,6 +765,7 @@ class CHCSApp {
             Open in Spotify
           </button>
         </div>
+        ${this._swipesLeftHint()}
       </section>`;
     this._initSwipe(document.getElementById('swipeCard'), () => this.acceptPlaylist(), () => this.rejectPlaylist());
   }
@@ -704,12 +781,15 @@ class CHCSApp {
   }
 
   rejectPlaylist() {
+    if (!this._gateSwipe()) return;
     this.usedPlaylistIds.add(this.currentPlaylist.id);
     this.currentPlaylist = this._pickPlaylist(this.selectedPlaylistMood === 'surprise' ? null : this.selectedPlaylistMood);
     this.renderPlaylistCard();
   }
 
   acceptPlaylist() {
+    this.recordChoice();
+    this._addHistory('playlist', this.currentPlaylist.name, this.currentPlaylist.id);
     window.open(this.currentPlaylist.spotifyUrl, '_blank', 'noopener,noreferrer');
     this._toast('Opening in Spotify 🎵');
   }
@@ -838,6 +918,7 @@ class CHCSApp {
             I'm going!
           </button>
         </div>
+        ${this._swipesLeftHint()}
       </section>`;
     this._initSwipe(document.getElementById('swipeCard'), () => this.acceptTravel(), () => this.rejectTravel());
   }
@@ -855,6 +936,7 @@ class CHCSApp {
   }
 
   rejectTravel() {
+    if (!this._gateSwipe()) return;
     this.usedTravelIds.add(this.currentTravel.id);
     this.currentTravel = this._pickTravel();
     this.renderTravelCard();
@@ -863,6 +945,7 @@ class CHCSApp {
   acceptTravel() {
     this.recordChoice();
     this.usedTravelIds.add(this.currentTravel.id);
+    this._addHistory('travel', this.currentTravel.name, this.currentTravel.id);
     this._renderTravelResult(this.currentTravel);
   }
 
@@ -893,36 +976,71 @@ class CHCSApp {
           <div class="travel-map-wrap">
             <iframe class="travel-map" src="${mapUrl}" loading="lazy" allowfullscreen referrerpolicy="no-referrer-when-downgrade"></iframe>
           </div>
-          <div class="travel-from">
-            <label class="travel-from-label" for="travelFrom">Vertrek</label>
-            <input class="travel-from-input" id="travelFrom" type="text"
-              placeholder="bijv. Amsterdam"
-              value="${savedFrom}"
-              autocomplete="off" autocorrect="off" spellcheck="false">
-          </div>
-          <div class="result-divider"></div>
           <div class="result-branding">CHCS</div>
+        </div>
+        <div class="route-planner">
+          <div class="route-planner-head">
+            <h4>Plan your route</h4>
+            <span class="route-planner-via">via Rome2Rio</span>
+          </div>
+          <div class="route-step">
+            <span class="route-step-num">1</span>
+            <input class="travel-from-input" id="travelFrom" type="text"
+              placeholder="Where are you leaving from? e.g. Amsterdam"
+              value="${savedFrom}" autocomplete="off" autocorrect="off" spellcheck="false"
+              aria-label="Departure point">
+          </div>
+          <div class="route-step">
+            <span class="route-step-num">2</span>
+            <button class="route-btn" id="routeBtn" onclick="app.openRome2Rio('${safeName}')">
+              Show routes to ${t.name}
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </button>
+          </div>
+          <p class="route-hint" id="routeHint">Enter your departure point, then we'll find trains, flights &amp; driving options.</p>
         </div>
         <div class="result-actions">
           ${this._favBtn('travel', t.id)}
-          <button class="result-action-btn rome2rio-btn" onclick="app.openRome2Rio('${safeName}')">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h18M3 6h18M3 18h12"/><circle cx="19" cy="18" r="2"/><path d="M17 18H3"/></svg>
-            Plan route
-          </button>
           <button class="result-action-btn" onclick="app.rejectTravel();app.showTravel();">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.95"/></svg> Pick again
           </button>
         </div>
       </section>`;
+    this._initRoutePlanner();
+  }
+
+  _initRoutePlanner() {
+    const input = document.getElementById('travelFrom');
+    const btn = document.getElementById('routeBtn');
+    if (!input || !btn) return;
+    const update = () => {
+      const ready = !!input.value.trim();
+      btn.classList.toggle('route-btn-ready', ready);
+      const hint = document.getElementById('routeHint');
+      if (hint) hint.textContent = ready
+        ? 'Great — we’ll open trains, flights & driving options on Rome2Rio.'
+        : 'Enter your departure point, then we’ll find trains, flights & driving options.';
+    };
+    input.addEventListener('input', update);
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') btn.click(); });
+    update();
   }
 
   openRome2Rio(name) {
-    const from = (document.getElementById('travelFrom')?.value || '').trim();
-    if (from) localStorage.setItem('chcs_travel_from', from);
+    const input = document.getElementById('travelFrom');
+    const from = (input?.value || '').trim();
+    if (!from) {
+      if (input) {
+        input.focus();
+        input.classList.add('input-attention');
+        setTimeout(() => input.classList.remove('input-attention'), 700);
+      }
+      this._toast('First tell us where you’re leaving from');
+      return;
+    }
+    localStorage.setItem('chcs_travel_from', from);
     const toSlug = s => s.replace(/\s+/g, '-');
-    const url = from
-      ? `https://www.rome2rio.com/map/${encodeURIComponent(toSlug(from))}/${encodeURIComponent(name)}`
-      : `https://www.rome2rio.com/map/-/${encodeURIComponent(name)}`;
+    const url = `https://www.rome2rio.com/map/${encodeURIComponent(toSlug(from))}/${encodeURIComponent(name)}`;
     const win = window.open(url, '_blank');
     if (!win) window.location.href = url;
   }
@@ -1169,6 +1287,7 @@ class CHCSApp {
             Dit ga ik lezen
           </button>
         </div>
+        ${this._swipesLeftHint()}
       </section>`;
     this._initSwipe(document.getElementById('swipeCard'), () => this.acceptBook(), () => this.rejectBook());
   }
@@ -1183,6 +1302,7 @@ class CHCSApp {
   }
 
   rejectBook() {
+    if (!this._gateSwipe()) return;
     this.usedBookIds.add(this.currentBook.id);
     this.currentBook = this._pickBook(this.selectedBookMood === 'surprise' ? null : this.selectedBookMood);
     this.renderBookCard();
@@ -1190,6 +1310,7 @@ class CHCSApp {
 
   acceptBook() {
     this.recordChoice();
+    this._addHistory('book', this.currentBook.title, this.currentBook.id);
     this._renderBookResult(this.currentBook);
   }
 
@@ -1321,17 +1442,557 @@ class CHCSApp {
   }
 
   // ── Account ─────────────────────────────────────────────
+  _esc(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
   renderAccount() {
     this._updateNav('account');
+    const s = this.stats;
+    const histIcon = { food: '🍽️', movie: '🎬', book: '📚', travel: '✈️', playlist: '🎵', other: '🎲', week: '📅', duo: '👥' };
+    const recent = this.history.slice(0, 8);
+    const fmtDate = ts => new Date(ts).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
     document.getElementById('mainContent').innerHTML = `
       <section class="view" style="animation:fadeInUp .3s ease">
-        <h2 class="section-title" style="margin-bottom:24px">Account</h2>
-        <div class="account-placeholder">
-          <div class="account-avatar">👤</div>
-          <p class="account-coming">Account settings</p>
-          <p class="account-hint">Coming soon — sync your picks, manage preferences, and more.</p>
+        <div class="account-head">
+          <div class="account-avatar account-avatar-sm">${this.userName ? this._esc(this.userName[0].toUpperCase()) : '👤'}</div>
+          <div class="account-head-text">
+            <input class="account-name-input" id="accountName" type="text" placeholder="Add your name"
+              value="${this._esc(this.userName)}" maxlength="20" autocomplete="off"
+              onchange="app.saveName(this.value)">
+            <p class="account-sub">${this.plus ? '✦ CHCS Plus member' : 'Free plan · data stays on this device'}</p>
+          </div>
+        </div>
+
+        ${this.plus
+          ? `<div class="plus-active-card">✦ <strong>CHCS Plus</strong> — unlimited swipes. Thanks for the support!</div>`
+          : `<div class="plus-cta-card" onclick="app.renderPlus()">
+              <div class="plus-cta-text">
+                <h4>Go unlimited with CHCS <em>Plus</em></h4>
+                <p>${this.swipesLeft()} of ${FREE_SWIPE_LIMIT} free swipes left today</p>
+              </div>
+              <svg class="mode-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+            </div>`}
+
+        <h3 class="section-title">Your stats</h3>
+        <div class="stats-row">
+          <div class="stat-card"><span class="stat-number">${s.choices}</span><span class="stat-label">Choices made</span></div>
+          <div class="stat-card"><span class="stat-number">${s.weekPlans}</span><span class="stat-label">Weeks planned</span></div>
+          <div class="stat-card"><span class="stat-number">${s.streak}</span><span class="stat-label">Day streak</span></div>
+        </div>
+
+        <h3 class="section-title">Recent choices</h3>
+        ${recent.length ? `
+          <div class="history-list">
+            ${recent.map(h => `
+              <div class="history-item">
+                <span class="history-icon">${histIcon[h.t] || '📌'}</span>
+                <span class="history-name">${this._esc(h.n)}</span>
+                <span class="history-date">${fmtDate(h.ts)}</span>
+              </div>`).join('')}
+          </div>
+          <button class="link-btn" onclick="app.clearHistory()">Clear history</button>`
+        : `<p class="account-empty-hint">Your accepted picks will show up here.</p>`}
+
+        <h3 class="section-title">Appearance</h3>
+        <div class="settings-card">
+          <div class="settings-row">
+            <span class="settings-label">Theme</span>
+            <div class="seg">
+              <button class="seg-btn${this.theme === 'light' ? ' active' : ''}" data-theme-opt="light" onclick="app.setThemeChoice('light')">Light</button>
+              <button class="seg-btn${this.theme === 'dark' ? ' active' : ''}" data-theme-opt="dark" onclick="app.setThemeChoice('dark')">Dark</button>
+            </div>
+          </div>
+          <div class="settings-row">
+            <span class="settings-label">Design</span>
+            <div class="seg">
+              <button class="seg-btn${this.design === 'elegant' ? ' active' : ''}" data-design-opt="elegant" onclick="app.setDesign('elegant')">Elegant</button>
+              <button class="seg-btn${this.design === 'classic' ? ' active' : ''}" data-design-opt="classic" onclick="app.setDesign('classic')">Classic</button>
+            </div>
+          </div>
+        </div>
+
+        <h3 class="section-title">Sync &amp; backup</h3>
+        <div class="settings-card">
+          <p class="sync-explain">No account needed — everything lives on this device. Move your favorites, history and settings to another device with a sync code.</p>
+          <div class="sync-actions">
+            <button class="btn btn-primary" onclick="app.copySyncCode()">Copy sync code</button>
+            <button class="btn btn-primary" onclick="app.toggleImportBox()">Import a code</button>
+          </div>
+          <div class="sync-import" id="syncImport" hidden>
+            <textarea id="syncImportField" class="sync-textarea" rows="3" placeholder="Paste the sync code from your other device…"></textarea>
+            <button class="btn btn-primary" onclick="app.importSyncCode()">Import</button>
+          </div>
+        </div>
+
+        <button class="danger-link" onclick="app.resetAllData()">Reset all data on this device</button>
+      </section>`;
+  }
+
+  setThemeChoice(t) {
+    this.theme = t;
+    document.documentElement.setAttribute('data-theme', t);
+    localStorage.setItem('chcs_theme', t);
+    document.querySelectorAll('.seg-btn[data-theme-opt]').forEach(b =>
+      b.classList.toggle('active', b.getAttribute('data-theme-opt') === t));
+  }
+
+  saveName(v) {
+    this.userName = v.trim().slice(0, 20);
+    if (this.userName) localStorage.setItem('chcs_name', this.userName);
+    else localStorage.removeItem('chcs_name');
+    this._toast(this.userName ? `Hi, ${this.userName}! 👋` : 'Name removed');
+  }
+
+  // ── Sync codes (device-to-device, no backend) ──────────
+  _syncPayload() {
+    return { v: 1, f: [...this.favorites], n: this.userName, p: this.plus ? 1 : 0, s: this.stats, h: this.history };
+  }
+
+  copySyncCode() {
+    const code = 'CHCS1.' + btoa(unescape(encodeURIComponent(JSON.stringify(this._syncPayload()))));
+    navigator.clipboard.writeText(code)
+      .then(() => this._toast('Sync code copied — paste it on your other device'))
+      .catch(() => this._toast('Could not copy — try again'));
+  }
+
+  toggleImportBox() {
+    const el = document.getElementById('syncImport');
+    if (!el) return;
+    el.hidden = !el.hidden;
+    if (!el.hidden) document.getElementById('syncImportField').focus();
+  }
+
+  importSyncCode() {
+    const raw = (document.getElementById('syncImportField')?.value || '').trim();
+    if (!raw.startsWith('CHCS1.')) { this._toast('That doesn’t look like a CHCS sync code'); return; }
+    try {
+      const data = JSON.parse(decodeURIComponent(escape(atob(raw.slice(6)))));
+      (Array.isArray(data.f) ? data.f : []).forEach(k => this.favorites.add(k));
+      localStorage.setItem('chcs_favorites', JSON.stringify([...this.favorites]));
+      if (data.n && !this.userName) { this.userName = String(data.n).slice(0, 20); localStorage.setItem('chcs_name', this.userName); }
+      if (data.p === 1) { this.plus = true; localStorage.setItem('chcs_plus', '1'); }
+      if (data.s) {
+        this.stats.choices = Math.max(this.stats.choices, data.s.choices || 0);
+        this.stats.weekPlans = Math.max(this.stats.weekPlans, data.s.weekPlans || 0);
+        this.stats.streak = Math.max(this.stats.streak, data.s.streak || 0);
+        this.saveStats();
+      }
+      if (Array.isArray(data.h)) {
+        const seen = new Set(this.history.map(h => h.ts));
+        data.h.filter(h => h && h.ts && !seen.has(h.ts)).forEach(h => this.history.push(h));
+        this.history.sort((a, b) => b.ts - a.ts);
+        if (this.history.length > HISTORY_MAX) this.history.length = HISTORY_MAX;
+        localStorage.setItem('chcs_history', JSON.stringify(this.history));
+      }
+      this._toast('Imported — welcome back ✓');
+      this.renderAccount();
+    } catch (e) {
+      this._toast('Invalid sync code');
+    }
+  }
+
+  resetAllData() {
+    if (!confirm('This clears everything on this device: favorites, history, stats, Plus status and settings. Continue?')) return;
+    Object.keys(localStorage).filter(k => k.startsWith('chcs_')).forEach(k => localStorage.removeItem(k));
+    location.reload();
+  }
+
+  // ── Onboarding ──────────────────────────────────────────
+  renderOnboarding(step = 0) {
+    const slides = [
+      { emoji: '👋', title: 'Can’t handle <em>choosing</em> stuff?', text: 'Neither can we. CHCS decides what you eat, watch, read and hear — and where you go next. You just show up.' },
+      { emoji: '🃏', title: 'Pick a mood, <em>swipe</em>, done', text: 'Tell us the vibe, swipe away what you don’t fancy, and accept the one that clicks. No more endless scrolling past 400 options.' },
+      { emoji: '✦', title: 'Free to use, <em>Plus</em> for superfans', text: `You get ${FREE_SWIPE_LIMIT} “nah, next” swipes a day, free — accepting a pick never costs anything. CHCS Plus removes the limit; you’ll find it under Account.` },
+    ];
+    const sl = slides[step];
+    const last = step === slides.length - 1;
+    document.getElementById('mainContent').innerHTML = `
+      <section class="view onboarding" style="animation:fadeInUp .3s ease">
+        ${last ? '<span class="ob-skip"></span>' : `<button class="ob-skip" onclick="app.finishOnboarding()">Skip</button>`}
+        <div class="ob-body">
+          <div class="ob-emoji">${sl.emoji}</div>
+          <h1 class="ob-title">${sl.title}</h1>
+          <p class="ob-text">${sl.text}</p>
+        </div>
+        <div class="ob-footer">
+          <div class="ob-dots">${slides.map((_, i) => `<span class="ob-dot${i === step ? ' active' : ''}"></span>`).join('')}</div>
+          <button class="hero-btn ob-next" onclick="${last ? 'app.finishOnboarding()' : `app.renderOnboarding(${step + 1})`}">
+            ${last ? 'Start choosing' : 'Next'} &rarr;
+          </button>
         </div>
       </section>`;
+  }
+
+  finishOnboarding() {
+    localStorage.setItem('chcs_onboarded', '1');
+    this.renderHome();
+  }
+
+  // ── CHCS Plus ───────────────────────────────────────────
+  _hash(s) {
+    let x = 5381;
+    for (const ch of s) x = (((x << 5) + x) ^ ch.codePointAt(0)) >>> 0;
+    return x.toString(16).padStart(8, '0');
+  }
+
+  renderPlus(limitHit = false) {
+    document.getElementById('mainContent').innerHTML = `
+      <section class="view" style="animation:fadeInUp .3s ease">
+        ${this._backBtn('app.renderHome()')}
+        ${limitHit ? `<div class="plus-limit-banner">That’s your ${FREE_SWIPE_LIMIT} free swipes for today. Accepting picks is still free — or go unlimited below. Fresh swipes tomorrow!</div>` : ''}
+        <div class="plus-card">
+          <p class="result-label">Members only</p>
+          <h2 class="plus-title">CHCS <em>Plus</em></h2>
+          ${this.plus ? `
+            <p class="plus-thanks">You’re in ✦ Unlimited swipes, forever. Thanks for supporting a friend’s passion project.</p>`
+          : `
+            <ul class="plus-benefits">
+              <li><span>∞</span> Unlimited “nah, next” swipes, every day</li>
+              <li><span>✦</span> Every future perk, first</li>
+              <li><span>♥</span> Supports a friend’s passion project</li>
+            </ul>
+            <div class="plus-code-row">
+              <input class="plus-code-input" id="plusCode" type="text" placeholder="Friend code" autocomplete="off" autocapitalize="characters" spellcheck="false"
+                onkeydown="if(event.key==='Enter')app.activatePlus()">
+              <button class="plus-code-btn" onclick="app.activatePlus()">Unlock</button>
+            </div>
+            <p class="plus-note">Plus is invite-only for now — ask Steven for a code. Paid upgrades come later.</p>
+            ${!limitHit ? `<p class="plus-usage">${this.swipesLeft()} of ${FREE_SWIPE_LIMIT} free swipes left today</p>` : ''}`}
+        </div>
+      </section>`;
+  }
+
+  activatePlus() {
+    const input = document.getElementById('plusCode');
+    const code = (input?.value || '').trim().toUpperCase();
+    if (!code) { input?.focus(); return; }
+    if (PLUS_CODE_HASHES.includes(this._hash(code))) {
+      this.plus = true;
+      localStorage.setItem('chcs_plus', '1');
+      this._toast('Welcome to CHCS Plus ✦');
+      this.renderAccount();
+    } else {
+      input.classList.add('input-attention');
+      setTimeout(() => input.classList.remove('input-attention'), 700);
+      this._toast('That code doesn’t work — check for typos');
+    }
+  }
+
+  // ── Other: custom decision helper ───────────────────────
+  showOther() {
+    this._renderOtherScreen();
+  }
+
+  _saveCustomOptions() { localStorage.setItem('chcs_custom_options', JSON.stringify(this.customOptions)); }
+  _saveCustomLists()   { localStorage.setItem('chcs_custom_lists', JSON.stringify(this.customLists)); }
+
+  _renderOtherScreen() {
+    const opts = this.customOptions;
+    const ready = opts.length >= 2;
+    document.getElementById('mainContent').innerHTML = `
+      <section class="view" style="animation:fadeInUp .3s ease">
+        ${this._backBtn('app.renderHome()')}
+        <div class="mood-screen">
+          <div class="mood-header">
+            <span class="mood-header-icon">🎲</span>
+            <h2>Can’t decide? We got you.</h2>
+            <p>Type your own options — CHCS picks one</p>
+          </div>
+        </div>
+        <div class="other-card">
+          <div class="other-input-row">
+            <input class="other-input" id="otherInput" type="text" maxlength="60"
+              placeholder="${opts.length ? 'Add another option…' : 'e.g. Pizza at Luigi’s'}"
+              autocomplete="off" onkeydown="if(event.key==='Enter')app.addCustomOption()">
+            <button class="other-add-btn" onclick="app.addCustomOption()" aria-label="Add option">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </button>
+          </div>
+          ${opts.length ? `
+            <div class="other-chips">
+              ${opts.map((o, i) => `
+                <span class="other-chip">${this._esc(o)}
+                  <button class="other-chip-x" onclick="app.removeCustomOption(${i})" aria-label="Remove">×</button>
+                </span>`).join('')}
+            </div>` : `<p class="other-empty">Add at least two options — dinner spots, paint colours, who does the dishes…</p>`}
+        </div>
+        <button class="spin-btn other-decide${ready ? '' : ' disabled'}" onclick="app.decideOther()">🎲 Decide for me</button>
+        ${ready ? `<button class="link-btn" onclick="app.promptSaveList()">Save this list for later</button>` : ''}
+        <div id="saveListRow"></div>
+        ${this.customLists.length ? `
+          <h3 class="section-title" style="margin-top:28px">Saved lists</h3>
+          <div class="saved-lists">
+            ${this.customLists.map((l, i) => `
+              <div class="saved-list-item" onclick="app.loadCustomList(${i})">
+                <div class="fav-info">
+                  <div class="fav-title">${this._esc(l.name)}</div>
+                  <div class="fav-meta">${l.options.length} options</div>
+                </div>
+                <button class="fav-remove" onclick="event.stopPropagation();app.deleteCustomList(${i})" title="Delete">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+              </div>`).join('')}
+          </div>` : ''}
+      </section>`;
+    if (!opts.length) document.getElementById('otherInput')?.focus();
+  }
+
+  addCustomOption() {
+    const input = document.getElementById('otherInput');
+    const v = (input?.value || '').trim();
+    if (!v) return;
+    if (this.customOptions.length >= 20) { this._toast('That’s plenty — 20 options max'); return; }
+    if (this.customOptions.some(o => o.toLowerCase() === v.toLowerCase())) { this._toast('Already on the list'); return; }
+    this.customOptions.push(v);
+    this._saveCustomOptions();
+    this._renderOtherScreen();
+    const el = document.getElementById('otherInput');
+    if (el) el.focus();
+  }
+
+  removeCustomOption(i) {
+    this.customOptions.splice(i, 1);
+    this._saveCustomOptions();
+    this._renderOtherScreen();
+  }
+
+  promptSaveList() {
+    const row = document.getElementById('saveListRow');
+    if (!row) return;
+    row.innerHTML = `
+      <div class="other-input-row" style="margin-top:10px">
+        <input class="other-input" id="listNameInput" type="text" maxlength="30" placeholder="Name this list — e.g. Friday dinner spots"
+          onkeydown="if(event.key==='Enter')app.confirmSaveList()">
+        <button class="other-add-btn" onclick="app.confirmSaveList()" aria-label="Save list">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        </button>
+      </div>`;
+    document.getElementById('listNameInput').focus();
+  }
+
+  confirmSaveList() {
+    const name = (document.getElementById('listNameInput')?.value || '').trim();
+    if (!name) return;
+    this.customLists.unshift({ name, options: [...this.customOptions] });
+    if (this.customLists.length > 12) this.customLists.length = 12;
+    this._saveCustomLists();
+    this._toast('List saved ✓');
+    this._renderOtherScreen();
+  }
+
+  loadCustomList(i) {
+    this.customOptions = [...this.customLists[i].options];
+    this._saveCustomOptions();
+    this._toast(`Loaded “${this.customLists[i].name}”`);
+    this._renderOtherScreen();
+  }
+
+  deleteCustomList(i) {
+    this.customLists.splice(i, 1);
+    this._saveCustomLists();
+    this._renderOtherScreen();
+  }
+
+  decideOther() {
+    const opts = [...this.customOptions];
+    if (opts.length < 2) { this._toast('Add at least two options first'); return; }
+    document.getElementById('mainContent').innerHTML = `
+      <section class="view" style="animation:fadeInUp .2s ease">
+        <div class="spin-container">
+          <p class="result-label" style="margin-bottom:18px">Deciding…</p>
+          <div class="spin-reel"><div class="spin-title" id="spinTitle">${this._esc(opts[0])}</div></div>
+        </div>
+      </section>`;
+    const el = document.getElementById('spinTitle');
+    let delay = 70, elapsed = 0, i = 0;
+    const tick = () => {
+      i = (i + 1 + Math.floor(Math.random() * (opts.length - 1))) % opts.length;
+      el.textContent = opts[i];
+      el.classList.remove('spin-tick'); void el.offsetWidth; el.classList.add('spin-tick');
+      elapsed += delay; delay *= 1.14;
+      if (elapsed < 2400) setTimeout(tick, delay);
+      else {
+        el.classList.add('spin-final');
+        setTimeout(() => this._renderOtherResult(opts[i]), 900);
+      }
+    };
+    setTimeout(tick, delay);
+  }
+
+  _renderOtherResult(choice) {
+    this.recordChoice();
+    this._addHistory('other', choice);
+    document.getElementById('mainContent').innerHTML = `
+      <section class="view" style="animation:fadeInUp .3s ease">
+        ${this._backBtn('app.showOther()')}
+        <div class="result-card result-other">
+          <p class="result-label">The decision is made</p>
+          <h2 class="result-title">${this._esc(choice)}</h2>
+          <div class="result-emoji">🎲</div>
+          <p class="result-meta">No takebacks — that’s the whole point.</p>
+          <div class="result-divider"></div>
+          <div class="result-branding">CHCS</div>
+        </div>
+        <div class="result-actions">
+          <button class="result-action-btn" onclick="app.decideOther()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.95"/></svg> Spin again
+          </button>
+          <button class="result-action-btn" onclick="app.showOther()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit options
+          </button>
+        </div>
+      </section>`;
+  }
+
+  // ── Duo mode: swipe together, first match wins ──────────
+  _duoConfig() {
+    return {
+      movies: { label: 'Movies', emoji: '🎬', desc: 'What are we watching?', pool: MOVIES, inner: m => this._swipeMovieInner(m), name: m => m.title,
+                open: m => { this.currentMovie = m; this._renderMovieResult(m); } },
+      food:   { label: 'Food', emoji: '🍽️', desc: 'What are we eating?', pool: MEALS, inner: m => this._swipeMealInner(m), name: m => m.name,
+                open: m => { this.currentMeal = m; this.foodMode = 'tonight'; this._renderFoodResult(m); } },
+      travel: { label: 'Travel', emoji: '✈️', desc: 'Where are we going?', pool: TRAVEL, inner: t => this._swipeTravelInner(t), name: t => t.name,
+                open: t => { this.currentTravel = t; this._renderTravelResult(t); } },
+    };
+  }
+
+  _sample(arr, n) {
+    const copy = [...arr];
+    for (let i = copy.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [copy[i], copy[j]] = [copy[j], copy[i]];
+    }
+    return copy.slice(0, n);
+  }
+
+  showDuo() {
+    const cfg = this._duoConfig();
+    document.getElementById('mainContent').innerHTML = `
+      <section class="view" style="animation:fadeInUp .3s ease">
+        ${this._backBtn('app.renderHome()')}
+        <div class="mood-screen">
+          <div class="mood-header">
+            <span class="mood-header-icon">👥</span>
+            <h2>Duo mode</h2>
+            <p>You both swipe the same 8 cards — a match decides</p>
+          </div>
+          <div class="mood-grid stagger-in" style="grid-template-columns:1fr">
+            ${Object.entries(cfg).map(([key, c]) => `
+              <button class="mood-pill duo-pick" onclick="app.startDuo('${key}')">
+                <span class="mood-pill-emoji">${c.emoji}</span>
+                <span class="mood-pill-label">${c.label}</span>
+                <span class="mood-pill-desc">${c.desc}</span>
+              </button>`).join('')}
+          </div>
+        </div>
+        <div class="duo-how">
+          <div class="duo-how-step"><span>1</span> Player 1 likes or passes 8 cards</div>
+          <div class="duo-how-step"><span>2</span> Pass the phone — player 2 swipes the same cards</div>
+          <div class="duo-how-step"><span>3</span> A shared like wins. No match? Rematch.</div>
+        </div>
+      </section>`;
+  }
+
+  startDuo(type) {
+    const cfg = this._duoConfig()[type];
+    this.duo = { type, deck: this._sample(cfg.pool, 8), phase: 1, idx: 0, likes: [new Set(), new Set()] };
+    this._renderDuoRound();
+  }
+
+  _renderDuoRound() {
+    const d = this.duo;
+    const cfg = this._duoConfig()[d.type];
+    const item = d.deck[d.idx];
+    document.getElementById('mainContent').innerHTML = `
+      <section class="view" style="animation:fadeInUp .25s ease">
+        ${this._backBtn('app.showDuo()')}
+        <div class="week-progress">
+          <div class="week-progress-label">Player ${d.phase} <span class="week-progress-count">card ${d.idx + 1}/${d.deck.length}</span></div>
+          <div class="week-progress-bar"><div class="week-progress-fill" style="width:${d.idx / d.deck.length * 100}%"></div></div>
+        </div>
+        <div class="swipe-stack">
+          ${d.idx + 1 < d.deck.length ? `<div class="swipe-card swipe-card-behind">${cfg.inner(d.deck[d.idx + 1])}</div>` : ''}
+          <div class="swipe-card swipe-card-front" id="swipeCard">
+            ${this._swipeHints()}
+            ${cfg.inner(item)}
+          </div>
+        </div>
+        <div class="card-actions">
+          <button class="action-btn action-reject" onclick="app.duoMark(false)">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            Pass
+          </button>
+          <button class="action-btn action-accept" onclick="app.duoMark(true)">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            Like
+          </button>
+        </div>
+        <p class="duo-secret-hint">${d.phase === 2 ? 'No peeking at player 1’s likes — the match reveals itself' : 'Like as many as you want — player 2 never sees them'}</p>
+      </section>`;
+    this._initSwipe(document.getElementById('swipeCard'), () => this.duoMark(true), () => this.duoMark(false));
+  }
+
+  duoMark(liked) {
+    const d = this.duo;
+    if (!d) return;
+    if (liked) d.likes[d.phase - 1].add(d.deck[d.idx].id);
+    d.idx++;
+    if (d.idx < d.deck.length) { this._renderDuoRound(); return; }
+    if (d.phase === 1) { d.phase = 2; d.idx = 0; this._renderDuoHandoff(); }
+    else this._renderDuoResults();
+  }
+
+  _renderDuoHandoff() {
+    document.getElementById('mainContent').innerHTML = `
+      <section class="view" style="animation:fadeInUp .3s ease">
+        <div class="duo-handoff">
+          <div class="ob-emoji">🤝</div>
+          <h2 class="ob-title">Player 1 is done!</h2>
+          <p class="ob-text">Pass the phone. Player 2 swipes the same ${this.duo.deck.length} cards — first shared like wins.</p>
+          <button class="hero-btn" onclick="app._renderDuoRound()">I’m player 2 — let’s go &rarr;</button>
+        </div>
+      </section>`;
+  }
+
+  _renderDuoResults() {
+    const d = this.duo;
+    const cfg = this._duoConfig()[d.type];
+    const matches = d.deck.filter(item => d.likes[0].has(item.id) && d.likes[1].has(item.id));
+    if (!matches.length) {
+      document.getElementById('mainContent').innerHTML = `
+        <section class="view" style="animation:fadeInUp .3s ease">
+          <div class="duo-handoff">
+            <div class="ob-emoji">😅</div>
+            <h2 class="ob-title">No match…</h2>
+            <p class="ob-text">You two are officially impossible. New deck, new chance?</p>
+            <button class="hero-btn" onclick="app.startDuo('${d.type}')">Rematch &rarr;</button>
+            <button class="link-btn" onclick="app.renderHome()">Give up (go home)</button>
+          </div>
+        </section>`;
+      return;
+    }
+    const winner = matches[Math.floor(Math.random() * matches.length)];
+    this.recordChoice();
+    this._addHistory('duo', `${cfg.name(winner)} (duo)`, winner.id);
+    const others = matches.filter(m => m.id !== winner.id);
+    document.getElementById('mainContent').innerHTML = `
+      <section class="view" style="animation:fadeInUp .3s ease">
+        <div class="duo-match-banner">✨ It’s a match!</div>
+        <div class="swipe-stack">
+          <div class="swipe-card swipe-card-front duo-winner">${cfg.inner(winner)}</div>
+        </div>
+        ${others.length ? `<p class="duo-others">You also both liked: ${others.map(m => this._esc(cfg.name(m))).join(', ')}</p>` : ''}
+        <div class="card-actions" style="margin-top:14px">
+          <button class="action-btn action-reject" onclick="app.startDuo('${d.type}')">
+            Play again
+          </button>
+          <button class="action-btn action-accept" id="duoOpenBtn">
+            See details
+          </button>
+        </div>
+      </section>`;
+    document.getElementById('duoOpenBtn').addEventListener('click', () => cfg.open(winner));
   }
 
   // ── Item openers (safe for onclick attributes) ─────────
