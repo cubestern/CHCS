@@ -19,6 +19,7 @@ const PLUS_CODE_HASHES = ['60d51bda', 'c7fee8bb', 'fb0a462d'];
 const HISTORY_MAX = 60;
 
 const WEEKDAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+const DESIGNS = ['elegant', 'quiet'];
 const CUISINES = [...new Set(MEALS.map(m => m.cuisine))].sort();
 const GENRES = [...new Set(MOVIES.map(m => m.genre))].sort();
 const MOODS = [...new Set(MOVIES.map(m => m.mood))];
@@ -31,7 +32,7 @@ const DIETARY_EMOJI = { vegetarian: '🌿', fish: '🐟', meat: '🥩', vegan: '
 class CHCSApp {
   constructor() {
     this.theme = localStorage.getItem('chcs_theme') || 'light';
-    this.design = localStorage.getItem('chcs_design') || 'elegant';
+    this.design = CHCSApp.resolveDesign(localStorage.getItem('chcs_design'));
     this.userName = localStorage.getItem('chcs_name') || '';
     this.plus = localStorage.getItem('chcs_plus') === '1';
     this.history = JSON.parse(localStorage.getItem('chcs_history') || '[]');
@@ -64,6 +65,7 @@ class CHCSApp {
     this.checkedItems = new Set(JSON.parse(localStorage.getItem('chcs_checked') || '[]'));
     document.documentElement.setAttribute('data-theme', this.theme);
     document.documentElement.setAttribute('data-design', this.design);
+    localStorage.setItem('chcs_design', this.design);
     if (!localStorage.getItem('chcs_onboarded')) this.renderOnboarding();
     else this.renderHome();
   }
@@ -74,8 +76,14 @@ class CHCSApp {
     localStorage.setItem('chcs_theme', this.theme);
   }
 
+  // 'classic' was retired; anyone still on it lands back on the default.
+  static resolveDesign(stored) {
+    return DESIGNS.includes(stored) ? stored : 'elegant';
+  }
+
   setDesign(design) {
-    this.design = design;
+    this.design = CHCSApp.resolveDesign(design);
+    design = this.design;
     document.documentElement.setAttribute('data-design', design);
     localStorage.setItem('chcs_design', design);
     document.querySelectorAll('.seg-btn[data-design-opt]').forEach(b =>
@@ -1515,7 +1523,7 @@ class CHCSApp {
             <span class="settings-label">Design</span>
             <div class="seg">
               <button class="seg-btn${this.design === 'elegant' ? ' active' : ''}" data-design-opt="elegant" onclick="app.setDesign('elegant')">Elegant</button>
-              <button class="seg-btn${this.design === 'classic' ? ' active' : ''}" data-design-opt="classic" onclick="app.setDesign('classic')">Classic</button>
+              <button class="seg-btn${this.design === 'quiet' ? ' active' : ''}" data-design-opt="quiet" onclick="app.setDesign('quiet')">Quiet</button>
             </div>
           </div>
         </div>

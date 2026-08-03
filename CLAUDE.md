@@ -45,6 +45,7 @@ After any data edit, run **`node check-data.js`** to verify no duplicate IDs, no
 
 All persistent state is `localStorage`:
 - `chcs_theme` — `'light'` or `'dark'`
+- `chcs_design` — `'elegant'` or `'quiet'` (see Theming; unknown values fall back to `'elegant'`)
 - `chcs_stats` — `{ choices, weekPlans, streak, lastDate }`
 - `chcs_checked` — JSON array of checked shopping list item strings
 - Plus favorites and last-selected-mood per category
@@ -52,6 +53,13 @@ All persistent state is `localStorage`:
 ### Theming
 
 Two themes driven by `data-theme="light|dark"` on `<html>`. CSS variables are defined in `:root` (light) and `[data-theme="dark"]`. The header uses hardcoded `rgba()` values for backdrop-filter glass effect — if the light-mode background colour `--bg` ever changes from `#F3EDE5`, update `style.css` line ~185 manually.
+
+Independently of theme, `data-design="elegant|quiet"` on `<html>` selects a **design layer** — both are override blocks at the bottom of [style.css](style.css), stacked on the base styles, and both work in either theme:
+
+- **elegant** (default) — refined and editorial: italic serif headings, dark hero card, soft shadows.
+- **quiet** — minimal and calm: no shadows, no hover motion, hairline borders, light hero panel, roman headings. Same colour palette as elegant.
+
+The valid values live in the `DESIGNS` array in [app.js](app.js); `CHCSApp.resolveDesign()` maps anything else back to `'elegant'`, which is how the retired `'classic'` option is migrated. Adding a design means adding it to `DESIGNS`, adding a `[data-design="…"]` block, and adding a button in `renderAccount()`.
 
 ## Design language
 
