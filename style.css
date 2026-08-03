@@ -3580,3 +3580,20 @@ button.ob-skip:hover { color: var(--teal); }
   letter-spacing: 0;
   color: var(--text-tertiary);
 }
+
+/* Quiet has no emoji (they are stripped at paint time in app.js). These
+   wrappers exist only to hold one, so they are hidden rather than left as
+   empty boxes. Monochrome marks that read as typography stay: the ♡ in the
+   empty-favourites state and the ✓ / ✗ swipe hints keep their elements. */
+[data-design="quiet"] .mood-header-icon,
+[data-design="quiet"] .mood-pill-emoji,
+[data-design="quiet"] .swipe-card-emoji,
+[data-design="quiet"] .result-emoji,
+[data-design="quiet"] .share-card-emoji,
+[data-design="quiet"] .mode-icon,
+[data-design="quiet"] .accepted-icon,
+[data-design="quiet"] .history-icon,
+[data-design="quiet"] .ob-emoji { display: none; }
+
+/* Without the icon above them these headers sat too low. */
+[data-design="quiet"] .mood-header { padding-top: 4px; }
