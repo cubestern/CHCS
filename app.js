@@ -1209,14 +1209,22 @@ class CHCSApp {
   // ── Books: mood selection ──────────────────────────────
   showBooks() {
     this.usedBookIds.clear();
-    this.selectedBookMood = localStorage.getItem('chcs_book_mood_last') || null;
+    // Book moods were renamed to English; drop a key stored by an older build.
+    const stored = localStorage.getItem('chcs_book_mood_last');
+    this.selectedBookMood = stored && BOOKS.some(b => b.mood === stored) ? stored : null;
+    if (stored && !this.selectedBookMood) localStorage.removeItem('chcs_book_mood_last');
     this._renderBookMoodScreen();
   }
 
   _pickBook(mood) {
     let pool = BOOKS.filter(b => !this.usedBookIds.has(b.id));
     if (mood) pool = pool.filter(b => b.mood === mood);
-    if (pool.length === 0) { this.usedBookIds.clear(); return this._pickBook(mood); }
+    if (pool.length === 0) {
+      this.usedBookIds.clear();
+      // A mood matching nothing at all would recurse forever — widen instead.
+      if (mood && !BOOKS.some(b => b.mood === mood)) return this._pickBook(null);
+      return this._pickBook(mood);
+    }
     return pool[Math.floor(Math.random() * pool.length)];
   }
 
@@ -1230,11 +1238,11 @@ class CHCSApp {
 
   _renderBookMoodScreen() {
     const moods = [
-      { key: 'spannend',   emoji: '😰', label: 'Spannend',   desc: 'Thriller, misdaad & horror' },
-      { key: 'grappig',    emoji: '😂', label: 'Grappig',    desc: 'Humor & satire' },
-      { key: 'fantasy',    emoji: '🧙', label: 'Fantasy',    desc: 'Fantasy & sci-fi' },
-      { key: 'ontroerend', emoji: '😢', label: 'Ontroerend', desc: 'Literatuur & gevoel' },
-      { key: 'non-fictie', emoji: '🔍', label: 'Non-fictie', desc: 'Kennis & memoires' },
+      { key: 'gripping',    emoji: '😰', label: 'Gripping',    desc: 'Thriller, crime & horror' },
+      { key: 'funny',       emoji: '😂', label: 'Funny',       desc: 'Humour & satire' },
+      { key: 'fantasy',     emoji: '🧙', label: 'Fantasy',     desc: 'Fantasy & sci-fi' },
+      { key: 'moving',      emoji: '😢', label: 'Moving',      desc: 'Literary & heartfelt' },
+      { key: 'non-fiction', emoji: '🔍', label: 'Non-fiction', desc: 'Ideas & memoir' },
     ];
     const last = this.selectedBookMood;
     document.getElementById('mainContent').innerHTML = `
@@ -1243,8 +1251,8 @@ class CHCSApp {
         <div class="mood-screen">
           <div class="mood-header">
             <span class="mood-header-icon">📚</span>
-            <h2>Wat wil je lezen?</h2>
-            <p>Kies een stemming en we vinden een boek</p>
+            <h2>What should I read?</h2>
+            <p>Pick a mood and we'll find you a book</p>
           </div>
           <div class="mood-grid stagger-in">
             ${moods.map(m => `
@@ -1266,7 +1274,7 @@ class CHCSApp {
     const b = this.currentBook;
     const moodKey = this.selectedBookMood === 'surprise' ? null : this.selectedBookMood;
     const next = this._pickBook(moodKey);
-    const moodEmoji = { spannend: '😰', grappig: '😂', fantasy: '🧙', ontroerend: '😢', 'non-fictie': '🔍' };
+    const moodEmoji = { gripping: '😰', funny: '😂', fantasy: '🧙', moving: '😢', 'non-fiction': '🔍' };
     document.getElementById('mainContent').innerHTML = `
       <section class="view" style="animation:fadeInUp .3s ease">
         ${this._backBtn('app.showBooks()')}
@@ -1284,7 +1292,7 @@ class CHCSApp {
           </button>
           <button class="action-btn action-accept" onclick="app.acceptBook()">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
-            Dit ga ik lezen
+            I'll read this
           </button>
         </div>
         ${this._swipesLeftHint()}
@@ -1293,7 +1301,7 @@ class CHCSApp {
   }
 
   _swipeBookInner(b) {
-    const moodEmoji = { spannend: '😰', grappig: '😂', fantasy: '🧙', ontroerend: '😢', 'non-fictie': '🔍' };
+    const moodEmoji = { gripping: '😰', funny: '😂', fantasy: '🧙', moving: '😢', 'non-fiction': '🔍' };
     return `
       <div class="swipe-card-emoji">${moodEmoji[b.mood] || '📚'}</div>
       <h3 class="swipe-card-title">${b.title}</h3>
@@ -1315,20 +1323,20 @@ class CHCSApp {
   }
 
   _renderBookResult(b) {
-    const moodEmoji = { spannend: '😰', grappig: '😂', fantasy: '🧙', ontroerend: '😢', 'non-fictie': '🔍' };
+    const moodEmoji = { gripping: '😰', funny: '😂', fantasy: '🧙', moving: '😢', 'non-fiction': '🔍' };
     const searchUrl = `https://www.goodreads.com/search?q=${encodeURIComponent(b.title + ' ' + b.author)}`;
     document.getElementById('mainContent').innerHTML = `
       <section class="view" style="animation:fadeInUp .3s ease">
         ${this._backBtn('app.renderHome()')}
         <div class="result-card result-book">
-          <p class="result-label">Dit ga je lezen</p>
+          <p class="result-label">You're reading this</p>
           <h2 class="result-title">${b.title}</h2>
           <div class="result-emoji">📚</div>
           <div class="result-meta">${b.author} · ${b.year}</div>
           <div class="result-divider"></div>
           <div class="result-details">
             <p>${moodEmoji[b.mood]} ${b.mood.charAt(0).toUpperCase() + b.mood.slice(1)}</p>
-            <p>📖 ${b.pages} pagina's</p>
+            <p>📖 ${b.pages} pages</p>
           </div>
           <div class="result-divider"></div>
           <div class="result-branding">CHCS</div>
