@@ -3284,9 +3284,14 @@ button.ob-skip:hover { color: var(--teal); }
 }
 
 /* ============================================================
-   ELEGANT DESIGN — refined layer, toggled in Account
-   (default; "Classic" removes the [data-design] overrides)
+   DESIGN LAYERS — toggled in Account (see DESIGNS in app.js)
+   Both are overrides on top of the base styles above.
+   "elegant" (default) — refined, editorial, italic serif accents.
+   "quiet"             — minimal and calm: no shadows, no hover
+                         motion, hairline borders, same palette.
    ============================================================ */
+
+/* ---------- ELEGANT ---------- */
 [data-design="elegant"] {
   --font-display: 'Fraunces', 'Cormorant Garamond', Georgia, serif;
   --radius-xl: 22px;
@@ -3381,3 +3386,214 @@ button.ob-skip:hover { color: var(--teal); }
   font-size: 0.82rem;
   letter-spacing: 0;
 }
+
+/* ---------- QUIET ----------
+   Minimal but friendly. Same palette as elegant in both themes; the
+   difference is everything that shouts: shadows, hover lifts, gradient
+   stripes and the dark hero are all removed. What is left is hairline
+   borders, soft tinted fills and more air. */
+[data-design="quiet"] {
+  --radius-xl: 18px;
+  --radius: 14px;
+  --shadow-xs: none;
+  --shadow: none;
+  --shadow-lg: none;
+  --shadow-xl: none;
+  /* The hero becomes a calm panel instead of a dark slab. */
+  --hero-bg: var(--bg-card);
+  --hero-text: var(--text-primary);
+  --grain-opacity: 0;
+}
+
+/* ----- Layout: a little more air ----- */
+[data-design="quiet"] .app-main { padding: 0 24px; }
+[data-design="quiet"] .app-header { padding: 20px 26px 14px; }
+[data-design="quiet"] .home-greeting { padding: 8px 0 26px; }
+
+[data-design="quiet"] .home-greeting-title {
+  font-size: 1.7rem;
+  font-weight: 400;
+  letter-spacing: -0.2px;
+}
+
+/* ----- Section labels: quieter than the base small-caps ----- */
+[data-design="quiet"] .section-title {
+  font-weight: 600;
+  font-size: 0.66rem;
+  letter-spacing: 1.6px;
+  color: var(--text-tertiary);
+  margin-bottom: 16px;
+}
+
+/* ----- Hero: soft panel, no texture, no glow ----- */
+[data-design="quiet"] .hero-card {
+  border: 1px solid var(--border-subtle);
+  padding: 34px 26px 30px;
+}
+
+[data-design="quiet"] .hero-card::before,
+[data-design="quiet"] .hero-card::after { display: none; }
+
+[data-design="quiet"] .hero-label {
+  color: var(--text-tertiary);
+  font-weight: 600;
+  letter-spacing: 1.6px;
+}
+
+[data-design="quiet"] .hero-title {
+  font-size: 1.75rem;
+  font-weight: 400;
+  font-style: normal;
+}
+
+[data-design="quiet"] .hero-desc { color: var(--text-secondary); }
+
+[data-design="quiet"] .hero-btn {
+  background: var(--teal-soft);
+  color: var(--teal);
+  border: 1px solid var(--teal);
+  font-weight: 500;
+}
+
+[data-design="quiet"] .hero-btn:hover {
+  background: var(--teal);
+  color: #FFFFFF;
+  transform: none;
+  box-shadow: none;
+}
+
+/* ----- Cards: flat, hairline, no lift ----- */
+[data-design="quiet"] .category-card,
+[data-design="quiet"] .mood-pill,
+[data-design="quiet"] .swipe-card,
+[data-design="quiet"] .result-card,
+[data-design="quiet"] .settings-card,
+[data-design="quiet"] .other-card,
+[data-design="quiet"] .route-planner,
+[data-design="quiet"] .plus-cta-card,
+[data-design="quiet"] .duo-banner {
+  border: 1px solid var(--border-subtle);
+  box-shadow: none;
+}
+
+[data-design="quiet"] .category-card { padding: 26px 18px; }
+
+[data-design="quiet"] .category-card:hover,
+[data-design="quiet"] .mood-pill:hover,
+[data-design="quiet"] .duo-banner:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--border);
+  transform: none;
+  box-shadow: none;
+}
+
+[data-design="quiet"] .category-card:active,
+[data-design="quiet"] .mood-pill:active { transform: none; scale: 1; }
+
+[data-design="quiet"] .category-icon {
+  width: 40px;
+  height: 40px;
+  margin: 0 auto 14px;
+}
+
+[data-design="quiet"] .category-card h4 {
+  font-weight: 500;
+  font-size: 1.05rem;
+}
+
+/* ----- Mood pills: soft tint instead of a glow ring ----- */
+[data-design="quiet"] .mood-pill { padding: 22px 14px; }
+
+[data-design="quiet"] .mood-pill.active {
+  background: var(--teal-soft);
+  border-color: var(--teal);
+  box-shadow: none;
+}
+
+[data-design="quiet"] .mood-pill:hover .mood-pill-emoji,
+[data-design="quiet"] .mood-pill.active .mood-pill-emoji { transform: none; }
+
+[data-design="quiet"] .mood-pill-label { font-weight: 500; }
+
+[data-design="quiet"] .mood-header h2 {
+  font-size: 1.7rem;
+  font-weight: 400;
+}
+
+/* Roman display headings — the italic serif is elegant's signature. The gold
+   italic word in the home greeting stays; it carries the warmth on its own. */
+[data-design="quiet"] .category-header-text h2,
+[data-design="quiet"] .mood-header h2,
+[data-design="quiet"] .accepted-state h2,
+[data-design="quiet"] .result-title,
+[data-design="quiet"] .spin-title,
+[data-design="quiet"] .swipe-card-desc { font-style: normal; }
+
+/* ----- Swipe + result: drop the gradient stripe ----- */
+[data-design="quiet"] .swipe-card { padding: 34px 24px 30px; }
+
+[data-design="quiet"] .result-card { padding: 34px 26px 26px; }
+
+[data-design="quiet"] .swipe-card::before,
+[data-design="quiet"] .result-card::before { display: none; }
+
+[data-design="quiet"] .swipe-card-title {
+  font-size: 1.55rem;
+  font-weight: 500;
+}
+
+[data-design="quiet"] .result-title {
+  font-size: 1.8rem;
+  font-weight: 400;
+}
+
+/* ----- Buttons: soft fill, no lift, no glow ----- */
+[data-design="quiet"] .btn-primary {
+  background: var(--teal-soft);
+  border: 1px solid var(--teal);
+  font-weight: 500;
+}
+
+[data-design="quiet"] .btn-primary:hover {
+  background: var(--teal);
+  color: #FFFFFF;
+  transform: none;
+  box-shadow: none;
+}
+
+[data-design="quiet"] .action-btn:hover,
+[data-design="quiet"] .plus-code-btn:hover,
+[data-design="quiet"] .other-add-btn:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+[data-design="quiet"] .seg-btn.active { box-shadow: none; }
+
+/* ----- Chrome ----- */
+[data-design="quiet"] .app-nav { border-top-color: var(--border-subtle); }
+
+[data-design="quiet"] .travel-map-wrap { margin: 0 -24px; }
+
+[data-design="quiet"] .home-footer-hint {
+  font-size: 0.78rem;
+  letter-spacing: 0;
+  color: var(--text-tertiary);
+}
+
+/* Quiet has no emoji (they are stripped at paint time in app.js). These
+   wrappers exist only to hold one, so they are hidden rather than left as
+   empty boxes. Monochrome marks that read as typography stay: the ♡ in the
+   empty-favourites state and the ✓ / ✗ swipe hints keep their elements. */
+[data-design="quiet"] .mood-header-icon,
+[data-design="quiet"] .mood-pill-emoji,
+[data-design="quiet"] .swipe-card-emoji,
+[data-design="quiet"] .result-emoji,
+[data-design="quiet"] .share-card-emoji,
+[data-design="quiet"] .mode-icon,
+[data-design="quiet"] .accepted-icon,
+[data-design="quiet"] .history-icon,
+[data-design="quiet"] .ob-emoji { display: none; }
+
+/* Without the icon above them these headers sat too low. */
+[data-design="quiet"] .mood-header { padding-top: 4px; }

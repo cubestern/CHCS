@@ -34,6 +34,15 @@ function tf(s, vars) {
 }
 
 const WEEKDAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+const DESIGNS = ['elegant', 'quiet'];
+
+// Emoji, including skin-tone modifiers, ZWJ sequences, keycaps and flags.
+// The quiet design strips these; see CHCSApp.stripEmoji.
+const EMOJI_PART = '\\p{Extended_Pictographic}(?:\\p{Emoji_Modifier}|\\uFE0F|\\u20E3)*';
+const EMOJI_RE = new RegExp(`\\p{RI}\\p{RI}|${EMOJI_PART}(?:\\u200D${EMOJI_PART})*`, 'gu');
+// Monochrome glyphs that read as typography rather than emoji, so they stay:
+// ♥/♡ mark favourites, and ✓ ✗ → ✦ are not pictographic to begin with.
+const EMOJI_KEEP = new Set(['♥', '♡']);
 const CUISINES = [...new Set(MEALS.map(m => m.cuisine))].sort();
 const GENRES = [...new Set(MOVIES.map(m => m.genre))].sort();
 const MOODS = [...new Set(MOVIES.map(m => m.mood))];
@@ -46,7 +55,7 @@ const DIETARY_EMOJI = { vegetarian: '🌿', fish: '🐟', meat: '🥩', vegan: '
 class CHCSApp {
   constructor() {
     this.theme = localStorage.getItem('chcs_theme') || 'light';
-    this.design = localStorage.getItem('chcs_design') || 'elegant';
+    this.design = CHCSApp.resolveDesign(localStorage.getItem('chcs_design'));
     this.userName = localStorage.getItem('chcs_name') || '';
     this.plus = localStorage.getItem('chcs_plus') === '1';
     this.history = JSON.parse(localStorage.getItem('chcs_history') || '[]');
@@ -79,6 +88,7 @@ class CHCSApp {
     this.checkedItems = new Set(JSON.parse(localStorage.getItem('chcs_checked') || '[]'));
     document.documentElement.setAttribute('data-theme', this.theme);
     document.documentElement.setAttribute('data-design', this.design);
+    localStorage.setItem('chcs_design', this.design);
     this._applyStaticLang();
     if (!localStorage.getItem('chcs_onboarded')) this.renderOnboarding();
     else this.renderHome();
@@ -107,12 +117,54 @@ class CHCSApp {
     });
   }
 
+  // 'classic' was retired; anyone still on it lands back on the default.
+  static resolveDesign(stored) {
+    return DESIGNS.includes(stored) ? stored : 'elegant';
+  }
+
+  // Removes emoji from rendered text. Works on text nodes rather than on the
+  // HTML string so attributes, URLs and ids are never touched. Emoji live in
+  // ~90 places across the templates and in some playlist titles; doing this
+  // once at paint time covers all of them, content included.
+  static stripEmoji(root) {
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    const nodes = [];
+    for (let n = walker.nextNode(); n; n = walker.nextNode()) nodes.push(n);
+    for (const node of nodes) {
+      let out = node.nodeValue.replace(EMOJI_RE, m => EMOJI_KEEP.has(m) ? m : '');
+      if (out === node.nodeValue) continue;
+      // Close the gap the emoji left behind.
+      out = out.replace(/[ \t]{2,}/g, ' ');
+      if (!node.previousSibling) out = out.replace(/^[ \t]+/, '');
+      if (!node.nextSibling) out = out.replace(/[ \t]+$/, '');
+      node.nodeValue = out;
+    }
+  }
+
+  _paintInto(el, html) {
+    if (!el) return el;
+    el.innerHTML = html;
+    if (this.design === 'quiet') CHCSApp.stripEmoji(el);
+    return el;
+  }
+
+  // Every view paints through here instead of touching #mainContent directly,
+  // which gives the quiet design a single place to strip emoji from all of them.
+  get _screen() {
+    const app = this;
+    return {
+      set innerHTML(html) { app._paintInto(document.getElementById('mainContent'), html); },
+    };
+  }
+
   setDesign(design) {
-    this.design = design;
+    this.design = CHCSApp.resolveDesign(design);
+    design = this.design;
     document.documentElement.setAttribute('data-design', design);
     localStorage.setItem('chcs_design', design);
-    document.querySelectorAll('.seg-btn[data-design-opt]').forEach(b =>
-      b.classList.toggle('active', b.getAttribute('data-design-opt') === design));
+    // Quiet strips emoji at paint time, so the current view has to be redrawn
+    // for the switch to show up rather than waiting for the next navigation.
+    this.renderAccount();
   }
 
   // ── Stats ──────────────────────────────────────────────
@@ -237,7 +289,7 @@ class CHCSApp {
     const daypart = t(hour < 6 ? 'Good night' : hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening');
     const showFnFor = { food: 'showFood', movies: 'showMovies', music: 'showMusic', books: 'showBooks', travel: 'showTravel', other: 'showOther' };
 
-    document.getElementById('mainContent').innerHTML = `
+    this._screen.innerHTML = `
       <section class="view" style="animation:fadeInUp .3s ease">
         <div class="home-greeting">
           <span class="home-greeting-label">${daypart}${this.userName ? `, ${this.userName}` : ''}</span>
@@ -316,7 +368,7 @@ class CHCSApp {
       { key: 'meaty',       emoji: '🍖', label: 'Meaty',       desc: 'Carnivore mode' },
     ];
     const last = this.selectedFoodMood;
-    document.getElementById('mainContent').innerHTML = `
+    this._screen.innerHTML = `
       <section class="view" style="animation:fadeInUp .3s ease">
         ${this._backBtn('app.renderHome()')}
         <div class="mood-screen">
@@ -343,7 +395,7 @@ class CHCSApp {
 
   _renderFoodModeScreen() {
     const count = this.getFilteredMeals().length;
-    document.getElementById('mainContent').innerHTML = `
+    this._screen.innerHTML = `
       <section class="view" style="animation:fadeInUp .3s ease">
         ${this._backBtn('app._renderFoodMoodScreen()')}
         <div class="category-header">
@@ -430,7 +482,7 @@ class CHCSApp {
     const next = this.pickMeal();
     const isWeek = this.foodMode === 'week';
     const effortDots = m.effort === 'easy' ? '○' : m.effort === 'medium' ? '○○' : '○○○';
-    document.getElementById('mainContent').innerHTML = `
+    this._screen.innerHTML = `
       <section class="view" style="animation:fadeInUp .3s ease">
         ${this._backBtn('app.showFood()')}
         ${isWeek ? `
@@ -498,7 +550,7 @@ class CHCSApp {
 
   _renderFoodResult(m) {
     const effortLabel = t(m.effort === 'easy' ? 'Easy' : m.effort === 'medium' ? 'Medium' : 'Involved');
-    document.getElementById('mainContent').innerHTML = `
+    this._screen.innerHTML = `
       <section class="view" style="animation:fadeInUp .3s ease">
         ${this._backBtn('app.renderHome()')}
         <div class="result-card result-food">
@@ -547,7 +599,7 @@ class CHCSApp {
     this.weekPlan.forEach(e => e.meal.ingredients.forEach(i => { all[i.toLowerCase()] = i; }));
     const list = Object.values(all).sort();
 
-    document.getElementById('mainContent').innerHTML = `
+    this._screen.innerHTML = `
       <section class="view" style="animation:fadeInUp .4s ease">
         ${this._backBtn('app.showFood()')}
         <div class="accepted-state"><div class="accepted-icon">📅</div><h2>${t('Your week is set!')}</h2></div>
@@ -602,7 +654,7 @@ class CHCSApp {
       { key: 'short',   emoji: '⏱️', label: 'Under 2 hours',  desc: 'Quick watch' },
     ];
     const last = this.selectedMovieMood;
-    document.getElementById('mainContent').innerHTML = `
+    this._screen.innerHTML = `
       <section class="view" style="animation:fadeInUp .3s ease">
         ${this._backBtn('app.renderHome()')}
         <div class="mood-screen">
@@ -631,7 +683,7 @@ class CHCSApp {
   renderMovieCard() {
     const m = this.currentMovie;
     const next = this.pickMovie();
-    document.getElementById('mainContent').innerHTML = `
+    this._screen.innerHTML = `
       <section class="view" style="animation:fadeInUp .3s ease">
         ${this._backBtn('app.showMovies()')}
         <div class="swipe-stack">
@@ -690,7 +742,7 @@ class CHCSApp {
   }
 
   _renderMovieResult(m) {
-    document.getElementById('mainContent').innerHTML = `
+    this._screen.innerHTML = `
       <section class="view" style="animation:fadeInUp .3s ease">
         ${this._backBtn('app.renderHome()')}
         <div class="result-card result-movie">
@@ -750,7 +802,7 @@ class CHCSApp {
       { key: 'melancholy', emoji: '🌧️', label: 'Melancholy', desc: 'Feels & introspection' },
     ];
     const last = this.selectedPlaylistMood;
-    document.getElementById('mainContent').innerHTML = `
+    this._screen.innerHTML = `
       <section class="view" style="animation:fadeInUp .3s ease">
         ${this._backBtn('app.renderHome()')}
         <div class="mood-screen">
@@ -779,7 +831,7 @@ class CHCSApp {
     const p = this.currentPlaylist;
     const moodKey = this.selectedPlaylistMood === 'surprise' ? null : this.selectedPlaylistMood;
     const next = this._pickPlaylist(moodKey);
-    document.getElementById('mainContent').innerHTML = `
+    this._screen.innerHTML = `
       <section class="view" style="animation:fadeInUp .3s ease">
         ${this._backBtn('app.showMusic()')}
         <div class="swipe-stack">
@@ -895,7 +947,7 @@ class CHCSApp {
     const continents = ['Europe', 'Asia', 'Africa', 'North America', 'South America', 'Oceania'];
     const last = this.selectedTravelMood;
     const sel = this.selectedContinents;
-    document.getElementById('mainContent').innerHTML = `
+    this._screen.innerHTML = `
       <section class="view" style="animation:fadeInUp .3s ease">
         ${this._backBtn('app.renderHome()')}
         <div class="mood-screen">
@@ -933,7 +985,7 @@ class CHCSApp {
   renderTravelCard() {
     const tr = this.currentTravel;
     const next = this._pickTravel();
-    document.getElementById('mainContent').innerHTML = `
+    this._screen.innerHTML = `
       <section class="view" style="animation:fadeInUp .3s ease">
         ${this._backBtn('app.showTravel()')}
         <div class="swipe-stack">
@@ -992,7 +1044,7 @@ class CHCSApp {
     const mapUrl = `https://maps.google.com/maps?q=${mapQuery}&t=&z=7&ie=UTF8&iwloc=&output=embed`;
     const safeName = tr.name.replace(/'/g, "\\'");
     const savedFrom = (localStorage.getItem('chcs_travel_from') || '').replace(/"/g, '&quot;');
-    document.getElementById('mainContent').innerHTML = `
+    this._screen.innerHTML = `
       <section class="view" style="animation:fadeInUp .3s ease">
         ${this._backBtn('app.renderHome()')}
         <div class="result-card result-travel">
@@ -1126,7 +1178,9 @@ class CHCSApp {
     if (existing) existing.remove();
     const el = document.createElement('div');
     el.className = 'toast';
-    el.textContent = msg;
+    el.textContent = this.design === 'quiet'
+      ? msg.replace(EMOJI_RE, m => EMOJI_KEEP.has(m) ? m : '').replace(/\s{2,}/g, ' ').trim()
+      : msg;
     document.body.appendChild(el);
     setTimeout(() => el.classList.add('toast-visible'), 10);
     setTimeout(() => { el.classList.remove('toast-visible'); setTimeout(() => el.remove(), 300); }, 1800);
@@ -1140,7 +1194,7 @@ class CHCSApp {
     div.className = `share-card share-card-${type}`;
     if (type === 'food') {
       const m = item;
-      div.innerHTML = `
+      this._paintInto(div, `
         <div class="share-card-inner">
           <p class="share-card-label">${t("Tonight we're making")}</p>
           <h2 class="share-card-title">${m.name}</h2>
@@ -1152,10 +1206,10 @@ class CHCSApp {
           <div class="share-card-divider"></div>
           <p class="share-card-brand">CHCS</p>
           <p class="share-card-tagline">Can't Handle Choosing Stuff</p>
-        </div>`;
+        </div>`);
     } else {
       const m = item;
-      div.innerHTML = `
+      this._paintInto(div, `
         <div class="share-card-inner">
           <p class="share-card-label">${t("Tonight we're watching")}</p>
           <h2 class="share-card-title">${m.title}</h2>
@@ -1166,7 +1220,7 @@ class CHCSApp {
           <div class="share-card-divider"></div>
           <p class="share-card-brand">CHCS</p>
           <p class="share-card-tagline">Can't Handle Choosing Stuff</p>
-        </div>`;
+        </div>`);
     }
     document.body.appendChild(div);
   }
@@ -1245,14 +1299,22 @@ class CHCSApp {
   // ── Books: mood selection ──────────────────────────────
   showBooks() {
     this.usedBookIds.clear();
-    this.selectedBookMood = localStorage.getItem('chcs_book_mood_last') || null;
+    // Book moods were renamed to English; drop a key stored by an older build.
+    const stored = localStorage.getItem('chcs_book_mood_last');
+    this.selectedBookMood = stored && BOOKS.some(b => b.mood === stored) ? stored : null;
+    if (stored && !this.selectedBookMood) localStorage.removeItem('chcs_book_mood_last');
     this._renderBookMoodScreen();
   }
 
   _pickBook(mood) {
     let pool = BOOKS.filter(b => !this.usedBookIds.has(b.id));
     if (mood) pool = pool.filter(b => b.mood === mood);
-    if (pool.length === 0) { this.usedBookIds.clear(); return this._pickBook(mood); }
+    if (pool.length === 0) {
+      this.usedBookIds.clear();
+      // A mood matching nothing at all would recurse forever — widen instead.
+      if (mood && !BOOKS.some(b => b.mood === mood)) return this._pickBook(null);
+      return this._pickBook(mood);
+    }
     return pool[Math.floor(Math.random() * pool.length)];
   }
 
@@ -1266,21 +1328,21 @@ class CHCSApp {
 
   _renderBookMoodScreen() {
     const moods = [
-      { key: 'spannend',   emoji: '😰', label: 'Thrilling',   desc: 'Thriller, crime & horror' },
-      { key: 'grappig',    emoji: '😂', label: 'Funny',       desc: 'Humor & satire' },
-      { key: 'fantasy',    emoji: '🧙', label: 'Fantasy',     desc: 'Fantasy & sci-fi' },
-      { key: 'ontroerend', emoji: '😢', label: 'Moving',      desc: 'Literary & feels' },
-      { key: 'non-fictie', emoji: '🔍', label: 'Non-fiction', desc: 'Knowledge & memoirs' },
+      { key: 'gripping',    emoji: '😰', label: 'Gripping',    desc: 'Thriller, crime & horror' },
+      { key: 'funny',       emoji: '😂', label: 'Funny',       desc: 'Humour & satire' },
+      { key: 'fantasy',     emoji: '🧙', label: 'Fantasy',     desc: 'Fantasy & sci-fi' },
+      { key: 'moving',      emoji: '😢', label: 'Moving',      desc: 'Literary & heartfelt' },
+      { key: 'non-fiction', emoji: '🔍', label: 'Non-fiction', desc: 'Ideas & memoir' },
     ];
     const last = this.selectedBookMood;
-    document.getElementById('mainContent').innerHTML = `
+    this._screen.innerHTML = `
       <section class="view" style="animation:fadeInUp .3s ease">
         ${this._backBtn('app.renderHome()')}
         <div class="mood-screen">
           <div class="mood-header">
             <span class="mood-header-icon">📚</span>
-            <h2>${t('What do you want to read?')}</h2>
-            <p>${t("Pick a mood and we'll find a book")}</p>
+            <h2>${t('What should I read?')}</h2>
+            <p>${t("Pick a mood and we'll find you a book")}</p>
           </div>
           <div class="mood-grid stagger-in">
             ${moods.map(m => `
@@ -1302,8 +1364,8 @@ class CHCSApp {
     const b = this.currentBook;
     const moodKey = this.selectedBookMood === 'surprise' ? null : this.selectedBookMood;
     const next = this._pickBook(moodKey);
-    const moodEmoji = { spannend: '😰', grappig: '😂', fantasy: '🧙', ontroerend: '😢', 'non-fictie': '🔍' };
-    document.getElementById('mainContent').innerHTML = `
+    const moodEmoji = { gripping: '😰', funny: '😂', fantasy: '🧙', moving: '😢', 'non-fiction': '🔍' };
+    this._screen.innerHTML = `
       <section class="view" style="animation:fadeInUp .3s ease">
         ${this._backBtn('app.showBooks()')}
         <div class="swipe-stack">
@@ -1329,7 +1391,7 @@ class CHCSApp {
   }
 
   _swipeBookInner(b) {
-    const moodEmoji = { spannend: '😰', grappig: '😂', fantasy: '🧙', ontroerend: '😢', 'non-fictie': '🔍' };
+    const moodEmoji = { gripping: '😰', funny: '😂', fantasy: '🧙', moving: '😢', 'non-fiction': '🔍' };
     return `
       <div class="swipe-card-emoji">${moodEmoji[b.mood] || '📚'}</div>
       <h3 class="swipe-card-title">${b.title}</h3>
@@ -1351,14 +1413,14 @@ class CHCSApp {
   }
 
   _renderBookResult(b) {
-    const moodEmoji = { spannend: '😰', grappig: '😂', fantasy: '🧙', ontroerend: '😢', 'non-fictie': '🔍' };
-    const moodLabel = { spannend: 'Thrilling', grappig: 'Funny', fantasy: 'Fantasy', ontroerend: 'Moving', 'non-fictie': 'Non-fiction' };
+    const moodEmoji = { gripping: '😰', funny: '😂', fantasy: '🧙', moving: '😢', 'non-fiction': '🔍' };
+    const moodLabel = { gripping: 'Gripping', funny: 'Funny', fantasy: 'Fantasy', moving: 'Moving', 'non-fiction': 'Non-fiction' };
     const searchUrl = `https://www.goodreads.com/search?q=${encodeURIComponent(b.title + ' ' + b.author)}`;
-    document.getElementById('mainContent').innerHTML = `
+    this._screen.innerHTML = `
       <section class="view" style="animation:fadeInUp .3s ease">
         ${this._backBtn('app.renderHome()')}
         <div class="result-card result-book">
-          <p class="result-label">${t("You're reading")}</p>
+          <p class="result-label">${t("You're reading this")}</p>
           <h2 class="result-title">${b.title}</h2>
           <div class="result-emoji">📚</div>
           <div class="result-meta">${b.author} · ${b.year}</div>
@@ -1385,7 +1447,7 @@ class CHCSApp {
   // ── Search ─────────────────────────────────────────────
   renderSearch() {
     this._updateNav('search');
-    document.getElementById('mainContent').innerHTML = `
+    this._screen.innerHTML = `
       <section class="view" style="animation:fadeInUp .3s ease">
         <div class="search-screen">
           <h2 class="section-title" style="margin-bottom:16px">${t('Search')}</h2>
@@ -1402,16 +1464,16 @@ class CHCSApp {
 
   _doSearch(q) {
     const results = document.getElementById('searchResults');
-    if (!q.trim()) { results.innerHTML = `<p class="search-hint">${t('Start typing to explore meals, movies, books, playlists and destinations.')}</p>`; return; }
+    if (!q.trim()) { this._paintInto(results, `<p class="search-hint">${t('Start typing to explore meals, movies, books, playlists and destinations.')}</p>`); return; }
     const term = q.toLowerCase();
     const meals     = MEALS.filter(m => m.name.toLowerCase().includes(term) || m.cuisine.toLowerCase().includes(term) || (m.description && m.description.toLowerCase().includes(term)));
     const movies    = MOVIES.filter(m => m.title.toLowerCase().includes(term) || m.genre.toLowerCase().includes(term) || (m.pitch && m.pitch.toLowerCase().includes(term)));
     const books     = BOOKS.filter(b => b.title.toLowerCase().includes(term) || b.author.toLowerCase().includes(term) || b.mood.toLowerCase().includes(term) || (b.pitch && b.pitch.toLowerCase().includes(term)));
     const playlists = PLAYLISTS.filter(p => p.name.toLowerCase().includes(term) || p.mood.toLowerCase().includes(term) || (p.vibe && p.vibe.toLowerCase().includes(term)) || p.tags.some(t => t.toLowerCase().includes(term)));
     const travels   = TRAVEL.filter(t => t.name.toLowerCase().includes(term) || t.country.toLowerCase().includes(term) || t.continent.toLowerCase().includes(term) || t.type.toLowerCase().includes(term) || (t.pitch && t.pitch.toLowerCase().includes(term)));
-    if (!meals.length && !movies.length && !books.length && !playlists.length && !travels.length) { results.innerHTML = `<p class="search-hint">${t('No results found.')}</p>`; return; }
+    if (!meals.length && !movies.length && !books.length && !playlists.length && !travels.length) { this._paintInto(results, `<p class="search-hint">${t('No results found.')}</p>`); return; }
     const gap = (prev) => prev ? 'margin-top:20px' : '';
-    results.innerHTML = `
+    this._paintInto(results, `
       ${meals.length ? `<h4 class="search-group-label">${t('Meals')} (${meals.length})</h4>${meals.map(m => `
         <div class="search-result-item" onclick="app._openMeal('${m.id}')">
           <div class="sri-title">${m.name}</div>
@@ -1436,7 +1498,7 @@ class CHCSApp {
         <div class="search-result-item" onclick="app._openTravel('${x.id}')">
           <div class="sri-title">${x.name}</div>
           <div class="sri-meta">${x.country} · ${t(x.continent)} · ${t(x.type)}</div>
-        </div>`).join('')}` : ''}`;
+        </div>`).join('')}` : ''}`);
   }
 
   // ── Favorites view ──────────────────────────────────────
@@ -1456,7 +1518,7 @@ class CHCSApp {
     const metaFor  = ({ type, item }) => type === 'food' ? `${item.cuisine} · ${item.prepTime} min` : type === 'movie' ? `${item.year} · ${item.genre}` : type === 'book' ? `${item.author} · ${item.year}` : `${item.country} · ${t(item.type)}`;
     const openFn   = ({ type, item }) => type === 'food' ? `app._openMeal('${item.id}')` : type === 'movie' ? `app._openMovie('${item.id}')` : type === 'book' ? `app._openBook('${item.id}')` : `app._openTravel('${item.id}')`;
 
-    document.getElementById('mainContent').innerHTML = `
+    this._screen.innerHTML = `
       <section class="view" style="animation:fadeInUp .3s ease">
         <h2 class="section-title" style="margin-bottom:24px">${t('Saved')}</h2>
         ${favItems.length ? `<div class="fav-list">${favItems.map(fav => `
@@ -1489,7 +1551,7 @@ class CHCSApp {
     const histIcon = { food: '🍽️', movie: '🎬', book: '📚', travel: '✈️', playlist: '🎵', other: '🎲', week: '📅', duo: '👥' };
     const recent = this.history.slice(0, 8);
     const fmtDate = ts => new Date(ts).toLocaleDateString(LANG === 'nl' ? 'nl-NL' : 'en-GB', { day: 'numeric', month: 'short' });
-    document.getElementById('mainContent').innerHTML = `
+    this._screen.innerHTML = `
       <section class="view" style="animation:fadeInUp .3s ease">
         <div class="account-head">
           <div class="account-avatar account-avatar-sm">${this.userName ? this._esc(this.userName[0].toUpperCase()) : '👤'}</div>
@@ -1544,7 +1606,7 @@ class CHCSApp {
             <span class="settings-label">${t('Design')}</span>
             <div class="seg">
               <button class="seg-btn${this.design === 'elegant' ? ' active' : ''}" data-design-opt="elegant" onclick="app.setDesign('elegant')">${t('Elegant')}</button>
-              <button class="seg-btn${this.design === 'classic' ? ' active' : ''}" data-design-opt="classic" onclick="app.setDesign('classic')">${t('Classic')}</button>
+              <button class="seg-btn${this.design === 'quiet' ? ' active' : ''}" data-design-opt="quiet" onclick="app.setDesign('quiet')">${t('Quiet')}</button>
             </div>
           </div>
           <div class="settings-row">
@@ -1651,7 +1713,7 @@ class CHCSApp {
     ];
     const sl = slides[step];
     const last = step === slides.length - 1;
-    document.getElementById('mainContent').innerHTML = `
+    this._screen.innerHTML = `
       <section class="view onboarding" style="animation:fadeInUp .3s ease">
         ${last ? '<span class="ob-skip"></span>' : `<button class="ob-skip" onclick="app.finishOnboarding()">${t('Skip')}</button>`}
         <div class="ob-body">
@@ -1681,7 +1743,7 @@ class CHCSApp {
   }
 
   renderPlus(limitHit = false) {
-    document.getElementById('mainContent').innerHTML = `
+    this._screen.innerHTML = `
       <section class="view" style="animation:fadeInUp .3s ease">
         ${this._backBtn('app.renderHome()')}
         ${limitHit ? `<div class="plus-limit-banner">${tf('That’s your {n} free swipes for today. Accepting picks is still free — or go unlimited below. Fresh swipes tomorrow!', { n: FREE_SWIPE_LIMIT })}</div>` : ''}
@@ -1735,7 +1797,7 @@ class CHCSApp {
   _renderOtherScreen() {
     const opts = this.customOptions;
     const ready = opts.length >= 2;
-    document.getElementById('mainContent').innerHTML = `
+    this._screen.innerHTML = `
       <section class="view" style="animation:fadeInUp .3s ease">
         ${this._backBtn('app.renderHome()')}
         <div class="mood-screen">
@@ -1842,7 +1904,7 @@ class CHCSApp {
   decideOther() {
     const opts = [...this.customOptions];
     if (opts.length < 2) { this._toast(t('Add at least two options first')); return; }
-    document.getElementById('mainContent').innerHTML = `
+    this._screen.innerHTML = `
       <section class="view" style="animation:fadeInUp .2s ease">
         <div class="spin-container">
           <p class="result-label" style="margin-bottom:18px">${t('Deciding…')}</p>
@@ -1868,7 +1930,7 @@ class CHCSApp {
   _renderOtherResult(choice) {
     this.recordChoice();
     this._addHistory('other', choice);
-    document.getElementById('mainContent').innerHTML = `
+    this._screen.innerHTML = `
       <section class="view" style="animation:fadeInUp .3s ease">
         ${this._backBtn('app.showOther()')}
         <div class="result-card result-other">
@@ -1913,7 +1975,7 @@ class CHCSApp {
 
   showDuo() {
     const cfg = this._duoConfig();
-    document.getElementById('mainContent').innerHTML = `
+    this._screen.innerHTML = `
       <section class="view" style="animation:fadeInUp .3s ease">
         ${this._backBtn('app.renderHome()')}
         <div class="mood-screen">
@@ -1949,7 +2011,7 @@ class CHCSApp {
     const d = this.duo;
     const cfg = this._duoConfig()[d.type];
     const item = d.deck[d.idx];
-    document.getElementById('mainContent').innerHTML = `
+    this._screen.innerHTML = `
       <section class="view" style="animation:fadeInUp .25s ease">
         ${this._backBtn('app.showDuo()')}
         <div class="week-progress">
@@ -1989,7 +2051,7 @@ class CHCSApp {
   }
 
   _renderDuoHandoff() {
-    document.getElementById('mainContent').innerHTML = `
+    this._screen.innerHTML = `
       <section class="view" style="animation:fadeInUp .3s ease">
         <div class="duo-handoff">
           <div class="ob-emoji">🤝</div>
@@ -2005,7 +2067,7 @@ class CHCSApp {
     const cfg = this._duoConfig()[d.type];
     const matches = d.deck.filter(item => d.likes[0].has(item.id) && d.likes[1].has(item.id));
     if (!matches.length) {
-      document.getElementById('mainContent').innerHTML = `
+      this._screen.innerHTML = `
         <section class="view" style="animation:fadeInUp .3s ease">
           <div class="duo-handoff">
             <div class="ob-emoji">😅</div>
@@ -2021,7 +2083,7 @@ class CHCSApp {
     this.recordChoice();
     this._addHistory('duo', `${cfg.name(winner)} (duo)`, winner.id);
     const others = matches.filter(m => m.id !== winner.id);
-    document.getElementById('mainContent').innerHTML = `
+    this._screen.innerHTML = `
       <section class="view" style="animation:fadeInUp .3s ease">
         <div class="duo-match-banner">${t('✨ It’s a match!')}</div>
         <div class="swipe-stack">

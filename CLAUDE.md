@@ -50,6 +50,7 @@ UI is bilingual (English/Dutch). English strings in `app.js`/`index.html` are th
 
 All persistent state is `localStorage`:
 - `chcs_theme` — `'light'` or `'dark'`
+- `chcs_design` — `'elegant'` or `'quiet'` (see Theming; unknown values fall back to `'elegant'`)
 - `chcs_stats` — `{ choices, weekPlans, streak, lastDate }`
 - `chcs_checked` — JSON array of checked shopping list item strings
 - Plus favorites and last-selected-mood per category
@@ -57,6 +58,15 @@ All persistent state is `localStorage`:
 ### Theming
 
 Two themes driven by `data-theme="light|dark"` on `<html>`. CSS variables are defined in `:root` (light) and `[data-theme="dark"]`. The header uses hardcoded `rgba()` values for backdrop-filter glass effect — if the light-mode background colour `--bg` ever changes from `#F3EDE5`, update `style.css` line ~185 manually.
+
+Independently of theme, `data-design="elegant|quiet"` on `<html>` selects a **design layer** — both are override blocks at the bottom of [style.css](style.css), stacked on the base styles, and both work in either theme:
+
+- **elegant** (default) — refined and editorial: italic serif headings, dark hero card, soft shadows.
+- **quiet** — minimal and calm: no shadows, no hover motion, hairline borders, light hero panel, roman headings, and **no emoji**. Same colour palette as elegant.
+
+Quiet's emoji removal is not CSS — emoji sit in the templates (~90 places) and in some playlist titles. Instead every view paints through `this._screen.innerHTML` (or `_paintInto(el, html)` for the search results and share card) rather than touching `#mainContent` directly, and that choke point calls `CHCSApp.stripEmoji()` when the design is quiet. It walks text nodes, so attributes, URLs and ids are never touched. Monochrome marks that read as typography are kept via `EMOJI_KEEP` (♥ ♡; ✓ ✗ → ✦ are not pictographic and never match). Wrapper elements that only held an emoji are hidden in the CSS layer so they don't leave gaps. **When adding a view, assign to `this._screen.innerHTML`, not to `#mainContent` directly**, or it will keep its emoji in quiet.
+
+The valid values live in the `DESIGNS` array in [app.js](app.js); `CHCSApp.resolveDesign()` maps anything else back to `'elegant'`, which is how the retired `'classic'` option is migrated. Adding a design means adding it to `DESIGNS`, adding a `[data-design="…"]` block, and adding a button in `renderAccount()`.
 
 ## Design language
 
