@@ -36,10 +36,15 @@ Content lives in four data files, each exporting a top-level `const`:
 | [data/travel.js](data/travel.js) | `TRAVEL` | `{ id, name, country, continent, mood, type, budget, duration, best_season, pitch }` |
 | [data/playlists.js](data/playlists.js) | `PLAYLISTS` | `{ id, name, curator, mood, vibe, tags, spotifyUrl, trackCount, featured }` |
 | [data/books.js](data/books.js) | `BOOKS` | `{ id, title, author, year, mood, pages, pitch }` |
+| [data/i18n.js](data/i18n.js) | `I18N_NL` | UI translations: English source string → Dutch |
 
 IDs follow the pattern `<type>-NNN`, sequential, no gaps. The running app reads from these arrays directly — there are no separate JSON files anymore.
 
 After any data edit, run **`node check-data.js`** to verify no duplicate IDs, no numbering gaps, no missing required fields, and no sparse-array holes (stray commas). Output must be `All data files clean.` before committing.
+
+### Languages (i18n)
+
+UI is bilingual (English/Dutch). English strings in `app.js`/`index.html` are the source of truth; `data/i18n.js` maps them verbatim to Dutch (`I18N_NL`). Every user-visible string in a render method must go through `t('…')` (exact-match lookup, falls back to English) or `tf('… {n} …', { n })` for interpolation. Language is `chcs_lang` in localStorage, auto-detected from `navigator.language` on first visit, switchable under Account. **Gotcha:** dictionary keys must match the source string byte-for-byte, including curly vs straight apostrophes. Never name a local variable or arrow parameter `t` in a scope that calls `t()` (the travel code uses `tr` for this reason). Content data (meal names, pitches) is not translated — UI only.
 
 ### State
 

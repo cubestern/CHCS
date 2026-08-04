@@ -16,7 +16,22 @@ const CATEGORIES = {
 
 const FREE_SWIPE_LIMIT = 25; // "Nah, next" swipes per day for free users; accepting is always free
 const PLUS_CODE_HASHES = ['60d51bda', 'c7fee8bb', 'fb0a462d'];
+const PLUS_BUY_URL = ''; // paste a Stripe/Lemon Squeezy payment link here to show a buy button on the Plus screen
 const HISTORY_MAX = 60;
+
+// ── Language ──────────────────────────────────────────────
+// English strings are the source; I18N_NL (data/i18n.js) maps them to Dutch.
+// t() falls back to the English key, so missing entries never break the UI.
+let LANG = localStorage.getItem('chcs_lang') ||
+  ((navigator.language || '').toLowerCase().startsWith('nl') ? 'nl' : 'en');
+function t(s) {
+  return (LANG === 'nl' && typeof I18N_NL !== 'undefined' && I18N_NL[s]) || s;
+}
+function tf(s, vars) {
+  let out = t(s);
+  for (const k in vars) out = out.split(`{${k}}`).join(vars[k]);
+  return out;
+}
 
 const WEEKDAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
 const CUISINES = [...new Set(MEALS.map(m => m.cuisine))].sort();
@@ -64,6 +79,7 @@ class CHCSApp {
     this.checkedItems = new Set(JSON.parse(localStorage.getItem('chcs_checked') || '[]'));
     document.documentElement.setAttribute('data-theme', this.theme);
     document.documentElement.setAttribute('data-design', this.design);
+    this._applyStaticLang();
     if (!localStorage.getItem('chcs_onboarded')) this.renderOnboarding();
     else this.renderHome();
   }
@@ -72,6 +88,23 @@ class CHCSApp {
     this.theme = this.theme === 'light' ? 'dark' : 'light';
     document.documentElement.setAttribute('data-theme', this.theme);
     localStorage.setItem('chcs_theme', this.theme);
+  }
+
+  setLang(lang) {
+    LANG = lang;
+    localStorage.setItem('chcs_lang', lang);
+    this._applyStaticLang();
+    this.renderAccount();
+  }
+
+  // Translates the static shell (nav labels, <html lang>) outside #mainContent.
+  _applyStaticLang() {
+    document.documentElement.setAttribute('lang', LANG);
+    const nav = { 'nav-home': 'Home', 'nav-search': 'Search', 'nav-favorites': 'Saved', 'nav-account': 'Account' };
+    Object.entries(nav).forEach(([id, label]) => {
+      const el = document.querySelector(`#${id} span`);
+      if (el) el.textContent = t(label);
+    });
   }
 
   setDesign(design) {
@@ -138,7 +171,8 @@ class CHCSApp {
     if (this.plus) return '';
     const left = this.swipesLeft();
     if (left > 5) return '';
-    return `<p class="swipes-left-hint">${left === 0 ? 'No free swipes left today' : `${left} free swipe${left === 1 ? '' : 's'} left today`} · <a href="#" onclick="event.preventDefault();app.renderPlus()">Go unlimited</a></p>`;
+    const msg = left === 0 ? t('No free swipes left today') : left === 1 ? t('1 free swipe left today') : tf('{n} free swipes left today', { n: left });
+    return `<p class="swipes-left-hint">${msg} · <a href="#" onclick="event.preventDefault();app.renderPlus()">${t('Go unlimited')}</a></p>`;
   }
 
   // ── Food logic ─────────────────────────────────────────
@@ -200,30 +234,30 @@ class CHCSApp {
     localStorage.setItem('chcs_onboarded', '1'); // any route to home counts as onboarded
     const dailyMeal = MEALS[Math.floor(Date.now() / 86400000) % MEALS.length];
     const hour = new Date().getHours();
-    const daypart = hour < 6 ? 'Good night' : hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+    const daypart = t(hour < 6 ? 'Good night' : hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening');
     const showFnFor = { food: 'showFood', movies: 'showMovies', music: 'showMusic', books: 'showBooks', travel: 'showTravel', other: 'showOther' };
 
     document.getElementById('mainContent').innerHTML = `
       <section class="view" style="animation:fadeInUp .3s ease">
         <div class="home-greeting">
           <span class="home-greeting-label">${daypart}${this.userName ? `, ${this.userName}` : ''}</span>
-          <h1 class="home-greeting-title">What are we <em>deciding</em> today?</h1>
+          <h1 class="home-greeting-title">${t('What are we <em>deciding</em> today?')}</h1>
         </div>
         <div class="hero-card">
-          <span class="hero-label">Surprise dinner</span>
+          <span class="hero-label">${t('Surprise dinner')}</span>
           <h2 class="hero-title">${dailyMeal.name}</h2>
           <p class="hero-desc">${dailyMeal.description}</p>
-          <button class="hero-btn" onclick="app.showDailyMeal()">Show me &rarr;</button>
+          <button class="hero-btn" onclick="app.showDailyMeal()">${t('Show me')} &rarr;</button>
         </div>
-        <h3 class="section-title">Browse</h3>
+        <h3 class="section-title">${t('Browse')}</h3>
         <div class="category-grid stagger-in">
           ${Object.values(CATEGORIES).map(c => `
             <div class="category-card ${c.cssClass}${c.active ? '' : ' coming-soon'}"
                  ${c.active ? `onclick="app.${showFnFor[c.id]}()"` : ''}>
               <div class="category-icon">${c.icon}</div>
-              <h4>${c.name}</h4>
-              <p>${c.active ? c.question : ''}</p>
-              ${c.active ? '' : '<span class="coming-soon-badge">Coming soon</span>'}
+              <h4>${t(c.name)}</h4>
+              <p>${c.active ? t(c.question) : ''}</p>
+              ${c.active ? '' : `<span class="coming-soon-badge">${t('Coming soon')}</span>`}
             </div>
           `).join('')}
         </div>
@@ -232,12 +266,12 @@ class CHCSApp {
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
           </div>
           <div class="duo-banner-text">
-            <h4>Duo mode</h4>
-            <p>Can't agree either? Swipe together, first match wins.</p>
+            <h4>${t('Duo mode')}</h4>
+            <p>${t("Can't agree either? Swipe together, first match wins.")}</p>
           </div>
           <svg class="mode-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
         </div>
-        <p class="home-footer-hint">New features and suggestions added weekly.</p>
+        <p class="home-footer-hint">${t('New features and suggestions added weekly.')}</p>
       </section>`;
     this._updateNav('home');
   }
@@ -288,20 +322,20 @@ class CHCSApp {
         <div class="mood-screen">
           <div class="mood-header">
             <span class="mood-header-icon">🍽️</span>
-            <h2>How are you feeling?</h2>
-            <p>Pick a vibe and we'll find something to eat</p>
+            <h2>${t('How are you feeling?')}</h2>
+            <p>${t("Pick a vibe and we'll find something to eat")}</p>
           </div>
           <div class="mood-grid stagger-in">
             ${moods.map(m => `
               <button class="mood-pill${last===m.key?' active':''}" onclick="app.selectFoodMood('${m.key}')">
                 <span class="mood-pill-emoji">${m.emoji}</span>
-                <span class="mood-pill-label">${m.label}</span>
-                <span class="mood-pill-desc">${m.desc}</span>
+                <span class="mood-pill-label">${t(m.label)}</span>
+                <span class="mood-pill-desc">${t(m.desc)}</span>
               </button>`).join('')}
           </div>
           <button class="mood-surprise" onclick="app.selectFoodMood('surprise')">
             <span class="mood-pill-emoji">🎲</span>
-            <span class="mood-pill-label">Surprise me</span>
+            <span class="mood-pill-label">${t('Surprise me')}</span>
           </button>
         </div>
       </section>`;
@@ -401,7 +435,7 @@ class CHCSApp {
         ${this._backBtn('app.showFood()')}
         ${isWeek ? `
           <div class="week-progress">
-            <div class="week-progress-label">${WEEKDAYS[this.weekDay]} <span class="week-progress-count">${this.weekDay+1}/5</span></div>
+            <div class="week-progress-label">${t(WEEKDAYS[this.weekDay])} <span class="week-progress-count">${this.weekDay+1}/5</span></div>
             <div class="week-progress-bar"><div class="week-progress-fill" style="width:${this.weekDay/5*100}%"></div></div>
           </div>` : ''}
         <div class="swipe-stack">
@@ -414,14 +448,14 @@ class CHCSApp {
         <div class="card-actions">
           <button class="action-btn action-reject" onclick="app.rejectMeal()">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-            Nah, next
+            ${t('Nah, next')}
           </button>
           <button class="action-btn action-accept" onclick="app.acceptMeal()">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-            ${isWeek ? "Let's eat this" : "This one!"}
+            ${isWeek ? t("Let's eat this") : t('This one!')}
           </button>
         </div>
-        ${!isWeek ? `<button class="plan-week-btn" onclick="app.startWeek()">📅 Plan this mood for the week — 5 dinners</button>` : ''}
+        ${!isWeek ? `<button class="plan-week-btn" onclick="app.startWeek()">📅 ${t('Plan this mood for the week — 5 dinners')}</button>` : ''}
         ${this._swipesLeftHint()}
       </section>`;
     this._initSwipe(document.getElementById('swipeCard'), () => this.acceptMeal(), () => this.rejectMeal());
@@ -433,9 +467,9 @@ class CHCSApp {
       <div class="swipe-card-emoji">${DIETARY_EMOJI[m.dietary] === '🐟' ? '🐟' : DIETARY_EMOJI[m.dietary] === '🌱' ? '🥗' : '🍽️'}</div>
       <h3 class="swipe-card-title">${m.name}</h3>
       <div class="swipe-card-meta">${m.cuisine} · ${m.prepTime} min</div>
-      <div class="swipe-card-effort"><span class="effort-dots">${effortDots}</span> ${m.effort}</div>
+      <div class="swipe-card-effort"><span class="effort-dots">${effortDots}</span> ${t(m.effort)}</div>
       <p class="swipe-card-desc">"${m.description}"</p>
-      <div class="swipe-card-badge">${DIETARY_EMOJI[m.dietary]} ${m.dietary}</div>`;
+      <div class="swipe-card-badge">${DIETARY_EMOJI[m.dietary]} ${t(m.dietary)}</div>`;
   }
 
   rejectMeal() {
@@ -463,19 +497,19 @@ class CHCSApp {
   }
 
   _renderFoodResult(m) {
-    const effortLabel = m.effort === 'easy' ? 'Easy' : m.effort === 'medium' ? 'Medium' : 'Involved';
+    const effortLabel = t(m.effort === 'easy' ? 'Easy' : m.effort === 'medium' ? 'Medium' : 'Involved');
     document.getElementById('mainContent').innerHTML = `
       <section class="view" style="animation:fadeInUp .3s ease">
         ${this._backBtn('app.renderHome()')}
         <div class="result-card result-food">
-          <p class="result-label">Tonight we're making</p>
+          <p class="result-label">${t("Tonight we're making")}</p>
           <h2 class="result-title">${m.name}</h2>
           <div class="result-emoji">${DIETARY_EMOJI[m.dietary] === '🐟' ? '🐟' : DIETARY_EMOJI[m.dietary] === '🌱' ? '🥗' : '🍽️'}</div>
           <div class="result-meta">${m.cuisine} · ${m.prepTime} min</div>
-          <div class="result-meta">${effortLabel} · ${m.dietary}</div>
+          <div class="result-meta">${effortLabel} · ${t(m.dietary)}</div>
           <div class="result-divider"></div>
           <div class="result-ingredients">
-            <h4>Ingredients</h4>
+            <h4>${t('Ingredients')}</h4>
             <p>${m.ingredients.join(', ')}</p>
           </div>
           <div class="result-divider"></div>
@@ -485,13 +519,13 @@ class CHCSApp {
         <div class="result-actions">
           ${this._favBtn('food', m.id)}
           <button class="result-action-btn" onclick="app.copyIngredients()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg> Copy list
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg> ${t('Copy list')}
           </button>
           <button class="result-action-btn" onclick="app.shareResult('food')">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg> Share
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg> ${t('Share')}
           </button>
           <button class="result-action-btn" onclick="app.startTonight()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.95"/></svg> Pick again
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.95"/></svg> ${t('Pick again')}
           </button>
         </div>
       </section>`;
@@ -503,7 +537,7 @@ class CHCSApp {
       <div class="meal-card-header"><span class="meal-cuisine">${m.cuisine}</span><span class="meal-effort effort-${m.effort}">${EFFORT_EMOJI[m.effort]} ${m.effort}</span></div>
       <h3 class="meal-name">${m.name}</h3><p class="meal-desc">${m.description}</p>
       <div class="meal-meta"><span class="meal-meta-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> ${m.prepTime} min</span><span class="meal-meta-item">${DIETARY_EMOJI[m.dietary]} ${m.dietary}</span></div>
-      <div class="meal-ingredients"><h5>Shopping list</h5><div class="ingredient-tags">${m.ingredients.map(i=>`<span class="ingredient-tag">${i}</span>`).join('')}</div></div>
+      <div class="meal-ingredients"><h5>${t('Shopping list')}</h5><div class="ingredient-tags">${m.ingredients.map(i=>`<span class="ingredient-tag">${i}</span>`).join('')}</div></div>
     </div>`;
   }
 
@@ -516,19 +550,19 @@ class CHCSApp {
     document.getElementById('mainContent').innerHTML = `
       <section class="view" style="animation:fadeInUp .4s ease">
         ${this._backBtn('app.showFood()')}
-        <div class="accepted-state"><div class="accepted-icon">📅</div><h2>Your week is set!</h2></div>
+        <div class="accepted-state"><div class="accepted-icon">📅</div><h2>${t('Your week is set!')}</h2></div>
         <div class="week-plan-list">
           ${this.weekPlan.map(e => `
             <div class="week-plan-item">
-              <div class="week-plan-day">${e.day}</div>
+              <div class="week-plan-day">${t(e.day)}</div>
               <div class="week-plan-meal">
                 <span class="week-plan-meal-name">${e.meal.name}</span>
-                <span class="week-plan-meal-meta">${e.meal.cuisine} · ${EFFORT_EMOJI[e.meal.effort]} ${e.meal.effort} · ${e.meal.prepTime}m</span>
+                <span class="week-plan-meal-meta">${e.meal.cuisine} · ${EFFORT_EMOJI[e.meal.effort]} ${t(e.meal.effort)} · ${e.meal.prepTime}m</span>
               </div>
             </div>`).join('')}
         </div>
-        ${this._checklistHTML(list, 'Combined shopping list')}
-        <button class="btn btn-primary mt-20" style="width:100%" onclick="app.startWeek()">Plan another week</button>
+        ${this._checklistHTML(list, t('Combined shopping list'))}
+        <button class="btn btn-primary mt-20" style="width:100%" onclick="app.startWeek()">${t('Plan another week')}</button>
       </section>`;
   }
 
@@ -574,20 +608,20 @@ class CHCSApp {
         <div class="mood-screen">
           <div class="mood-header">
             <span class="mood-header-icon">🎬</span>
-            <h2>What's the vibe?</h2>
-            <p>Pick a mood and we'll find something to watch</p>
+            <h2>${t("What's the vibe?")}</h2>
+            <p>${t("Pick a mood and we'll find something to watch")}</p>
           </div>
           <div class="mood-grid stagger-in">
             ${moods.map(m => `
               <button class="mood-pill${last===m.key?' active':''}" onclick="app.selectMovieMood('${m.key}')">
                 <span class="mood-pill-emoji">${m.emoji}</span>
-                <span class="mood-pill-label">${m.label}</span>
-                <span class="mood-pill-desc">${m.desc}</span>
+                <span class="mood-pill-label">${t(m.label)}</span>
+                <span class="mood-pill-desc">${t(m.desc)}</span>
               </button>`).join('')}
           </div>
           <button class="mood-surprise" onclick="app.selectMovieMood('surprise')">
             <span class="mood-pill-emoji">🎲</span>
-            <span class="mood-pill-label">Surprise me</span>
+            <span class="mood-pill-label">${t('Surprise me')}</span>
           </button>
         </div>
       </section>`;
@@ -610,11 +644,11 @@ class CHCSApp {
         <div class="card-actions">
           <button class="action-btn action-reject" onclick="app.rejectMovie()">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-            Nah, next
+            ${t('Nah, next')}
           </button>
           <button class="action-btn action-accept" onclick="app.acceptMovie()">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-            This one!
+            ${t('This one!')}
           </button>
         </div>
         ${this._swipesLeftHint()}
@@ -628,7 +662,7 @@ class CHCSApp {
       <h3 class="swipe-card-title">${m.title}</h3>
       <div class="swipe-card-meta">${m.year} · ${m.genre} · ${m.runtime} min</div>
       <p class="swipe-card-desc">"${m.pitch}"</p>
-      <div class="swipe-card-badge">${MOOD_EMOJI[m.mood]} ${MOOD_LABELS[m.mood]}</div>
+      <div class="swipe-card-badge">${MOOD_EMOJI[m.mood]} ${t(MOOD_LABELS[m.mood])}</div>
       <div class="swipe-card-streaming">${m.streaming.map(s=>`<span class="streaming-badge">${this._sIcon(s)} ${s}</span>`).join('')}</div>`;
   }
 
@@ -660,15 +694,15 @@ class CHCSApp {
       <section class="view" style="animation:fadeInUp .3s ease">
         ${this._backBtn('app.renderHome()')}
         <div class="result-card result-movie">
-          <p class="result-label">Tonight we're watching</p>
+          <p class="result-label">${t("Tonight we're watching")}</p>
           <h2 class="result-title">${m.title}</h2>
           <div class="result-emoji">🎬</div>
           <div class="result-meta">${m.year} · ${m.genre} · ${m.runtime} min</div>
           <div class="result-divider"></div>
           <div class="result-details">
-            <p>📺 Available on: ${m.streaming.join(', ')}</p>
-            <p>🎭 ${m.genre} · ${MOOD_EMOJI[m.mood]} ${MOOD_LABELS[m.mood]}</p>
-            <p>⏱️ ${m.runtime} minutes</p>
+            <p>📺 ${t('Available on:')} ${m.streaming.join(', ')}</p>
+            <p>🎭 ${m.genre} · ${MOOD_EMOJI[m.mood]} ${t(MOOD_LABELS[m.mood])}</p>
+            <p>⏱️ ${m.runtime} ${t('minutes')}</p>
           </div>
           <div class="result-divider"></div>
           <div class="result-branding">CHCS</div>
@@ -676,10 +710,10 @@ class CHCSApp {
         <div class="result-actions">
           ${this._favBtn('movie', m.id)}
           <button class="result-action-btn" onclick="app.shareResult('movie')">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg> Share
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg> ${t('Share')}
           </button>
           <button class="result-action-btn" onclick="app.showMovies()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.95"/></svg> Pick again
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.95"/></svg> ${t('Pick again')}
           </button>
         </div>
       </section>`;
@@ -722,20 +756,20 @@ class CHCSApp {
         <div class="mood-screen">
           <div class="mood-header">
             <span class="mood-header-icon">🎵</span>
-            <h2>What's the mood?</h2>
-            <p>Pick a vibe and we'll find a playlist</p>
+            <h2>${t("What's the mood?")}</h2>
+            <p>${t("Pick a vibe and we'll find a playlist")}</p>
           </div>
           <div class="mood-grid stagger-in">
             ${moods.map(m => `
               <button class="mood-pill${last===m.key?' active':''}" onclick="app.selectPlaylistMood('${m.key}')">
                 <span class="mood-pill-emoji">${m.emoji}</span>
-                <span class="mood-pill-label">${m.label}</span>
-                <span class="mood-pill-desc">${m.desc}</span>
+                <span class="mood-pill-label">${t(m.label)}</span>
+                <span class="mood-pill-desc">${t(m.desc)}</span>
               </button>`).join('')}
           </div>
           <button class="mood-surprise" onclick="app.selectPlaylistMood('surprise')">
             <span class="mood-pill-emoji">🎲</span>
-            <span class="mood-pill-label">Surprise me</span>
+            <span class="mood-pill-label">${t('Surprise me')}</span>
           </button>
         </div>
       </section>`;
@@ -758,11 +792,11 @@ class CHCSApp {
         <div class="card-actions">
           <button class="action-btn action-reject" onclick="app.rejectPlaylist()">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-            Nah, next
+            ${t('Nah, next')}
           </button>
           <button class="action-btn action-accept" onclick="app.acceptPlaylist()">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
-            Open in Spotify
+            ${t('Open in Spotify')}
           </button>
         </div>
         ${this._swipesLeftHint()}
@@ -775,7 +809,7 @@ class CHCSApp {
     return `
       <div class="swipe-card-emoji">${moodEmoji[p.mood] || '🎵'}</div>
       <h3 class="swipe-card-title">${p.name}</h3>
-      <div class="swipe-card-meta">by ${p.curator} · ${p.trackCount} tracks</div>
+      <div class="swipe-card-meta">${t('by')} ${p.curator} · ${p.trackCount} ${t('tracks')}</div>
       <p class="swipe-card-desc">"${p.vibe}"</p>
       <div class="swipe-card-streaming">${p.tags.slice(0, 3).map(t => `<span class="streaming-badge">${t}</span>`).join('')}</div>`;
   }
@@ -791,7 +825,7 @@ class CHCSApp {
     this.recordChoice();
     this._addHistory('playlist', this.currentPlaylist.name, this.currentPlaylist.id);
     window.open(this.currentPlaylist.spotifyUrl, '_blank', 'noopener,noreferrer');
-    this._toast('Opening in Spotify 🎵');
+    this._toast(t('Opening in Spotify 🎵'));
   }
 
   // ── Travel: mood + continent selection ────────────────
@@ -825,7 +859,8 @@ class CHCSApp {
       b.classList.toggle('active', this.selectedContinents.includes(c));
     });
     const hint = document.getElementById('continent-hint');
-    if (hint) hint.textContent = this.selectedContinents.length ? `${this.selectedContinents.length} continent${this.selectedContinents.length > 1 ? 's' : ''} selected` : 'All continents';
+    const n = this.selectedContinents.length;
+    if (hint) hint.textContent = n ? (n === 1 ? t('1 continent selected') : tf('{n} continents selected', { n })) : t('All continents');
   }
 
   selectTravelMood(mood) {
@@ -866,56 +901,56 @@ class CHCSApp {
         <div class="mood-screen">
           <div class="mood-header">
             <span class="mood-header-icon">✈️</span>
-            <h2>Where do you want to go?</h2>
-            <p>Pick a vibe and we'll find a destination</p>
+            <h2>${t('Where do you want to go?')}</h2>
+            <p>${t("Pick a vibe and we'll find a destination")}</p>
           </div>
           <div class="mood-grid stagger-in">
             ${moods.map(m => `
               <button class="mood-pill${last===m.key?' active':''}" onclick="app.selectTravelMood('${m.key}')">
                 <span class="mood-pill-emoji">${m.emoji}</span>
-                <span class="mood-pill-label">${m.label}</span>
-                <span class="mood-pill-desc">${m.desc}</span>
+                <span class="mood-pill-label">${t(m.label)}</span>
+                <span class="mood-pill-desc">${t(m.desc)}</span>
               </button>`).join('')}
           </div>
           <div class="continent-filter">
             <div class="continent-filter-header">
-              <span class="continent-filter-label">Filter by continent</span>
-              <span class="continent-hint" id="continent-hint">${sel.length ? `${sel.length} continent${sel.length>1?'s':''} selected` : 'All continents'}</span>
+              <span class="continent-filter-label">${t('Filter by continent')}</span>
+              <span class="continent-hint" id="continent-hint">${sel.length ? (sel.length === 1 ? t('1 continent selected') : tf('{n} continents selected', { n: sel.length })) : t('All continents')}</span>
             </div>
             <div class="continent-pills">
               ${continents.map(c => `
-                <button class="continent-pill${sel.includes(c)?' active':''}" data-continent="${c}" onclick="app.toggleContinent('${c}')">${c}</button>`).join('')}
+                <button class="continent-pill${sel.includes(c)?' active':''}" data-continent="${c}" onclick="app.toggleContinent('${c}')">${t(c)}</button>`).join('')}
             </div>
           </div>
           <button class="mood-surprise" onclick="app.selectTravelMood('surprise')">
             <span class="mood-pill-emoji">🎲</span>
-            <span class="mood-pill-label">Surprise me</span>
+            <span class="mood-pill-label">${t('Surprise me')}</span>
           </button>
         </div>
       </section>`;
   }
 
   renderTravelCard() {
-    const t = this.currentTravel;
+    const tr = this.currentTravel;
     const next = this._pickTravel();
     document.getElementById('mainContent').innerHTML = `
       <section class="view" style="animation:fadeInUp .3s ease">
         ${this._backBtn('app.showTravel()')}
         <div class="swipe-stack">
-          ${next && next.id !== t.id ? `<div class="swipe-card swipe-card-behind">${this._swipeTravelInner(next)}</div>` : ''}
+          ${next && next.id !== tr.id ? `<div class="swipe-card swipe-card-behind">${this._swipeTravelInner(next)}</div>` : ''}
           <div class="swipe-card swipe-card-front" id="swipeCard">
             ${this._swipeHints()}
-            ${this._swipeTravelInner(t)}
+            ${this._swipeTravelInner(tr)}
           </div>
         </div>
         <div class="card-actions">
           <button class="action-btn action-reject" onclick="app.rejectTravel()">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-            Nah, next
+            ${t('Nah, next')}
           </button>
           <button class="action-btn action-accept" onclick="app.acceptTravel()">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-            I'm going!
+            ${t("I'm going!")}
           </button>
         </div>
         ${this._swipesLeftHint()}
@@ -923,16 +958,16 @@ class CHCSApp {
     this._initSwipe(document.getElementById('swipeCard'), () => this.acceptTravel(), () => this.rejectTravel());
   }
 
-  _swipeTravelInner(t) {
+  _swipeTravelInner(tr) {
     const typeEmoji = { 'city trip': '🏙️', 'nature': '🌲', 'beach & coast': '🏖️', 'road trip': '🚗', 'day trip': '🚶' };
     const budgetLabel = { budget: '€', moderate: '€€', expensive: '€€€' };
     return `
-      <div class="swipe-card-emoji">${typeEmoji[t.type] || '✈️'}</div>
-      <h3 class="swipe-card-title">${t.name}</h3>
-      <div class="swipe-card-meta">${t.country} · ${t.duration}</div>
-      <div class="swipe-card-meta">${t.type} · ${budgetLabel[t.budget] || t.budget}</div>
-      <p class="swipe-card-desc">"${t.pitch}"</p>
-      <div class="swipe-card-badge">🗺️ ${t.continent}</div>`;
+      <div class="swipe-card-emoji">${typeEmoji[tr.type] || '✈️'}</div>
+      <h3 class="swipe-card-title">${tr.name}</h3>
+      <div class="swipe-card-meta">${tr.country} · ${tr.duration}</div>
+      <div class="swipe-card-meta">${t(tr.type)} · ${budgetLabel[tr.budget] || tr.budget}</div>
+      <p class="swipe-card-desc">"${tr.pitch}"</p>
+      <div class="swipe-card-badge">🗺️ ${t(tr.continent)}</div>`;
   }
 
   rejectTravel() {
@@ -949,28 +984,28 @@ class CHCSApp {
     this._renderTravelResult(this.currentTravel);
   }
 
-  _renderTravelResult(t) {
+  _renderTravelResult(tr) {
     const typeEmoji = { 'city trip': '🏙️', 'nature': '🌲', 'beach & coast': '🏖️', 'road trip': '🚗', 'day trip': '🚶' };
-    const budgetLabel = { budget: 'Budget (€)', moderate: 'Moderate (€€)', expensive: 'Splurge (€€€)' };
-    const moodLabel = { culture: '🏛️ Culture', adventure: '🧗 Adventure', unwind: '🌊 Unwind', romance: '💑 Romance', cozy: '🧣 Cozy' };
-    const mapQuery = encodeURIComponent(`${t.name}, ${t.country}`);
+    const budgetLabel = { budget: t('Budget (€)'), moderate: t('Moderate (€€)'), expensive: t('Splurge (€€€)') };
+    const moodLabel = { culture: `🏛️ ${t('Culture')}`, adventure: `🧗 ${t('Adventure')}`, unwind: `🌊 ${t('Unwind')}`, romance: `💑 ${t('Romance')}`, cozy: `🧣 ${t('Cozy')}` };
+    const mapQuery = encodeURIComponent(`${tr.name}, ${tr.country}`);
     const mapUrl = `https://maps.google.com/maps?q=${mapQuery}&t=&z=7&ie=UTF8&iwloc=&output=embed`;
-    const safeName = t.name.replace(/'/g, "\\'");
+    const safeName = tr.name.replace(/'/g, "\\'");
     const savedFrom = (localStorage.getItem('chcs_travel_from') || '').replace(/"/g, '&quot;');
     document.getElementById('mainContent').innerHTML = `
       <section class="view" style="animation:fadeInUp .3s ease">
         ${this._backBtn('app.renderHome()')}
         <div class="result-card result-travel">
-          <p class="result-label">Next stop</p>
-          <h2 class="result-title">${t.name}</h2>
-          <div class="result-emoji">${typeEmoji[t.type] || '✈️'}</div>
-          <div class="result-meta">${t.country} · ${t.continent}</div>
-          <div class="result-meta">${t.type} · ${t.duration}</div>
+          <p class="result-label">${t('Next stop')}</p>
+          <h2 class="result-title">${tr.name}</h2>
+          <div class="result-emoji">${typeEmoji[tr.type] || '✈️'}</div>
+          <div class="result-meta">${tr.country} · ${t(tr.continent)}</div>
+          <div class="result-meta">${t(tr.type)} · ${tr.duration}</div>
           <div class="result-divider"></div>
           <div class="result-details">
-            <p>💰 ${budgetLabel[t.budget] || t.budget}</p>
-            <p>📅 Best in: ${t.best_season}</p>
-            <p>${moodLabel[t.mood] || t.mood}</p>
+            <p>💰 ${budgetLabel[tr.budget] || tr.budget}</p>
+            <p>📅 ${t('Best in:')} ${t(tr.best_season)}</p>
+            <p>${moodLabel[tr.mood] || tr.mood}</p>
           </div>
           <div class="result-divider"></div>
           <div class="travel-map-wrap">
@@ -980,29 +1015,29 @@ class CHCSApp {
         </div>
         <div class="route-planner">
           <div class="route-planner-head">
-            <h4>Plan your route</h4>
+            <h4>${t('Plan your route')}</h4>
             <span class="route-planner-via">via Rome2Rio</span>
           </div>
           <div class="route-step">
             <span class="route-step-num">1</span>
             <input class="travel-from-input" id="travelFrom" type="text"
-              placeholder="Where are you leaving from? e.g. Amsterdam"
+              placeholder="${t('Where are you leaving from? e.g. Amsterdam')}"
               value="${savedFrom}" autocomplete="off" autocorrect="off" spellcheck="false"
               aria-label="Departure point">
           </div>
           <div class="route-step">
             <span class="route-step-num">2</span>
             <button class="route-btn" id="routeBtn" onclick="app.openRome2Rio('${safeName}')">
-              Show routes to ${t.name}
+              ${tf('Show routes to {name}', { name: tr.name })}
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
             </button>
           </div>
-          <p class="route-hint" id="routeHint">Enter your departure point, then we'll find trains, flights &amp; driving options.</p>
+          <p class="route-hint" id="routeHint">${t("Enter your departure point, then we'll find trains, flights & driving options.")}</p>
         </div>
         <div class="result-actions">
-          ${this._favBtn('travel', t.id)}
+          ${this._favBtn('travel', tr.id)}
           <button class="result-action-btn" onclick="app.rejectTravel();app.showTravel();">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.95"/></svg> Pick again
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.95"/></svg> ${t('Pick again')}
           </button>
         </div>
       </section>`;
@@ -1018,8 +1053,8 @@ class CHCSApp {
       btn.classList.toggle('route-btn-ready', ready);
       const hint = document.getElementById('routeHint');
       if (hint) hint.textContent = ready
-        ? 'Great — we’ll open trains, flights & driving options on Rome2Rio.'
-        : 'Enter your departure point, then we’ll find trains, flights & driving options.';
+        ? t("Great — we'll open trains, flights & driving options on Rome2Rio.")
+        : t("Enter your departure point, then we'll find trains, flights & driving options.");
     };
     input.addEventListener('input', update);
     input.addEventListener('keydown', e => { if (e.key === 'Enter') btn.click(); });
@@ -1035,7 +1070,7 @@ class CHCSApp {
         input.classList.add('input-attention');
         setTimeout(() => input.classList.remove('input-attention'), 700);
       }
-      this._toast('First tell us where you’re leaving from');
+      this._toast(t("First tell us where you're leaving from"));
       return;
     }
     localStorage.setItem('chcs_travel_from', from);
@@ -1060,7 +1095,8 @@ class CHCSApp {
     document.querySelectorAll('.checklist-item.checked').forEach(el => el.classList.remove('checked'));
   }
 
-  _checklistHTML(ingredients, title = 'Shopping list') {
+  _checklistHTML(ingredients, title = null) {
+    title = title || t('Shopping list');
     const items = ingredients.map(i => {
       const checked = this.checkedItems.has(i) ? ' checked' : '';
       return `<label class="checklist-item${checked}" data-item="${i}" onclick="app.toggleCheck('${i.replace(/'/g, "\\'")}')">
@@ -1075,14 +1111,14 @@ class CHCSApp {
         <span class="checklist-count">${count}/${ingredients.length}</span>
       </div>
       <div class="checklist-items">${items}</div>
-      ${count > 0 ? `<button class="checklist-clear" onclick="app.clearChecklist()">Uncheck all</button>` : ''}
+      ${count > 0 ? `<button class="checklist-clear" onclick="app.clearChecklist()">${t('Uncheck all')}</button>` : ''}
     </div>`;
   }
 
   // ── Copy & Share ───────────────────────────────────────
   copyIngredients() {
     const text = this.currentMeal.ingredients.join('\n');
-    navigator.clipboard.writeText(text).then(() => this._toast('Copied! ✓'));
+    navigator.clipboard.writeText(text).then(() => this._toast(t('Copied! ✓')));
   }
 
   _toast(msg) {
@@ -1106,11 +1142,11 @@ class CHCSApp {
       const m = item;
       div.innerHTML = `
         <div class="share-card-inner">
-          <p class="share-card-label">Tonight we're making</p>
+          <p class="share-card-label">${t("Tonight we're making")}</p>
           <h2 class="share-card-title">${m.name}</h2>
           <div class="share-card-emoji">${DIETARY_EMOJI[m.dietary] === '🐟' ? '🐟' : DIETARY_EMOJI[m.dietary] === '🌱' ? '🥗' : '🍽️'}</div>
           <p class="share-card-meta">${m.cuisine} · ${m.prepTime} min</p>
-          <p class="share-card-meta">${m.effort} · ${m.dietary}</p>
+          <p class="share-card-meta">${t(m.effort)} · ${t(m.dietary)}</p>
           <div class="share-card-divider"></div>
           <p class="share-card-ingredients">${m.ingredients.join(', ')}</p>
           <div class="share-card-divider"></div>
@@ -1121,11 +1157,11 @@ class CHCSApp {
       const m = item;
       div.innerHTML = `
         <div class="share-card-inner">
-          <p class="share-card-label">Tonight we're watching</p>
+          <p class="share-card-label">${t("Tonight we're watching")}</p>
           <h2 class="share-card-title">${m.title}</h2>
           <div class="share-card-emoji">🎬</div>
           <p class="share-card-meta">${m.year} · ${m.genre} · ${m.runtime} min</p>
-          <p class="share-card-meta">${MOOD_EMOJI[m.mood]} ${MOOD_LABELS[m.mood]}</p>
+          <p class="share-card-meta">${MOOD_EMOJI[m.mood]} ${t(MOOD_LABELS[m.mood])}</p>
           <p class="share-card-meta">📺 ${m.streaming.join(', ')}</p>
           <div class="share-card-divider"></div>
           <p class="share-card-brand">CHCS</p>
@@ -1137,17 +1173,17 @@ class CHCSApp {
 
   async shareResult(type) {
     const shareEl = document.getElementById('shareCard');
-    if (!shareEl || typeof html2canvas === 'undefined') { this._toast('Share unavailable'); return; }
+    if (!shareEl || typeof html2canvas === 'undefined') { this._toast(t('Share unavailable')); return; }
     try {
-      this._toast('Generating image...');
+      this._toast(t('Generating image...'));
       const canvas = await html2canvas(shareEl, { scale: 2, backgroundColor: null, useCORS: true });
       canvas.toBlob(async (blob) => {
-        if (!blob) { this._toast('Failed to generate image'); return; }
+        if (!blob) { this._toast(t('Failed to generate image')); return; }
         const file = new File([blob], `chcs-${type}-pick.png`, { type: 'image/png' });
         if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
           try {
-            await navigator.share({ files: [file], title: 'My CHCS Pick', text: type === 'food' ? `Tonight I'm making ${this.currentMeal.name}!` : `Tonight I'm watching ${this.currentMovie.title}!` });
-            this._toast('Shared! 🎉');
+            await navigator.share({ files: [file], title: t('My CHCS Pick'), text: type === 'food' ? tf('Tonight I’m making {name}!', { name: this.currentMeal.name }) : tf('Tonight I’m watching {name}!', { name: this.currentMovie.title }) });
+            this._toast(t('Shared! 🎉'));
           } catch (e) {
             if (e.name !== 'AbortError') this._downloadBlob(blob, `chcs-${type}-pick.png`);
           }
@@ -1156,7 +1192,7 @@ class CHCSApp {
         }
       }, 'image/png');
     } catch (e) {
-      this._toast('Failed to generate image');
+      this._toast(t('Failed to generate image'));
     }
   }
 
@@ -1167,12 +1203,12 @@ class CHCSApp {
     document.body.appendChild(a); a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    this._toast('Image downloaded! 📸');
+    this._toast(t('Image downloaded! 📸'));
   }
 
   // ── Shared helpers ─────────────────────────────────────
   _backBtn(action) {
-    return `<button class="back-btn" onclick="${action}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg> Back</button>`;
+    return `<button class="back-btn" onclick="${action}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg> ${t('Back')}</button>`;
   }
 
 
@@ -1188,8 +1224,8 @@ class CHCSApp {
   // ── Favorites ──────────────────────────────────────────
   toggleFavorite(type, id) {
     const key = `${type}:${id}`;
-    if (this.favorites.has(key)) { this.favorites.delete(key); this._toast('Removed from saved'); }
-    else { this.favorites.add(key); this._toast('Saved ♥'); }
+    if (this.favorites.has(key)) { this.favorites.delete(key); this._toast(t('Removed from saved')); }
+    else { this.favorites.add(key); this._toast(t('Saved ♥')); }
     localStorage.setItem('chcs_favorites', JSON.stringify([...this.favorites]));
     const btn = document.getElementById('fav-btn');
     if (btn) {
@@ -1202,7 +1238,7 @@ class CHCSApp {
     const active = this.favorites.has(`${type}:${id}`);
     return `<button id="fav-btn" class="fav-btn${active ? ' active' : ''}" onclick="app.toggleFavorite('${type}','${id}')">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="${active ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-      ${active ? 'Saved' : 'Save'}
+      ${t(active ? 'Saved' : 'Save')}
     </button>`;
   }
 
@@ -1230,11 +1266,11 @@ class CHCSApp {
 
   _renderBookMoodScreen() {
     const moods = [
-      { key: 'spannend',   emoji: '😰', label: 'Spannend',   desc: 'Thriller, misdaad & horror' },
-      { key: 'grappig',    emoji: '😂', label: 'Grappig',    desc: 'Humor & satire' },
-      { key: 'fantasy',    emoji: '🧙', label: 'Fantasy',    desc: 'Fantasy & sci-fi' },
-      { key: 'ontroerend', emoji: '😢', label: 'Ontroerend', desc: 'Literatuur & gevoel' },
-      { key: 'non-fictie', emoji: '🔍', label: 'Non-fictie', desc: 'Kennis & memoires' },
+      { key: 'spannend',   emoji: '😰', label: 'Thrilling',   desc: 'Thriller, crime & horror' },
+      { key: 'grappig',    emoji: '😂', label: 'Funny',       desc: 'Humor & satire' },
+      { key: 'fantasy',    emoji: '🧙', label: 'Fantasy',     desc: 'Fantasy & sci-fi' },
+      { key: 'ontroerend', emoji: '😢', label: 'Moving',      desc: 'Literary & feels' },
+      { key: 'non-fictie', emoji: '🔍', label: 'Non-fiction', desc: 'Knowledge & memoirs' },
     ];
     const last = this.selectedBookMood;
     document.getElementById('mainContent').innerHTML = `
@@ -1243,20 +1279,20 @@ class CHCSApp {
         <div class="mood-screen">
           <div class="mood-header">
             <span class="mood-header-icon">📚</span>
-            <h2>Wat wil je lezen?</h2>
-            <p>Kies een stemming en we vinden een boek</p>
+            <h2>${t('What do you want to read?')}</h2>
+            <p>${t("Pick a mood and we'll find a book")}</p>
           </div>
           <div class="mood-grid stagger-in">
             ${moods.map(m => `
               <button class="mood-pill${last===m.key?' active':''}" onclick="app.selectBookMood('${m.key}')">
                 <span class="mood-pill-emoji">${m.emoji}</span>
-                <span class="mood-pill-label">${m.label}</span>
-                <span class="mood-pill-desc">${m.desc}</span>
+                <span class="mood-pill-label">${t(m.label)}</span>
+                <span class="mood-pill-desc">${t(m.desc)}</span>
               </button>`).join('')}
           </div>
           <button class="mood-surprise" onclick="app.selectBookMood('surprise')">
             <span class="mood-pill-emoji">🎲</span>
-            <span class="mood-pill-label">Surprise me</span>
+            <span class="mood-pill-label">${t('Surprise me')}</span>
           </button>
         </div>
       </section>`;
@@ -1280,11 +1316,11 @@ class CHCSApp {
         <div class="card-actions">
           <button class="action-btn action-reject" onclick="app.rejectBook()">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-            Nah, next
+            ${t('Nah, next')}
           </button>
           <button class="action-btn action-accept" onclick="app.acceptBook()">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
-            Dit ga ik lezen
+            ${t("I'll read this")}
           </button>
         </div>
         ${this._swipesLeftHint()}
@@ -1316,19 +1352,20 @@ class CHCSApp {
 
   _renderBookResult(b) {
     const moodEmoji = { spannend: '😰', grappig: '😂', fantasy: '🧙', ontroerend: '😢', 'non-fictie': '🔍' };
+    const moodLabel = { spannend: 'Thrilling', grappig: 'Funny', fantasy: 'Fantasy', ontroerend: 'Moving', 'non-fictie': 'Non-fiction' };
     const searchUrl = `https://www.goodreads.com/search?q=${encodeURIComponent(b.title + ' ' + b.author)}`;
     document.getElementById('mainContent').innerHTML = `
       <section class="view" style="animation:fadeInUp .3s ease">
         ${this._backBtn('app.renderHome()')}
         <div class="result-card result-book">
-          <p class="result-label">Dit ga je lezen</p>
+          <p class="result-label">${t("You're reading")}</p>
           <h2 class="result-title">${b.title}</h2>
           <div class="result-emoji">📚</div>
           <div class="result-meta">${b.author} · ${b.year}</div>
           <div class="result-divider"></div>
           <div class="result-details">
-            <p>${moodEmoji[b.mood]} ${b.mood.charAt(0).toUpperCase() + b.mood.slice(1)}</p>
-            <p>📖 ${b.pages} pagina's</p>
+            <p>${moodEmoji[b.mood]} ${t(moodLabel[b.mood] || b.mood)}</p>
+            <p>📖 ${b.pages} ${t('pages')}</p>
           </div>
           <div class="result-divider"></div>
           <div class="result-branding">CHCS</div>
@@ -1339,7 +1376,7 @@ class CHCSApp {
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Goodreads
           </button>
           <button class="result-action-btn" onclick="app.showBooks()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.95"/></svg> Pick again
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.95"/></svg> ${t('Pick again')}
           </button>
         </div>
       </section>`;
@@ -1351,13 +1388,13 @@ class CHCSApp {
     document.getElementById('mainContent').innerHTML = `
       <section class="view" style="animation:fadeInUp .3s ease">
         <div class="search-screen">
-          <h2 class="section-title" style="margin-bottom:16px">Search</h2>
+          <h2 class="section-title" style="margin-bottom:16px">${t('Search')}</h2>
           <div class="search-input-wrap">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-            <input type="text" class="search-input" id="searchInput" placeholder="Meals, movies, books, destinations…" oninput="app._doSearch(this.value)" autofocus>
+            <input type="text" class="search-input" id="searchInput" placeholder="${t('Meals, movies, books, destinations…')}" oninput="app._doSearch(this.value)" autofocus>
           </div>
           <div class="search-results" id="searchResults">
-            <p class="search-hint">Start typing to explore meals, movies, playlists and destinations.</p>
+            <p class="search-hint">${t('Start typing to explore meals, movies, playlists and destinations.')}</p>
           </div>
         </div>
       </section>`;
@@ -1365,40 +1402,40 @@ class CHCSApp {
 
   _doSearch(q) {
     const results = document.getElementById('searchResults');
-    if (!q.trim()) { results.innerHTML = '<p class="search-hint">Start typing to explore meals, movies, books, playlists and destinations.</p>'; return; }
+    if (!q.trim()) { results.innerHTML = `<p class="search-hint">${t('Start typing to explore meals, movies, books, playlists and destinations.')}</p>`; return; }
     const term = q.toLowerCase();
     const meals     = MEALS.filter(m => m.name.toLowerCase().includes(term) || m.cuisine.toLowerCase().includes(term) || (m.description && m.description.toLowerCase().includes(term)));
     const movies    = MOVIES.filter(m => m.title.toLowerCase().includes(term) || m.genre.toLowerCase().includes(term) || (m.pitch && m.pitch.toLowerCase().includes(term)));
     const books     = BOOKS.filter(b => b.title.toLowerCase().includes(term) || b.author.toLowerCase().includes(term) || b.mood.toLowerCase().includes(term) || (b.pitch && b.pitch.toLowerCase().includes(term)));
     const playlists = PLAYLISTS.filter(p => p.name.toLowerCase().includes(term) || p.mood.toLowerCase().includes(term) || (p.vibe && p.vibe.toLowerCase().includes(term)) || p.tags.some(t => t.toLowerCase().includes(term)));
     const travels   = TRAVEL.filter(t => t.name.toLowerCase().includes(term) || t.country.toLowerCase().includes(term) || t.continent.toLowerCase().includes(term) || t.type.toLowerCase().includes(term) || (t.pitch && t.pitch.toLowerCase().includes(term)));
-    if (!meals.length && !movies.length && !books.length && !playlists.length && !travels.length) { results.innerHTML = '<p class="search-hint">No results found.</p>'; return; }
+    if (!meals.length && !movies.length && !books.length && !playlists.length && !travels.length) { results.innerHTML = `<p class="search-hint">${t('No results found.')}</p>`; return; }
     const gap = (prev) => prev ? 'margin-top:20px' : '';
     results.innerHTML = `
-      ${meals.length ? `<h4 class="search-group-label">Meals (${meals.length})</h4>${meals.map(m => `
+      ${meals.length ? `<h4 class="search-group-label">${t('Meals')} (${meals.length})</h4>${meals.map(m => `
         <div class="search-result-item" onclick="app._openMeal('${m.id}')">
           <div class="sri-title">${m.name}</div>
-          <div class="sri-meta">${m.cuisine} · ${m.effort} · ${m.prepTime} min</div>
+          <div class="sri-meta">${m.cuisine} · ${t(m.effort)} · ${m.prepTime} min</div>
         </div>`).join('')}` : ''}
-      ${movies.length ? `<h4 class="search-group-label" style="${gap(meals.length)}">Movies (${movies.length})</h4>${movies.map(m => `
+      ${movies.length ? `<h4 class="search-group-label" style="${gap(meals.length)}">${t('Movies')} (${movies.length})</h4>${movies.map(m => `
         <div class="search-result-item" onclick="app._openMovie('${m.id}')">
           <div class="sri-title">${m.title}</div>
           <div class="sri-meta">${m.year} · ${m.genre} · ${m.runtime} min</div>
         </div>`).join('')}` : ''}
-      ${books.length ? `<h4 class="search-group-label" style="${gap(meals.length || movies.length)}">Books (${books.length})</h4>${books.map(b => `
+      ${books.length ? `<h4 class="search-group-label" style="${gap(meals.length || movies.length)}">${t('Books')} (${books.length})</h4>${books.map(b => `
         <div class="search-result-item" onclick="app._openBook('${b.id}')">
           <div class="sri-title">${b.title}</div>
           <div class="sri-meta">${b.author} · ${b.year} · ${b.pages} p.</div>
         </div>`).join('')}` : ''}
-      ${playlists.length ? `<h4 class="search-group-label" style="${gap(meals.length || movies.length || books.length)}">Playlists (${playlists.length})</h4>${playlists.map(p => `
+      ${playlists.length ? `<h4 class="search-group-label" style="${gap(meals.length || movies.length || books.length)}">${t('Playlists')} (${playlists.length})</h4>${playlists.map(p => `
         <div class="search-result-item" onclick="app._openPlaylist('${p.id}')">
           <div class="sri-title">${p.name}</div>
-          <div class="sri-meta">${p.mood} · by ${p.curator} · ${p.trackCount} tracks</div>
+          <div class="sri-meta">${p.mood} · ${t('by')} ${p.curator} · ${p.trackCount} ${t('tracks')}</div>
         </div>`).join('')}` : ''}
-      ${travels.length ? `<h4 class="search-group-label" style="${gap(meals.length || movies.length || books.length || playlists.length)}">Destinations (${travels.length})</h4>${travels.map(t => `
-        <div class="search-result-item" onclick="app._openTravel('${t.id}')">
-          <div class="sri-title">${t.name}</div>
-          <div class="sri-meta">${t.country} · ${t.continent} · ${t.type}</div>
+      ${travels.length ? `<h4 class="search-group-label" style="${gap(meals.length || movies.length || books.length || playlists.length)}">${t('Destinations')} (${travels.length})</h4>${travels.map(x => `
+        <div class="search-result-item" onclick="app._openTravel('${x.id}')">
+          <div class="sri-title">${x.name}</div>
+          <div class="sri-meta">${x.country} · ${t(x.continent)} · ${t(x.type)}</div>
         </div>`).join('')}` : ''}`;
   }
 
@@ -1416,12 +1453,12 @@ class CHCSApp {
 
     const iconFor  = type => ({ food: '🍽️', movie: '🎬', book: '📚', travel: '✈️' }[type] || '📌');
     const titleFor = ({ type, item }) => type === 'movie' ? item.title : type === 'book' ? item.title : item.name;
-    const metaFor  = ({ type, item }) => type === 'food' ? `${item.cuisine} · ${item.prepTime} min` : type === 'movie' ? `${item.year} · ${item.genre}` : type === 'book' ? `${item.author} · ${item.year}` : `${item.country} · ${item.type}`;
+    const metaFor  = ({ type, item }) => type === 'food' ? `${item.cuisine} · ${item.prepTime} min` : type === 'movie' ? `${item.year} · ${item.genre}` : type === 'book' ? `${item.author} · ${item.year}` : `${item.country} · ${t(item.type)}`;
     const openFn   = ({ type, item }) => type === 'food' ? `app._openMeal('${item.id}')` : type === 'movie' ? `app._openMovie('${item.id}')` : type === 'book' ? `app._openBook('${item.id}')` : `app._openTravel('${item.id}')`;
 
     document.getElementById('mainContent').innerHTML = `
       <section class="view" style="animation:fadeInUp .3s ease">
-        <h2 class="section-title" style="margin-bottom:24px">Saved</h2>
+        <h2 class="section-title" style="margin-bottom:24px">${t('Saved')}</h2>
         ${favItems.length ? `<div class="fav-list">${favItems.map(fav => `
           <div class="fav-item" onclick="${openFn(fav)}">
             <div class="fav-icon">${iconFor(fav.type)}</div>
@@ -1435,8 +1472,8 @@ class CHCSApp {
           </div>`).join('')}</div>`
         : `<div class="fav-empty">
             <div class="fav-empty-icon">♡</div>
-            <p>Nothing saved yet.</p>
-            <p class="fav-empty-hint">Tap the heart on any result to save it here.</p>
+            <p>${t('Nothing saved yet.')}</p>
+            <p class="fav-empty-hint">${t('Tap the heart on any result to save it here.')}</p>
           </div>`}
       </section>`;
   }
@@ -1451,16 +1488,16 @@ class CHCSApp {
     const s = this.stats;
     const histIcon = { food: '🍽️', movie: '🎬', book: '📚', travel: '✈️', playlist: '🎵', other: '🎲', week: '📅', duo: '👥' };
     const recent = this.history.slice(0, 8);
-    const fmtDate = ts => new Date(ts).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+    const fmtDate = ts => new Date(ts).toLocaleDateString(LANG === 'nl' ? 'nl-NL' : 'en-GB', { day: 'numeric', month: 'short' });
     document.getElementById('mainContent').innerHTML = `
       <section class="view" style="animation:fadeInUp .3s ease">
         <div class="account-head">
           <div class="account-avatar account-avatar-sm">${this.userName ? this._esc(this.userName[0].toUpperCase()) : '👤'}</div>
           <div class="account-head-text">
-            <input class="account-name-input" id="accountName" type="text" placeholder="Add your name"
+            <input class="account-name-input" id="accountName" type="text" placeholder="${t('Add your name')}"
               value="${this._esc(this.userName)}" maxlength="20" autocomplete="off"
               onchange="app.saveName(this.value)">
-            <p class="account-sub">${this.plus ? '✦ CHCS Plus member' : 'Free plan · data stays on this device'}</p>
+            <p class="account-sub">${t(this.plus ? '✦ CHCS Plus member' : 'Free plan · data stays on this device')}</p>
           </div>
         </div>
 
@@ -1468,20 +1505,20 @@ class CHCSApp {
           ? `<div class="plus-active-card">✦ <strong>CHCS Plus</strong> — unlimited swipes. Thanks for the support!</div>`
           : `<div class="plus-cta-card" onclick="app.renderPlus()">
               <div class="plus-cta-text">
-                <h4>Go unlimited with CHCS <em>Plus</em></h4>
-                <p>${this.swipesLeft()} of ${FREE_SWIPE_LIMIT} free swipes left today</p>
+                <h4>${t('Go unlimited with CHCS <em>Plus</em>')}</h4>
+                <p>${tf('{left} of {max} free swipes left today', { left: this.swipesLeft(), max: FREE_SWIPE_LIMIT })}</p>
               </div>
               <svg class="mode-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
             </div>`}
 
-        <h3 class="section-title">Your stats</h3>
+        <h3 class="section-title">${t('Your stats')}</h3>
         <div class="stats-row">
-          <div class="stat-card"><span class="stat-number">${s.choices}</span><span class="stat-label">Choices made</span></div>
-          <div class="stat-card"><span class="stat-number">${s.weekPlans}</span><span class="stat-label">Weeks planned</span></div>
-          <div class="stat-card"><span class="stat-number">${s.streak}</span><span class="stat-label">Day streak</span></div>
+          <div class="stat-card"><span class="stat-number">${s.choices}</span><span class="stat-label">${t('Choices made')}</span></div>
+          <div class="stat-card"><span class="stat-number">${s.weekPlans}</span><span class="stat-label">${t('Weeks planned')}</span></div>
+          <div class="stat-card"><span class="stat-number">${s.streak}</span><span class="stat-label">${t('Day streak')}</span></div>
         </div>
 
-        <h3 class="section-title">Recent choices</h3>
+        <h3 class="section-title">${t('Recent choices')}</h3>
         ${recent.length ? `
           <div class="history-list">
             ${recent.map(h => `
@@ -1491,41 +1528,48 @@ class CHCSApp {
                 <span class="history-date">${fmtDate(h.ts)}</span>
               </div>`).join('')}
           </div>
-          <button class="link-btn" onclick="app.clearHistory()">Clear history</button>`
-        : `<p class="account-empty-hint">Your accepted picks will show up here.</p>`}
+          <button class="link-btn" onclick="app.clearHistory()">${t('Clear history')}</button>`
+        : `<p class="account-empty-hint">${t('Your accepted picks will show up here.')}</p>`}
 
-        <h3 class="section-title">Appearance</h3>
+        <h3 class="section-title">${t('Appearance')}</h3>
         <div class="settings-card">
           <div class="settings-row">
-            <span class="settings-label">Theme</span>
+            <span class="settings-label">${t('Theme')}</span>
             <div class="seg">
-              <button class="seg-btn${this.theme === 'light' ? ' active' : ''}" data-theme-opt="light" onclick="app.setThemeChoice('light')">Light</button>
-              <button class="seg-btn${this.theme === 'dark' ? ' active' : ''}" data-theme-opt="dark" onclick="app.setThemeChoice('dark')">Dark</button>
+              <button class="seg-btn${this.theme === 'light' ? ' active' : ''}" data-theme-opt="light" onclick="app.setThemeChoice('light')">${t('Light')}</button>
+              <button class="seg-btn${this.theme === 'dark' ? ' active' : ''}" data-theme-opt="dark" onclick="app.setThemeChoice('dark')">${t('Dark')}</button>
             </div>
           </div>
           <div class="settings-row">
-            <span class="settings-label">Design</span>
+            <span class="settings-label">${t('Design')}</span>
             <div class="seg">
-              <button class="seg-btn${this.design === 'elegant' ? ' active' : ''}" data-design-opt="elegant" onclick="app.setDesign('elegant')">Elegant</button>
-              <button class="seg-btn${this.design === 'classic' ? ' active' : ''}" data-design-opt="classic" onclick="app.setDesign('classic')">Classic</button>
+              <button class="seg-btn${this.design === 'elegant' ? ' active' : ''}" data-design-opt="elegant" onclick="app.setDesign('elegant')">${t('Elegant')}</button>
+              <button class="seg-btn${this.design === 'classic' ? ' active' : ''}" data-design-opt="classic" onclick="app.setDesign('classic')">${t('Classic')}</button>
+            </div>
+          </div>
+          <div class="settings-row">
+            <span class="settings-label">${t('Language')}</span>
+            <div class="seg">
+              <button class="seg-btn${LANG === 'en' ? ' active' : ''}" onclick="app.setLang('en')">English</button>
+              <button class="seg-btn${LANG === 'nl' ? ' active' : ''}" onclick="app.setLang('nl')">Nederlands</button>
             </div>
           </div>
         </div>
 
-        <h3 class="section-title">Sync &amp; backup</h3>
+        <h3 class="section-title">${t('Sync & backup')}</h3>
         <div class="settings-card">
-          <p class="sync-explain">No account needed — everything lives on this device. Move your favorites, history and settings to another device with a sync code.</p>
+          <p class="sync-explain">${t('No account needed — everything lives on this device. Move your favorites, history and settings to another device with a sync code.')}</p>
           <div class="sync-actions">
-            <button class="btn btn-primary" onclick="app.copySyncCode()">Copy sync code</button>
-            <button class="btn btn-primary" onclick="app.toggleImportBox()">Import a code</button>
+            <button class="btn btn-primary" onclick="app.copySyncCode()">${t('Copy sync code')}</button>
+            <button class="btn btn-primary" onclick="app.toggleImportBox()">${t('Import a code')}</button>
           </div>
           <div class="sync-import" id="syncImport" hidden>
-            <textarea id="syncImportField" class="sync-textarea" rows="3" placeholder="Paste the sync code from your other device…"></textarea>
-            <button class="btn btn-primary" onclick="app.importSyncCode()">Import</button>
+            <textarea id="syncImportField" class="sync-textarea" rows="3" placeholder="${t('Paste the sync code from your other device…')}"></textarea>
+            <button class="btn btn-primary" onclick="app.importSyncCode()">${t('Import')}</button>
           </div>
         </div>
 
-        <button class="danger-link" onclick="app.resetAllData()">Reset all data on this device</button>
+        <button class="danger-link" onclick="app.resetAllData()">${t('Reset all data on this device')}</button>
       </section>`;
   }
 
@@ -1541,7 +1585,7 @@ class CHCSApp {
     this.userName = v.trim().slice(0, 20);
     if (this.userName) localStorage.setItem('chcs_name', this.userName);
     else localStorage.removeItem('chcs_name');
-    this._toast(this.userName ? `Hi, ${this.userName}! 👋` : 'Name removed');
+    this._toast(this.userName ? tf('Hi, {name}! 👋', { name: this.userName }) : t('Name removed'));
   }
 
   // ── Sync codes (device-to-device, no backend) ──────────
@@ -1552,8 +1596,8 @@ class CHCSApp {
   copySyncCode() {
     const code = 'CHCS1.' + btoa(unescape(encodeURIComponent(JSON.stringify(this._syncPayload()))));
     navigator.clipboard.writeText(code)
-      .then(() => this._toast('Sync code copied — paste it on your other device'))
-      .catch(() => this._toast('Could not copy — try again'));
+      .then(() => this._toast(t('Sync code copied — paste it on your other device')))
+      .catch(() => this._toast(t('Could not copy — try again')));
   }
 
   toggleImportBox() {
@@ -1565,7 +1609,7 @@ class CHCSApp {
 
   importSyncCode() {
     const raw = (document.getElementById('syncImportField')?.value || '').trim();
-    if (!raw.startsWith('CHCS1.')) { this._toast('That doesn’t look like a CHCS sync code'); return; }
+    if (!raw.startsWith('CHCS1.')) { this._toast(t("That doesn't look like a CHCS sync code")); return; }
     try {
       const data = JSON.parse(decodeURIComponent(escape(atob(raw.slice(6)))));
       (Array.isArray(data.f) ? data.f : []).forEach(k => this.favorites.add(k));
@@ -1585,15 +1629,15 @@ class CHCSApp {
         if (this.history.length > HISTORY_MAX) this.history.length = HISTORY_MAX;
         localStorage.setItem('chcs_history', JSON.stringify(this.history));
       }
-      this._toast('Imported — welcome back ✓');
+      this._toast(t('Imported — welcome back ✓'));
       this.renderAccount();
     } catch (e) {
-      this._toast('Invalid sync code');
+      this._toast(t('Invalid sync code'));
     }
   }
 
   resetAllData() {
-    if (!confirm('This clears everything on this device: favorites, history, stats, Plus status and settings. Continue?')) return;
+    if (!confirm(t('This clears everything on this device: favorites, history, stats, Plus status and settings. Continue?'))) return;
     Object.keys(localStorage).filter(k => k.startsWith('chcs_')).forEach(k => localStorage.removeItem(k));
     location.reload();
   }
@@ -1601,15 +1645,15 @@ class CHCSApp {
   // ── Onboarding ──────────────────────────────────────────
   renderOnboarding(step = 0) {
     const slides = [
-      { emoji: '👋', title: 'Can’t handle <em>choosing</em> stuff?', text: 'Neither can we. CHCS decides what you eat, watch, read and hear — and where you go next. You just show up.' },
-      { emoji: '🃏', title: 'Pick a mood, <em>swipe</em>, done', text: 'Tell us the vibe, swipe away what you don’t fancy, and accept the one that clicks. No more endless scrolling past 400 options.' },
-      { emoji: '✦', title: 'Free to use, <em>Plus</em> for superfans', text: `You get ${FREE_SWIPE_LIMIT} “nah, next” swipes a day, free — accepting a pick never costs anything. CHCS Plus removes the limit; you’ll find it under Account.` },
+      { emoji: '👋', title: t("Can't handle <em>choosing</em> stuff?"), text: t('Neither can we. CHCS decides what you eat, watch, read and hear — and where you go next. You just show up.') },
+      { emoji: '🃏', title: t('Pick a mood, <em>swipe</em>, done'), text: t("Tell us the vibe, swipe away what you don't fancy, and accept the one that clicks. No more endless scrolling past 400 options.") },
+      { emoji: '✦', title: t('Free to use, <em>Plus</em> for superfans'), text: tf('You get {n} “nah, next” swipes a day, free — accepting a pick never costs anything. CHCS Plus removes the limit; you’ll find it under Account.', { n: FREE_SWIPE_LIMIT }) },
     ];
     const sl = slides[step];
     const last = step === slides.length - 1;
     document.getElementById('mainContent').innerHTML = `
       <section class="view onboarding" style="animation:fadeInUp .3s ease">
-        ${last ? '<span class="ob-skip"></span>' : `<button class="ob-skip" onclick="app.finishOnboarding()">Skip</button>`}
+        ${last ? '<span class="ob-skip"></span>' : `<button class="ob-skip" onclick="app.finishOnboarding()">${t('Skip')}</button>`}
         <div class="ob-body">
           <div class="ob-emoji">${sl.emoji}</div>
           <h1 class="ob-title">${sl.title}</h1>
@@ -1618,7 +1662,7 @@ class CHCSApp {
         <div class="ob-footer">
           <div class="ob-dots">${slides.map((_, i) => `<span class="ob-dot${i === step ? ' active' : ''}"></span>`).join('')}</div>
           <button class="hero-btn ob-next" onclick="${last ? 'app.finishOnboarding()' : `app.renderOnboarding(${step + 1})`}">
-            ${last ? 'Start choosing' : 'Next'} &rarr;
+            ${t(last ? 'Start choosing' : 'Next')} &rarr;
           </button>
         </div>
       </section>`;
@@ -1640,25 +1684,26 @@ class CHCSApp {
     document.getElementById('mainContent').innerHTML = `
       <section class="view" style="animation:fadeInUp .3s ease">
         ${this._backBtn('app.renderHome()')}
-        ${limitHit ? `<div class="plus-limit-banner">That’s your ${FREE_SWIPE_LIMIT} free swipes for today. Accepting picks is still free — or go unlimited below. Fresh swipes tomorrow!</div>` : ''}
+        ${limitHit ? `<div class="plus-limit-banner">${tf('That’s your {n} free swipes for today. Accepting picks is still free — or go unlimited below. Fresh swipes tomorrow!', { n: FREE_SWIPE_LIMIT })}</div>` : ''}
         <div class="plus-card">
-          <p class="result-label">Members only</p>
+          <p class="result-label">${t('Members only')}</p>
           <h2 class="plus-title">CHCS <em>Plus</em></h2>
           ${this.plus ? `
-            <p class="plus-thanks">You’re in ✦ Unlimited swipes, forever. Thanks for supporting a friend’s passion project.</p>`
+            <p class="plus-thanks">${t('You’re in ✦ Unlimited swipes, forever. Thanks for supporting a friend’s passion project.')}</p>`
           : `
             <ul class="plus-benefits">
-              <li><span>∞</span> Unlimited “nah, next” swipes, every day</li>
-              <li><span>✦</span> Every future perk, first</li>
-              <li><span>♥</span> Supports a friend’s passion project</li>
+              <li><span>∞</span> ${t('Unlimited “nah, next” swipes, every day')}</li>
+              <li><span>✦</span> ${t('Every future perk, first')}</li>
+              <li><span>♥</span> ${t('Supports a friend’s passion project')}</li>
             </ul>
+            ${PLUS_BUY_URL ? `<a class="btn btn-primary plus-buy-btn" href="${PLUS_BUY_URL}" target="_blank" rel="noopener noreferrer" style="display:block;text-align:center;margin-bottom:14px">${t('Get CHCS Plus — €5, once')}</a>` : ''}
             <div class="plus-code-row">
-              <input class="plus-code-input" id="plusCode" type="text" placeholder="Friend code" autocomplete="off" autocapitalize="characters" spellcheck="false"
+              <input class="plus-code-input" id="plusCode" type="text" placeholder="${t('Friend code')}" autocomplete="off" autocapitalize="characters" spellcheck="false"
                 onkeydown="if(event.key==='Enter')app.activatePlus()">
-              <button class="plus-code-btn" onclick="app.activatePlus()">Unlock</button>
+              <button class="plus-code-btn" onclick="app.activatePlus()">${t('Unlock')}</button>
             </div>
-            <p class="plus-note">Plus is invite-only for now — ask Steven for a code. Paid upgrades come later.</p>
-            ${!limitHit ? `<p class="plus-usage">${this.swipesLeft()} of ${FREE_SWIPE_LIMIT} free swipes left today</p>` : ''}`}
+            <p class="plus-note">${t('Plus is invite-only for now — ask Steven for a code. Paid upgrades come later.')}</p>
+            ${!limitHit ? `<p class="plus-usage">${tf('{left} of {max} free swipes left today', { left: this.swipesLeft(), max: FREE_SWIPE_LIMIT })}</p>` : ''}`}
         </div>
       </section>`;
   }
@@ -1670,12 +1715,12 @@ class CHCSApp {
     if (PLUS_CODE_HASHES.includes(this._hash(code))) {
       this.plus = true;
       localStorage.setItem('chcs_plus', '1');
-      this._toast('Welcome to CHCS Plus ✦');
+      this._toast(t('Welcome to CHCS Plus ✦'));
       this.renderAccount();
     } else {
       input.classList.add('input-attention');
       setTimeout(() => input.classList.remove('input-attention'), 700);
-      this._toast('That code doesn’t work — check for typos');
+      this._toast(t('That code doesn’t work — check for typos'));
     }
   }
 
@@ -1696,14 +1741,14 @@ class CHCSApp {
         <div class="mood-screen">
           <div class="mood-header">
             <span class="mood-header-icon">🎲</span>
-            <h2>Can’t decide? We got you.</h2>
-            <p>Type your own options — CHCS picks one</p>
+            <h2>${t('Can’t decide? We got you.')}</h2>
+            <p>${t('Type your own options — CHCS picks one')}</p>
           </div>
         </div>
         <div class="other-card">
           <div class="other-input-row">
             <input class="other-input" id="otherInput" type="text" maxlength="60"
-              placeholder="${opts.length ? 'Add another option…' : 'e.g. Pizza at Luigi’s'}"
+              placeholder="${t(opts.length ? 'Add another option…' : 'e.g. Pizza at Luigi’s')}"
               autocomplete="off" onkeydown="if(event.key==='Enter')app.addCustomOption()">
             <button class="other-add-btn" onclick="app.addCustomOption()" aria-label="Add option">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -1715,19 +1760,19 @@ class CHCSApp {
                 <span class="other-chip">${this._esc(o)}
                   <button class="other-chip-x" onclick="app.removeCustomOption(${i})" aria-label="Remove">×</button>
                 </span>`).join('')}
-            </div>` : `<p class="other-empty">Add at least two options — dinner spots, paint colours, who does the dishes…</p>`}
+            </div>` : `<p class="other-empty">${t('Add at least two options — dinner spots, paint colours, who does the dishes…')}</p>`}
         </div>
-        <button class="spin-btn other-decide${ready ? '' : ' disabled'}" onclick="app.decideOther()">🎲 Decide for me</button>
-        ${ready ? `<button class="link-btn" onclick="app.promptSaveList()">Save this list for later</button>` : ''}
+        <button class="spin-btn other-decide${ready ? '' : ' disabled'}" onclick="app.decideOther()">🎲 ${t('Decide for me')}</button>
+        ${ready ? `<button class="link-btn" onclick="app.promptSaveList()">${t('Save this list for later')}</button>` : ''}
         <div id="saveListRow"></div>
         ${this.customLists.length ? `
-          <h3 class="section-title" style="margin-top:28px">Saved lists</h3>
+          <h3 class="section-title" style="margin-top:28px">${t('Saved lists')}</h3>
           <div class="saved-lists">
             ${this.customLists.map((l, i) => `
               <div class="saved-list-item" onclick="app.loadCustomList(${i})">
                 <div class="fav-info">
                   <div class="fav-title">${this._esc(l.name)}</div>
-                  <div class="fav-meta">${l.options.length} options</div>
+                  <div class="fav-meta">${l.options.length} ${t('options')}</div>
                 </div>
                 <button class="fav-remove" onclick="event.stopPropagation();app.deleteCustomList(${i})" title="Delete">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -1742,8 +1787,8 @@ class CHCSApp {
     const input = document.getElementById('otherInput');
     const v = (input?.value || '').trim();
     if (!v) return;
-    if (this.customOptions.length >= 20) { this._toast('That’s plenty — 20 options max'); return; }
-    if (this.customOptions.some(o => o.toLowerCase() === v.toLowerCase())) { this._toast('Already on the list'); return; }
+    if (this.customOptions.length >= 20) { this._toast(t('That’s plenty — 20 options max')); return; }
+    if (this.customOptions.some(o => o.toLowerCase() === v.toLowerCase())) { this._toast(t('Already on the list')); return; }
     this.customOptions.push(v);
     this._saveCustomOptions();
     this._renderOtherScreen();
@@ -1762,7 +1807,7 @@ class CHCSApp {
     if (!row) return;
     row.innerHTML = `
       <div class="other-input-row" style="margin-top:10px">
-        <input class="other-input" id="listNameInput" type="text" maxlength="30" placeholder="Name this list — e.g. Friday dinner spots"
+        <input class="other-input" id="listNameInput" type="text" maxlength="30" placeholder="${t('Name this list — e.g. Friday dinner spots')}"
           onkeydown="if(event.key==='Enter')app.confirmSaveList()">
         <button class="other-add-btn" onclick="app.confirmSaveList()" aria-label="Save list">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
@@ -1777,14 +1822,14 @@ class CHCSApp {
     this.customLists.unshift({ name, options: [...this.customOptions] });
     if (this.customLists.length > 12) this.customLists.length = 12;
     this._saveCustomLists();
-    this._toast('List saved ✓');
+    this._toast(t('List saved ✓'));
     this._renderOtherScreen();
   }
 
   loadCustomList(i) {
     this.customOptions = [...this.customLists[i].options];
     this._saveCustomOptions();
-    this._toast(`Loaded “${this.customLists[i].name}”`);
+    this._toast(tf('Loaded “{name}”', { name: this.customLists[i].name }));
     this._renderOtherScreen();
   }
 
@@ -1796,11 +1841,11 @@ class CHCSApp {
 
   decideOther() {
     const opts = [...this.customOptions];
-    if (opts.length < 2) { this._toast('Add at least two options first'); return; }
+    if (opts.length < 2) { this._toast(t('Add at least two options first')); return; }
     document.getElementById('mainContent').innerHTML = `
       <section class="view" style="animation:fadeInUp .2s ease">
         <div class="spin-container">
-          <p class="result-label" style="margin-bottom:18px">Deciding…</p>
+          <p class="result-label" style="margin-bottom:18px">${t('Deciding…')}</p>
           <div class="spin-reel"><div class="spin-title" id="spinTitle">${this._esc(opts[0])}</div></div>
         </div>
       </section>`;
@@ -1827,19 +1872,19 @@ class CHCSApp {
       <section class="view" style="animation:fadeInUp .3s ease">
         ${this._backBtn('app.showOther()')}
         <div class="result-card result-other">
-          <p class="result-label">The decision is made</p>
+          <p class="result-label">${t('The decision is made')}</p>
           <h2 class="result-title">${this._esc(choice)}</h2>
           <div class="result-emoji">🎲</div>
-          <p class="result-meta">No takebacks — that’s the whole point.</p>
+          <p class="result-meta">${t('No takebacks — that’s the whole point.')}</p>
           <div class="result-divider"></div>
           <div class="result-branding">CHCS</div>
         </div>
         <div class="result-actions">
           <button class="result-action-btn" onclick="app.decideOther()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.95"/></svg> Spin again
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.95"/></svg> ${t('Spin again')}
           </button>
           <button class="result-action-btn" onclick="app.showOther()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit options
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> ${t('Edit options')}
           </button>
         </div>
       </section>`;
@@ -1874,22 +1919,22 @@ class CHCSApp {
         <div class="mood-screen">
           <div class="mood-header">
             <span class="mood-header-icon">👥</span>
-            <h2>Duo mode</h2>
-            <p>You both swipe the same 8 cards — a match decides</p>
+            <h2>${t('Duo mode')}</h2>
+            <p>${t('You both swipe the same 8 cards — a match decides')}</p>
           </div>
           <div class="mood-grid stagger-in" style="grid-template-columns:1fr">
             ${Object.entries(cfg).map(([key, c]) => `
               <button class="mood-pill duo-pick" onclick="app.startDuo('${key}')">
                 <span class="mood-pill-emoji">${c.emoji}</span>
-                <span class="mood-pill-label">${c.label}</span>
-                <span class="mood-pill-desc">${c.desc}</span>
+                <span class="mood-pill-label">${t(c.label)}</span>
+                <span class="mood-pill-desc">${t(c.desc)}</span>
               </button>`).join('')}
           </div>
         </div>
         <div class="duo-how">
-          <div class="duo-how-step"><span>1</span> Player 1 likes or passes 8 cards</div>
-          <div class="duo-how-step"><span>2</span> Pass the phone — player 2 swipes the same cards</div>
-          <div class="duo-how-step"><span>3</span> A shared like wins. No match? Rematch.</div>
+          <div class="duo-how-step"><span>1</span> ${t('Player 1 likes or passes 8 cards')}</div>
+          <div class="duo-how-step"><span>2</span> ${t('Pass the phone — player 2 swipes the same cards')}</div>
+          <div class="duo-how-step"><span>3</span> ${t('A shared like wins. No match? Rematch.')}</div>
         </div>
       </section>`;
   }
@@ -1908,7 +1953,7 @@ class CHCSApp {
       <section class="view" style="animation:fadeInUp .25s ease">
         ${this._backBtn('app.showDuo()')}
         <div class="week-progress">
-          <div class="week-progress-label">Player ${d.phase} <span class="week-progress-count">card ${d.idx + 1}/${d.deck.length}</span></div>
+          <div class="week-progress-label">${tf('Player {n}', { n: d.phase })} <span class="week-progress-count">${tf('card {i}/{total}', { i: d.idx + 1, total: d.deck.length })}</span></div>
           <div class="week-progress-bar"><div class="week-progress-fill" style="width:${d.idx / d.deck.length * 100}%"></div></div>
         </div>
         <div class="swipe-stack">
@@ -1921,14 +1966,14 @@ class CHCSApp {
         <div class="card-actions">
           <button class="action-btn action-reject" onclick="app.duoMark(false)">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-            Pass
+            ${t('Pass')}
           </button>
           <button class="action-btn action-accept" onclick="app.duoMark(true)">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-            Like
+            ${t('Like')}
           </button>
         </div>
-        <p class="duo-secret-hint">${d.phase === 2 ? 'No peeking at player 1’s likes — the match reveals itself' : 'Like as many as you want — player 2 never sees them'}</p>
+        <p class="duo-secret-hint">${t(d.phase === 2 ? 'No peeking at player 1’s likes — the match reveals itself' : 'Like as many as you want — player 2 never sees them')}</p>
       </section>`;
     this._initSwipe(document.getElementById('swipeCard'), () => this.duoMark(true), () => this.duoMark(false));
   }
@@ -1948,9 +1993,9 @@ class CHCSApp {
       <section class="view" style="animation:fadeInUp .3s ease">
         <div class="duo-handoff">
           <div class="ob-emoji">🤝</div>
-          <h2 class="ob-title">Player 1 is done!</h2>
-          <p class="ob-text">Pass the phone. Player 2 swipes the same ${this.duo.deck.length} cards — first shared like wins.</p>
-          <button class="hero-btn" onclick="app._renderDuoRound()">I’m player 2 — let’s go &rarr;</button>
+          <h2 class="ob-title">${t('Player 1 is done!')}</h2>
+          <p class="ob-text">${tf('Pass the phone. Player 2 swipes the same {n} cards — first shared like wins.', { n: this.duo.deck.length })}</p>
+          <button class="hero-btn" onclick="app._renderDuoRound()">${t('I’m player 2 — let’s go')} &rarr;</button>
         </div>
       </section>`;
   }
@@ -1964,10 +2009,10 @@ class CHCSApp {
         <section class="view" style="animation:fadeInUp .3s ease">
           <div class="duo-handoff">
             <div class="ob-emoji">😅</div>
-            <h2 class="ob-title">No match…</h2>
-            <p class="ob-text">You two are officially impossible. New deck, new chance?</p>
-            <button class="hero-btn" onclick="app.startDuo('${d.type}')">Rematch &rarr;</button>
-            <button class="link-btn" onclick="app.renderHome()">Give up (go home)</button>
+            <h2 class="ob-title">${t('No match…')}</h2>
+            <p class="ob-text">${t('You two are officially impossible. New deck, new chance?')}</p>
+            <button class="hero-btn" onclick="app.startDuo('${d.type}')">${t('Rematch')} &rarr;</button>
+            <button class="link-btn" onclick="app.renderHome()">${t('Give up (go home)')}</button>
           </div>
         </section>`;
       return;
@@ -1978,17 +2023,17 @@ class CHCSApp {
     const others = matches.filter(m => m.id !== winner.id);
     document.getElementById('mainContent').innerHTML = `
       <section class="view" style="animation:fadeInUp .3s ease">
-        <div class="duo-match-banner">✨ It’s a match!</div>
+        <div class="duo-match-banner">${t('✨ It’s a match!')}</div>
         <div class="swipe-stack">
           <div class="swipe-card swipe-card-front duo-winner">${cfg.inner(winner)}</div>
         </div>
-        ${others.length ? `<p class="duo-others">You also both liked: ${others.map(m => this._esc(cfg.name(m))).join(', ')}</p>` : ''}
+        ${others.length ? `<p class="duo-others">${t('You also both liked:')} ${others.map(m => this._esc(cfg.name(m))).join(', ')}</p>` : ''}
         <div class="card-actions" style="margin-top:14px">
           <button class="action-btn action-reject" onclick="app.startDuo('${d.type}')">
-            Play again
+            ${t('Play again')}
           </button>
           <button class="action-btn action-accept" id="duoOpenBtn">
-            See details
+            ${t('See details')}
           </button>
         </div>
       </section>`;
