@@ -263,6 +263,16 @@ const I18N_NL = {
   'Plus is invite-only for now — ask Steven for a code. Paid upgrades come later.': 'Plus is voorlopig op uitnodiging — vraag Steven om een code. Betaalde upgrades komen later.',
   'Get CHCS Plus — €5, once': 'Koop CHCS Plus — eenmalig €5',
   'Welcome to CHCS Plus ✦': 'Welkom bij CHCS Plus ✦',
+
+  // Activation after a Stripe purchase
+  'Checking your payment…': 'Je betaling controleren…',
+  'One moment — we’re confirming this with Stripe.': 'Momentje — we bevestigen dit bij Stripe.',
+  'We couldn’t confirm that payment': 'We konden die betaling niet bevestigen',
+  'Stripe says this payment didn’t go through.': 'Volgens Stripe is deze betaling niet gelukt.',
+  'This link has expired. Already paid? Use a sync code from your other device, or send Steven a message.': 'Deze link is verlopen. Toch al betaald? Gebruik een synccode van je andere apparaat, of stuur Steven een bericht.',
+  'We couldn’t reach the server. Check your connection and open the link again.': 'We konden de server niet bereiken. Check je verbinding en open de link opnieuw.',
+  'Something went wrong on our side. If you paid, send Steven a message and he’ll sort it out — nothing is lost.': 'Er ging iets mis aan onze kant. Heb je betaald? Stuur Steven een bericht, dan lost hij het op — er gaat niets verloren.',
+  'Back to CHCS Plus': 'Terug naar CHCS Plus',
   'That code doesn’t work — check for typos': 'Die code werkt niet — check op typfouten',
 
   // ── Other (custom decision) ──

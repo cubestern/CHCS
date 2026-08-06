@@ -33,6 +33,10 @@ self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
   const url = new URL(e.request.url);
   if (url.origin !== self.location.origin) return;
+  // Serverless endpoints must never be cached — /api/verify-plus decides
+  // whether someone has paid, and a cached answer would be wrong for the
+  // next visitor on that device.
+  if (url.pathname.startsWith('/api/')) return;
 
   const isNav = e.request.mode === 'navigate' ||
                 (e.request.destination === 'document');

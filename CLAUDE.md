@@ -4,7 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-CHCS ("Can't Handle Choosing Stuff") is a zero-dependency static web app — no build step, no package manager, no framework. Open `index.html` directly in a browser or serve with any static file server. Deployed via Vercel (config in [vercel.json](vercel.json) — just `{"version": 2}`, no functions or rewrites).
+CHCS ("Can't Handle Choosing Stuff") is a zero-dependency static web app — no build step, no package manager, no framework. Open `index.html` directly in a browser or serve with any static file server. Deployed via Vercel (config in [vercel.json](vercel.json) — just `{"version": 2}`, no rewrites).
+
+The one exception to "static" is [api/verify-plus.js](api/verify-plus.js), a single Vercel serverless function that confirms a Stripe payment (see CHCS Plus below). It uses plain `fetch` rather than the `stripe` npm package so the repo stays dependency-free. A plain static file server (`python -m http.server`) will 404 on `/api/*`; that path degrades gracefully in the UI and only matters on Vercel.
 
 ## Running the app
 
@@ -53,7 +55,22 @@ All persistent state is `localStorage`:
 - `chcs_design` — `'elegant'` or `'quiet'` (see Theming; unknown values fall back to `'elegant'`)
 - `chcs_stats` — `{ choices, weekPlans, streak, lastDate }`
 - `chcs_checked` — JSON array of checked shopping list item strings
+- `chcs_lang` — `'en'` or `'nl'` (see Languages)
+- `chcs_plus` — `'1'` once CHCS Plus is unlocked
 - Plus favorites and last-selected-mood per category
+
+### CHCS Plus (payments)
+
+Free users get `FREE_SWIPE_LIMIT` "nah, next" swipes per day; accepting a pick is always free. Plus removes the limit and is stored as `chcs_plus` in localStorage (and travels in sync codes).
+
+Two ways in:
+
+1. **Friend codes** — djb2 hashes in `PLUS_CODE_HASHES`; plaintext codes are deliberately not in the repo.
+2. **Paying** — a Stripe Payment Link (`PLUS_BUY_URL`, empty until set) returns the buyer to `/?plus=<checkout session id>`. On boot `_redeemPlusSession()` asks [api/verify-plus.js](api/verify-plus.js) whether that session was actually paid; the function calls Stripe with `STRIPE_SECRET_KEY` (a Vercel env var) and answers `{ok:true|false}`. **Nothing is stored server-side — the paid session in Stripe is the only record.**
+
+Because there is no storage, a session id cannot be marked as redeemed; `MAX_SESSION_AGE_DAYS` in the function is what stops a shared `?plus=…` URL from working forever. Buyers moving to another device use the sync code. Deliberate trade-off — do not add a database without discussing it, the zero-maintenance property is the point.
+
+`/api/*` is excluded from the service worker cache in [sw.js](sw.js); a cached activation answer would be wrong for the next visitor.
 
 ### Theming
 

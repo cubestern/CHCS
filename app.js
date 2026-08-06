@@ -15,8 +15,10 @@ const CATEGORIES = {
 };
 
 const FREE_SWIPE_LIMIT = 25; // "Nah, next" swipes per day for free users; accepting is always free
+// Friend codes only — paying customers are unlocked by /api/verify-plus after
+// Stripe redirects them back, so there is no shared code that can circulate.
 const PLUS_CODE_HASHES = ['60d51bda', 'c7fee8bb', 'fb0a462d'];
-const PLUS_BUY_URL = ''; // paste a Stripe/Lemon Squeezy payment link here to show a buy button on the Plus screen
+const PLUS_BUY_URL = ''; // paste the Stripe Payment Link here to show a buy button on the Plus screen
 const HISTORY_MAX = 60;
 
 // ── Language ──────────────────────────────────────────────
@@ -90,7 +92,10 @@ class CHCSApp {
     document.documentElement.setAttribute('data-design', this.design);
     localStorage.setItem('chcs_design', this.design);
     this._applyStaticLang();
-    if (!localStorage.getItem('chcs_onboarded')) this.renderOnboarding();
+    // A buyer coming back from Stripe lands on /?plus=<session id>; that takes
+    // priority over the normal home/onboarding route.
+    if (this._pendingPlusSession()) this._redeemPlusSession();
+    else if (!localStorage.getItem('chcs_onboarded')) this.renderOnboarding();
     else this.renderHome();
   }
 
@@ -1740,6 +1745,71 @@ class CHCSApp {
     let x = 5381;
     for (const ch of s) x = (((x << 5) + x) ^ ch.codePointAt(0)) >>> 0;
     return x.toString(16).padStart(8, '0');
+  }
+
+  // ── Plus activation after a Stripe purchase ─────────────
+  // Stripe returns buyers to /?plus=<checkout session id>. That id proves
+  // nothing by itself, so /api/verify-plus asks Stripe whether it was paid —
+  // the secret key stays on the server and nothing is stored anywhere.
+  _pendingPlusSession() {
+    return new URLSearchParams(location.search).get('plus') || '';
+  }
+
+  // Drops ?plus= from the address bar so a reload (or a shared screenshot of
+  // the URL) does not replay the activation.
+  _clearPlusParam() {
+    const url = new URL(location.href);
+    url.searchParams.delete('plus');
+    history.replaceState({}, '', url.pathname + url.search + url.hash);
+  }
+
+  async _redeemPlusSession() {
+    const id = this._pendingPlusSession();
+    localStorage.setItem('chcs_onboarded', '1'); // buyers skip the intro
+    this._screen.innerHTML = `
+      <section class="view" style="animation:fadeInUp .3s ease">
+        <div class="duo-handoff">
+          <div class="ob-emoji">✦</div>
+          <h2 class="ob-title">${t('Checking your payment…')}</h2>
+          <p class="ob-text">${t('One moment — we’re confirming this with Stripe.')}</p>
+        </div>
+      </section>`;
+
+    let data = {};
+    try {
+      const r = await fetch(`/api/verify-plus?session_id=${encodeURIComponent(id)}`);
+      data = await r.json().catch(() => ({}));
+    } catch (e) {
+      data = { ok: false, error: 'offline' };
+    }
+    this._clearPlusParam();
+
+    if (data.ok) {
+      this.plus = true;
+      localStorage.setItem('chcs_plus', '1');
+      this.renderPlus();
+      this._toast(t('Welcome to CHCS Plus ✦'));
+    } else {
+      this._renderPlusFailed(data.error);
+    }
+  }
+
+  _renderPlusFailed(reason) {
+    const hint = {
+      not_paid: t('Stripe says this payment didn’t go through.'),
+      expired: t('This link has expired. Already paid? Use a sync code from your other device, or send Steven a message.'),
+      offline: t('We couldn’t reach the server. Check your connection and open the link again.'),
+    }[reason] || t('Something went wrong on our side. If you paid, send Steven a message and he’ll sort it out — nothing is lost.');
+    this._screen.innerHTML = `
+      <section class="view" style="animation:fadeInUp .3s ease">
+        ${this._backBtn('app.renderHome()')}
+        <div class="duo-handoff">
+          <div class="ob-emoji">🤔</div>
+          <h2 class="ob-title">${t('We couldn’t confirm that payment')}</h2>
+          <p class="ob-text">${hint}</p>
+          <button class="hero-btn" onclick="app.renderPlus()">${t('Back to CHCS Plus')} &rarr;</button>
+        </div>
+      </section>`;
   }
 
   renderPlus(limitHit = false) {
