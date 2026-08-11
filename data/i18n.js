@@ -342,7 +342,7 @@ const I18N_NL = {
   'card {i}/{total}': 'kaart {i}/{total}',
   'Pass': 'Pas',
   'Like': 'Like',
-  'No peeking at player 1’s likes. The match reveals itself': 'Niet spieken naar de likes van speler 1. De match onthult zichzelf',
+  'No peeking at player 1’s likes. The match reveals itself': 'Niet spieken naar de likes van speler 1, de match onthult zichzelf',
   'Like as many as you want. Player 2 never sees them': 'Like zoveel je wilt. Speler 2 ziet ze nooit',
   'Player 1 is done!': 'Speler 1 is klaar!',
   'Pass the phone. Player 2 swipes the same {n} cards. First shared like wins.': 'Geef de telefoon door. Speler 2 swipet dezelfde {n} kaarten. De eerste gedeelde like wint.',
