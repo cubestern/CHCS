@@ -1636,9 +1636,60 @@ class CHCSApp {
           </div>
         </div>
 
+        <h3 class="section-title">${t('About')}</h3>
+        <div class="mode-card" onclick="app.renderAbout()">
+          <div class="mode-icon">✦</div>
+          <div class="mode-text">
+            <h4>${t('About CHCS')}</h4>
+            <p>${t('Who made this, and what happens to your data')}</p>
+          </div>
+          <svg class="mode-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+
         <button class="danger-link" onclick="app.resetAllData()">${t('Reset all data on this device')}</button>
       </section>`;
   }
+
+  // ── About ───────────────────────────────────────────────
+  renderAbout() {
+    this._screen.innerHTML = `
+      <section class="view" style="animation:fadeInUp .3s ease">
+        ${this._backBtn('app.renderAccount()')}
+        <h2 class="section-title">${t('About CHCS')}</h2>
+        <p class="about-lede">${t('Too many options, not enough energy to pick one. That’s the whole problem this app tries to solve.')}</p>
+
+        <div class="about-section">
+          <h4>${t('Made by one person')}</h4>
+          <p>${t('CHCS says “we” a lot. It’s really just me — Steven, in the Netherlands, building this on evenings and weekends.')}</p>
+          <p>${t('It started with dinner, because deciding what to eat was somehow harder than cooking it. Then it grew into films, books, playlists and places to go.')}</p>
+        </div>
+
+        <div class="about-section">
+          <h4>${t('Your data stays on your device')}</h4>
+          <p>${t('There are no accounts and no server holding your things. Your saved picks, history and settings live in this browser only — which is exactly why moving to another device needs a sync code.')}</p>
+          <p>${t('Visits are counted anonymously so I know whether anyone is out there. Nothing personal, no advertising trackers, nothing sold to anyone.')}</p>
+          <p>${t('You don’t have to take my word for it: the entire app is open source.')}</p>
+          <button class="link-btn" onclick="window.open('https://github.com/cubestern/CHCS','_blank','noopener,noreferrer')">${t('Read the code on GitHub')}</button>
+        </div>
+
+        <div class="about-section">
+          <h4>${t('Say hello')}</h4>
+          <p>${t('Something broken, an idea, or a meal that absolutely has to be in here? I read everything.')}</p>
+          <button class="about-mail" onclick="app.mailSteven()">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            ${this._mailAddress()}
+          </button>
+        </div>
+
+        <p class="about-foot">${t('CHCS · made in the Netherlands')}</p>
+      </section>`;
+  }
+
+  // Assembled at runtime so the address is not sitting in the HTML source
+  // as a plain mailto: link for the simplest address scrapers to find.
+  _mailAddress() { return ['hoi', 'chcs.app'].join('@'); }
+
+  mailSteven() { window.location.href = 'mail' + 'to:' + this._mailAddress(); }
 
   setThemeChoice(t) {
     this.theme = t;
@@ -1797,9 +1848,9 @@ class CHCSApp {
   _renderPlusFailed(reason) {
     const hint = {
       not_paid: t('Stripe says this payment didn’t go through.'),
-      expired: t('This link has expired. Already paid? Use a sync code from your other device, or send Steven a message.'),
+      expired: tf('This link has expired. Already paid? Use a sync code from your other device, or mail {addr}.', { addr: this._mailAddress() }),
       offline: t('We couldn’t reach the server. Check your connection and open the link again.'),
-    }[reason] || t('Something went wrong on our side. If you paid, send Steven a message and he’ll sort it out — nothing is lost.');
+    }[reason] || tf('Something went wrong on our side. If you paid, mail {addr} and it will be sorted out — nothing is lost.', { addr: this._mailAddress() });
     this._screen.innerHTML = `
       <section class="view" style="animation:fadeInUp .3s ease">
         ${this._backBtn('app.renderHome()')}

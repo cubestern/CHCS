@@ -141,5 +141,6 @@ The monthly content-batch routine prompt lives in [routines/monthly-content-batc
 | `renderSearch()` | Cross-category search |
 | `renderWeekPlan()` | 5-day meal plan builder |
 | `renderAccount()` | Stats and settings |
+| `renderAbout()` | Who made it, the privacy statement, contact — reached from Account |
 
 The share image feature uses `html2canvas` (loaded from CDN in `index.html`) to screenshot a hidden `.share-card` div, then `navigator.share()` with fallback to direct download.
