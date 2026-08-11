@@ -289,7 +289,7 @@ class CHCSApp {
 
   renderHome() {
     localStorage.setItem('chcs_onboarded', '1'); // any route to home counts as onboarded
-    const dailyMeal = MEALS[Math.floor(Date.now() / 86400000) % MEALS.length];
+    const daily = this._dailyPick();
     const hour = new Date().getHours();
     const daypart = t(hour < 6 ? 'Good night' : hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening');
     const showFnFor = { food: 'showFood', movies: 'showMovies', music: 'showMusic', books: 'showBooks', travel: 'showTravel', other: 'showOther' };
@@ -301,10 +301,11 @@ class CHCSApp {
           <h1 class="home-greeting-title">${t('What are we <em>deciding</em> today?')}</h1>
         </div>
         <div class="hero-card">
-          <span class="hero-label">${t('Surprise dinner')}</span>
-          <h2 class="hero-title">${dailyMeal.name}</h2>
-          <p class="hero-desc">${dailyMeal.description}</p>
-          <button class="hero-btn" onclick="app.showDailyMeal()">${t('Show me')} &rarr;</button>
+          <span class="hero-label">${t(daily.label)}</span>
+          <h2 class="hero-title">${daily.title}</h2>
+          <p class="hero-desc">${daily.desc}</p>
+          <button class="hero-btn" onclick="${daily.open}">${t('Show me')} &rarr;</button>
+          <p class="hero-daily-note">${t('A new pick every day')}</p>
         </div>
         <h3 class="section-title">${t('Browse')}</h3>
         <div class="category-grid stagger-in">
@@ -333,13 +334,48 @@ class CHCSApp {
     this._updateNav('home');
   }
 
-  // ── Food: mood selection ──────────────────────────────
-  showDailyMeal() {
-    this.foodMode = 'tonight';
-    this.currentMeal = MEALS[Math.floor(Date.now() / 86400000) % MEALS.length];
-    this._renderFoodResult(this.currentMeal);
+  // ── Daily pick ────────────────────────────────────────
+  // The hero follows the clock, because a stew suggested at half past ten in
+  // the morning is useless. Within a slot the pick is stable from midnight to
+  // midnight and identical for everyone, so "today's pick" means the same
+  // thing to two people talking about it — and there is something new
+  // tomorrow without anyone having to keep a streak alive.
+  _dailySlot() {
+    const h = new Date().getHours();
+    if (h >= 6  && h < 11) return 'music';
+    if (h >= 11 && h < 16) return 'travel';
+    if (h >= 16 && h < 20) return 'food';
+    if (h >= 20 && h < 23) return 'movies';
+    return 'books';
   }
 
+  _dailyPick(slot = this._dailySlot()) {
+    const d = new Date();
+    // Local date, so the pick turns over at midnight where the user is.
+    const dayKey = `${slot}:${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+    const pick = pool => pool[parseInt(this._hash(dayKey), 16) % pool.length];
+
+    if (slot === 'music') {
+      const p = pick(PLAYLISTS);
+      return { slot, label: 'Music for this morning', title: p.name, desc: p.vibe, open: `app._openPlaylist('${p.id}')` };
+    }
+    if (slot === 'travel') {
+      const tr = pick(TRAVEL);
+      return { slot, label: 'Somewhere to daydream about', title: tr.name, desc: tr.pitch, open: `app._openTravel('${tr.id}')` };
+    }
+    if (slot === 'movies') {
+      const m = pick(MOVIES);
+      return { slot, label: 'Tonight’s film', title: m.title, desc: m.pitch, open: `app._openMovie('${m.id}')` };
+    }
+    if (slot === 'books') {
+      const b = pick(BOOKS);
+      return { slot, label: 'One for tonight', title: b.title, desc: b.pitch, open: `app._openBook('${b.id}')` };
+    }
+    const m = pick(MEALS);
+    return { slot: 'food', label: 'Tonight’s dinner', title: m.name, desc: m.description, open: `app._openMeal('${m.id}')` };
+  }
+
+  // ── Food: mood selection ──────────────────────────────
   showFood() {
     this.usedMealIds.clear();
     this.selectedFoodMood = localStorage.getItem('chcs_food_mood_last') || null;

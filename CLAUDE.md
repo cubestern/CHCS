@@ -59,6 +59,12 @@ All persistent state is `localStorage`:
 - `chcs_plus` — `'1'` once CHCS Plus is unlocked
 - Plus favorites and last-selected-mood per category
 
+### Daily pick (the home hero)
+
+`_dailySlot()` maps the clock to a category — music 06–11, travel 11–16, food 16–20, movies 20–23, books otherwise — and `_dailyPick()` selects one item from that category by hashing `slot + local date`. Two properties are deliberate, not accidental: the pick is **stable for the whole day** (so the hero does not shuffle on every re-render) and **identical for every user** (so "today's pick" means the same thing to two people). It is derived, never stored.
+
+This is the app's retention mechanic and it is intentionally **not** a streak: Steven dislikes streaks and home-screen stat tiles, so returning users are rewarded with something new rather than punished for missing a day. Don't add streak counters, badges or "don't break the chain" mechanics.
+
 ### CHCS Plus (payments)
 
 Free users get `FREE_SWIPE_LIMIT` "nah, next" swipes per day; accepting a pick is always free. Plus removes the limit and is stored as `chcs_plus` in localStorage (and travels in sync codes).
@@ -134,7 +140,7 @@ The monthly content-batch routine prompt lives in [routines/monthly-content-batc
 
 | Method | What it renders |
 |---|---|
-| `renderHome()` | Hero card, stats row, category grid |
+| `renderHome()` | Daily-pick hero, category grid, duo banner |
 | `renderFoodMoodScreen()` / `renderMovieMoodScreen()` / `renderMusicMoodScreen()` / `renderTravelMoodScreen()` | Mood selection per category |
 | `renderMealCard()` / `renderMovieCard()` / `renderPlaylistCard()` / `renderTravelCard()` | Individual swipe cards / result cards |
 | `renderFavorites()` | Saved items across categories |

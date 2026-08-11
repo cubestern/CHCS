@@ -2855,6 +2855,15 @@ button {
 
 .danger-link:hover { opacity: 1; text-decoration: underline; }
 
+.hero-daily-note {
+  position: relative;
+  z-index: 1;
+  margin-top: 14px;
+  font-size: 0.68rem;
+  letter-spacing: 0.4px;
+  opacity: 0.5;
+}
+
 /* ========== ABOUT ========== */
 .about-lede {
   font-family: var(--font-display);
