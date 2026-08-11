@@ -1,4 +1,4 @@
-// CHCS — Plus activation check.
+// CHCS: Plus activation check.
 //
 // Runs on Vercel as a serverless function so the Stripe secret key never
 // reaches the browser. It deliberately stores nothing: a paid Checkout session

@@ -15,7 +15,7 @@ const CATEGORIES = {
 };
 
 const FREE_SWIPE_LIMIT = 25; // "Nah, next" swipes per day for free users; accepting is always free
-// Friend codes only — paying customers are unlocked by /api/verify-plus after
+// Friend codes only. Paying customers are unlocked by /api/verify-plus after
 // Stripe redirects them back, so there is no shared code that can circulate.
 const PLUS_CODE_HASHES = ['60d51bda', 'c7fee8bb', 'fb0a462d'];
 const PLUS_BUY_URL = ''; // paste the Stripe Payment Link here to show a buy button on the Plus screen
@@ -338,7 +338,7 @@ class CHCSApp {
   // The hero follows the clock, because a stew suggested at half past ten in
   // the morning is useless. Within a slot the pick is stable from midnight to
   // midnight and identical for everyone, so "today's pick" means the same
-  // thing to two people talking about it — and there is something new
+  // thing to two people talking about it, and there is something new
   // tomorrow without anyone having to keep a streak alive.
   _dailySlot() {
     const h = new Date().getHours();
@@ -548,7 +548,7 @@ class CHCSApp {
             ${isWeek ? t("Let's eat this") : t('This one!')}
           </button>
         </div>
-        ${!isWeek ? `<button class="plan-week-btn" onclick="app.startWeek()">📅 ${t('Plan this mood for the week — 5 dinners')}</button>` : ''}
+        ${!isWeek ? `<button class="plan-week-btn" onclick="app.startWeek()">📅 ${t('Plan this mood for the week: 5 dinners')}</button>` : ''}
         ${this._swipesLeftHint()}
       </section>`;
     this._initSwipe(document.getElementById('swipeCard'), () => this.acceptMeal(), () => this.rejectMeal());
@@ -967,7 +967,7 @@ class CHCSApp {
     const f = this.travelFilters;
     if (f.mood) pool = pool.filter(t => t.mood === f.mood);
     if (f.continents && f.continents.length) pool = pool.filter(t => f.continents.includes(t.continent));
-    // Fallback: relax mood only — continent filter is always respected
+    // Fallback: relax mood only, continent filter is always respected
     if (pool.length < 3 && f.mood) {
       let relaxed = TRAVEL.filter(t => !this.usedTravelIds.has(t.id));
       if (f.continents && f.continents.length) relaxed = relaxed.filter(t => f.continents.includes(t.continent));
@@ -1146,7 +1146,7 @@ class CHCSApp {
       btn.classList.toggle('route-btn-ready', ready);
       const hint = document.getElementById('routeHint');
       if (hint) hint.textContent = ready
-        ? t("Great — we'll open trains, flights & driving options on Rome2Rio.")
+        ? t("Great. We'll open trains, flights & driving options on Rome2Rio.")
         : t("Enter your departure point, then we'll find trains, flights & driving options.");
     };
     input.addEventListener('input', update);
@@ -1352,7 +1352,7 @@ class CHCSApp {
     if (mood) pool = pool.filter(b => b.mood === mood);
     if (pool.length === 0) {
       this.usedBookIds.clear();
-      // A mood matching nothing at all would recurse forever — widen instead.
+      // A mood matching nothing at all would recurse forever. Widen instead.
       if (mood && !BOOKS.some(b => b.mood === mood)) return this._pickBook(null);
       return this._pickBook(mood);
     }
@@ -1605,7 +1605,7 @@ class CHCSApp {
         </div>
 
         ${this.plus
-          ? `<div class="plus-active-card">✦ <strong>CHCS Plus</strong> — unlimited swipes. Thanks for the support!</div>`
+          ? `<div class="plus-active-card">✦ <strong>CHCS Plus</strong>. Unlimited swipes. Thanks for the support!</div>`
           : `<div class="plus-cta-card" onclick="app.renderPlus()">
               <div class="plus-cta-text">
                 <h4>${t('Go unlimited with CHCS <em>Plus</em>')}</h4>
@@ -1661,7 +1661,7 @@ class CHCSApp {
 
         <h3 class="section-title">${t('Sync & backup')}</h3>
         <div class="settings-card">
-          <p class="sync-explain">${t('No account needed — everything lives on this device. Move your favorites, history and settings to another device with a sync code.')}</p>
+          <p class="sync-explain">${t('No account needed. Everything lives on this device. Move your favorites, history and settings to another device with a sync code.')}</p>
           <div class="sync-actions">
             <button class="btn btn-primary" onclick="app.copySyncCode()">${t('Copy sync code')}</button>
             <button class="btn btn-primary" onclick="app.toggleImportBox()">${t('Import a code')}</button>
@@ -1696,13 +1696,13 @@ class CHCSApp {
 
         <div class="about-section">
           <h4>${t('Made by one person')}</h4>
-          <p>${t('CHCS says “we” a lot. It’s really just me — Steven, in the Netherlands, building this on evenings and weekends.')}</p>
+          <p>${t('CHCS says “we” a lot. It’s really just me, Steven, in the Netherlands, building this on evenings and weekends.')}</p>
           <p>${t('It started with dinner, because deciding what to eat was somehow harder than cooking it. Then it grew into films, books, playlists and places to go.')}</p>
         </div>
 
         <div class="about-section">
           <h4>${t('Your data stays on your device')}</h4>
-          <p>${t('There are no accounts and no server holding your things. Your saved picks, history and settings live in this browser only — which is exactly why moving to another device needs a sync code.')}</p>
+          <p>${t('There are no accounts and no server holding your things. Your saved picks, history and settings live in this browser only, which is exactly why moving to another device needs a sync code.')}</p>
           <p>${t('Visits are counted anonymously so I know whether anyone is out there. Nothing personal, no advertising trackers, nothing sold to anyone.')}</p>
           <p>${t('You don’t have to take my word for it: the entire app is open source.')}</p>
           <button class="link-btn" onclick="window.open('https://github.com/cubestern/CHCS','_blank','noopener,noreferrer')">${t('Read the code on GitHub')}</button>
@@ -1750,8 +1750,8 @@ class CHCSApp {
   copySyncCode() {
     const code = 'CHCS1.' + btoa(unescape(encodeURIComponent(JSON.stringify(this._syncPayload()))));
     navigator.clipboard.writeText(code)
-      .then(() => this._toast(t('Sync code copied — paste it on your other device')))
-      .catch(() => this._toast(t('Could not copy — try again')));
+      .then(() => this._toast(t('Sync code copied. Paste it on your other device')))
+      .catch(() => this._toast(t('Could not copy. Try again')));
   }
 
   toggleImportBox() {
@@ -1783,7 +1783,7 @@ class CHCSApp {
         if (this.history.length > HISTORY_MAX) this.history.length = HISTORY_MAX;
         localStorage.setItem('chcs_history', JSON.stringify(this.history));
       }
-      this._toast(t('Imported — welcome back ✓'));
+      this._toast(t('Imported. Welcome back ✓'));
       this.renderAccount();
     } catch (e) {
       this._toast(t('Invalid sync code'));
@@ -1799,9 +1799,9 @@ class CHCSApp {
   // ── Onboarding ──────────────────────────────────────────
   renderOnboarding(step = 0) {
     const slides = [
-      { emoji: '👋', title: t("Can't handle <em>choosing</em> stuff?"), text: t('Neither can we. CHCS decides what you eat, watch, read and hear — and where you go next. You just show up.') },
+      { emoji: '👋', title: t("Can't handle <em>choosing</em> stuff?"), text: t('Neither can we. CHCS decides what you eat, watch, read and hear, and where you go next. You just show up.') },
       { emoji: '🃏', title: t('Pick a mood, <em>swipe</em>, done'), text: t("Tell us the vibe, swipe away what you don't fancy, and accept the one that clicks. No more endless scrolling past 400 options.") },
-      { emoji: '✦', title: t('Free to use, <em>Plus</em> for superfans'), text: tf('You get {n} “nah, next” swipes a day, free — accepting a pick never costs anything. CHCS Plus removes the limit; you’ll find it under Account.', { n: FREE_SWIPE_LIMIT }) },
+      { emoji: '✦', title: t('Free to use, <em>Plus</em> for superfans'), text: tf('You get {n} “nah, next” swipes a day, free. Accepting a pick never costs anything. CHCS Plus removes the limit; you’ll find it under Account.', { n: FREE_SWIPE_LIMIT }) },
     ];
     const sl = slides[step];
     const last = step === slides.length - 1;
@@ -1836,8 +1836,8 @@ class CHCSApp {
 
   // ── Plus activation after a Stripe purchase ─────────────
   // Stripe returns buyers to /?plus=<checkout session id>. That id proves
-  // nothing by itself, so /api/verify-plus asks Stripe whether it was paid —
-  // the secret key stays on the server and nothing is stored anywhere.
+  // nothing by itself, so /api/verify-plus asks Stripe whether it was paid.
+  // The secret key stays on the server and nothing is stored anywhere.
   _pendingPlusSession() {
     return new URLSearchParams(location.search).get('plus') || '';
   }
@@ -1858,7 +1858,7 @@ class CHCSApp {
         <div class="duo-handoff">
           <div class="ob-emoji">✦</div>
           <h2 class="ob-title">${t('Checking your payment…')}</h2>
-          <p class="ob-text">${t('One moment — we’re confirming this with Stripe.')}</p>
+          <p class="ob-text">${t('One moment. We’re confirming this with Stripe.')}</p>
         </div>
       </section>`;
 
@@ -1886,7 +1886,7 @@ class CHCSApp {
       not_paid: t('Stripe says this payment didn’t go through.'),
       expired: tf('This link has expired. Already paid? Use a sync code from your other device, or mail {addr}.', { addr: this._mailAddress() }),
       offline: t('We couldn’t reach the server. Check your connection and open the link again.'),
-    }[reason] || tf('Something went wrong on our side. If you paid, mail {addr} and it will be sorted out — nothing is lost.', { addr: this._mailAddress() });
+    }[reason] || tf('Something went wrong on our side. If you paid, mail {addr} and it will be sorted out. Nothing is lost.', { addr: this._mailAddress() });
     this._screen.innerHTML = `
       <section class="view" style="animation:fadeInUp .3s ease">
         ${this._backBtn('app.renderHome()')}
@@ -1903,7 +1903,7 @@ class CHCSApp {
     this._screen.innerHTML = `
       <section class="view" style="animation:fadeInUp .3s ease">
         ${this._backBtn('app.renderHome()')}
-        ${limitHit ? `<div class="plus-limit-banner">${tf('That’s your {n} free swipes for today. Accepting picks is still free — or go unlimited below. Fresh swipes tomorrow!', { n: FREE_SWIPE_LIMIT })}</div>` : ''}
+        ${limitHit ? `<div class="plus-limit-banner">${tf('That’s your {n} free swipes for today. Accepting picks is still free, or go unlimited below. Fresh swipes tomorrow!', { n: FREE_SWIPE_LIMIT })}</div>` : ''}
         <div class="plus-card">
           <p class="result-label">${t('Members only')}</p>
           <h2 class="plus-title">CHCS <em>Plus</em></h2>
@@ -1915,13 +1915,13 @@ class CHCSApp {
               <li><span>✦</span> ${t('Every future perk, first')}</li>
               <li><span>♥</span> ${t('Supports a friend’s passion project')}</li>
             </ul>
-            ${PLUS_BUY_URL ? `<a class="btn btn-primary plus-buy-btn" href="${PLUS_BUY_URL}" target="_blank" rel="noopener noreferrer" style="display:block;text-align:center;margin-bottom:14px">${t('Get CHCS Plus — €5, once')}</a>` : ''}
+            ${PLUS_BUY_URL ? `<a class="btn btn-primary plus-buy-btn" href="${PLUS_BUY_URL}" target="_blank" rel="noopener noreferrer" style="display:block;text-align:center;margin-bottom:14px">${t('Get CHCS Plus: €5, once')}</a>` : ''}
             <div class="plus-code-row">
               <input class="plus-code-input" id="plusCode" type="text" placeholder="${t('Friend code')}" autocomplete="off" autocapitalize="characters" spellcheck="false"
                 onkeydown="if(event.key==='Enter')app.activatePlus()">
               <button class="plus-code-btn" onclick="app.activatePlus()">${t('Unlock')}</button>
             </div>
-            <p class="plus-note">${t('Plus is invite-only for now — ask Steven for a code. Paid upgrades come later.')}</p>
+            <p class="plus-note">${t('Plus is invite-only for now. Ask Steven for a code. Paid upgrades come later.')}</p>
             ${!limitHit ? `<p class="plus-usage">${tf('{left} of {max} free swipes left today', { left: this.swipesLeft(), max: FREE_SWIPE_LIMIT })}</p>` : ''}`}
         </div>
       </section>`;
@@ -1939,7 +1939,7 @@ class CHCSApp {
     } else {
       input.classList.add('input-attention');
       setTimeout(() => input.classList.remove('input-attention'), 700);
-      this._toast(t('That code doesn’t work — check for typos'));
+      this._toast(t('That code doesn’t work. Check for typos'));
     }
   }
 
@@ -1961,7 +1961,7 @@ class CHCSApp {
           <div class="mood-header">
             <span class="mood-header-icon">🎲</span>
             <h2>${t('Can’t decide? We got you.')}</h2>
-            <p>${t('Type your own options — CHCS picks one')}</p>
+            <p>${t('Type your own options. CHCS picks one')}</p>
           </div>
         </div>
         <div class="other-card">
@@ -1979,7 +1979,7 @@ class CHCSApp {
                 <span class="other-chip">${this._esc(o)}
                   <button class="other-chip-x" onclick="app.removeCustomOption(${i})" aria-label="Remove">×</button>
                 </span>`).join('')}
-            </div>` : `<p class="other-empty">${t('Add at least two options — dinner spots, paint colours, who does the dishes…')}</p>`}
+            </div>` : `<p class="other-empty">${t('Add at least two options: dinner spots, paint colours, who does the dishes…')}</p>`}
         </div>
         <button class="spin-btn other-decide${ready ? '' : ' disabled'}" onclick="app.decideOther()">🎲 ${t('Decide for me')}</button>
         ${ready ? `<button class="link-btn" onclick="app.promptSaveList()">${t('Save this list for later')}</button>` : ''}
@@ -2006,7 +2006,7 @@ class CHCSApp {
     const input = document.getElementById('otherInput');
     const v = (input?.value || '').trim();
     if (!v) return;
-    if (this.customOptions.length >= 20) { this._toast(t('That’s plenty — 20 options max')); return; }
+    if (this.customOptions.length >= 20) { this._toast(t('That’s plenty. 20 options max')); return; }
     if (this.customOptions.some(o => o.toLowerCase() === v.toLowerCase())) { this._toast(t('Already on the list')); return; }
     this.customOptions.push(v);
     this._saveCustomOptions();
@@ -2026,7 +2026,7 @@ class CHCSApp {
     if (!row) return;
     row.innerHTML = `
       <div class="other-input-row" style="margin-top:10px">
-        <input class="other-input" id="listNameInput" type="text" maxlength="30" placeholder="${t('Name this list — e.g. Friday dinner spots')}"
+        <input class="other-input" id="listNameInput" type="text" maxlength="30" placeholder="${t('Name this list, e.g. Friday dinner spots')}"
           onkeydown="if(event.key==='Enter')app.confirmSaveList()">
         <button class="other-add-btn" onclick="app.confirmSaveList()" aria-label="Save list">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
@@ -2094,7 +2094,7 @@ class CHCSApp {
           <p class="result-label">${t('The decision is made')}</p>
           <h2 class="result-title">${this._esc(choice)}</h2>
           <div class="result-emoji">🎲</div>
-          <p class="result-meta">${t('No takebacks — that’s the whole point.')}</p>
+          <p class="result-meta">${t('No takebacks. That’s the whole point.')}</p>
           <div class="result-divider"></div>
           <div class="result-branding">CHCS</div>
         </div>
@@ -2139,7 +2139,7 @@ class CHCSApp {
           <div class="mood-header">
             <span class="mood-header-icon">👥</span>
             <h2>${t('Duo mode')}</h2>
-            <p>${t('You both swipe the same 8 cards — a match decides')}</p>
+            <p>${t('You both swipe the same 8 cards. A match decides')}</p>
           </div>
           <div class="mood-grid stagger-in" style="grid-template-columns:1fr">
             ${Object.entries(cfg).map(([key, c]) => `
@@ -2152,7 +2152,7 @@ class CHCSApp {
         </div>
         <div class="duo-how">
           <div class="duo-how-step"><span>1</span> ${t('Player 1 likes or passes 8 cards')}</div>
-          <div class="duo-how-step"><span>2</span> ${t('Pass the phone — player 2 swipes the same cards')}</div>
+          <div class="duo-how-step"><span>2</span> ${t('Pass the phone. Player 2 swipes the same cards')}</div>
           <div class="duo-how-step"><span>3</span> ${t('A shared like wins. No match? Rematch.')}</div>
         </div>
       </section>`;
@@ -2192,7 +2192,7 @@ class CHCSApp {
             ${t('Like')}
           </button>
         </div>
-        <p class="duo-secret-hint">${t(d.phase === 2 ? 'No peeking at player 1’s likes — the match reveals itself' : 'Like as many as you want — player 2 never sees them')}</p>
+        <p class="duo-secret-hint">${t(d.phase === 2 ? 'No peeking at player 1’s likes. The match reveals itself' : 'Like as many as you want. Player 2 never sees them')}</p>
       </section>`;
     this._initSwipe(document.getElementById('swipeCard'), () => this.duoMark(true), () => this.duoMark(false));
   }
@@ -2213,8 +2213,8 @@ class CHCSApp {
         <div class="duo-handoff">
           <div class="ob-emoji">🤝</div>
           <h2 class="ob-title">${t('Player 1 is done!')}</h2>
-          <p class="ob-text">${tf('Pass the phone. Player 2 swipes the same {n} cards — first shared like wins.', { n: this.duo.deck.length })}</p>
-          <button class="hero-btn" onclick="app._renderDuoRound()">${t('I’m player 2 — let’s go')} &rarr;</button>
+          <p class="ob-text">${tf('Pass the phone. Player 2 swipes the same {n} cards. First shared like wins.', { n: this.duo.deck.length })}</p>
+          <button class="hero-btn" onclick="app._renderDuoRound()">${t('I’m player 2, let’s go')} &rarr;</button>
         </div>
       </section>`;
   }
