@@ -243,6 +243,11 @@ const I18N_NL = {
   'Name removed': 'Naam verwijderd',
 
   // ── Onboarding ──
+  'A post on X reading: Do you ever get exhausted by food? Not the food itself, just the endless cycle of deciding what to eat, shopping for it, cooking it, and having to do it all over again every single freaking day.': 'Een post op X: Word je ooit doodmoe van eten? Niet van het eten zelf, maar van die eindeloze cyclus van bedenken wat je gaat eten, ervoor boodschappen doen, het koken, en dat elke dag weer helemaal opnieuw.',
+  '@OrevaZSN on X · 1.7M views, 40k likes': '@OrevaZSN op X · 1,7M views, 40k likes',
+  'Not the food. The <em>deciding</em>.': 'Niet het eten. Het <em>kiezen</em>.',
+  'This is the decision that comes back every single day, and it is the one CHCS was built for. Researchers have been counting these decisions, and arguing about the total, since 2007.': 'Dit is de beslissing die elke dag terugkomt, en precies daarvoor is CHCS gemaakt. Onderzoekers tellen deze beslissingen al sinds 2007, en ruziën sindsdien over het totaal.',
+  'Wansink & Sobal (2007)': 'Wansink & Sobal (2007)',
   "Can't handle <em>choosing</em> stuff?": 'Kun jij ook niet <em>kiezen</em>?',
   'Neither can we. CHCS decides what you eat, watch, read and hear, and where you go next. You just show up.': 'Wij ook niet. CHCS beslist wat je eet, kijkt, leest en luistert, en waar je naartoe gaat. Jij hoeft alleen op te dagen.',
   'Pick a mood, <em>swipe</em>, done': 'Kies een stemming, <em>swipe</em>, klaar',
@@ -285,6 +290,11 @@ const I18N_NL = {
   'About CHCS': 'Over CHCS',
   'Who made this, and what happens to your data': 'Wie dit maakte, en wat er met je gegevens gebeurt',
   'Too many options, not enough energy to pick one. That’s the whole problem this app tries to solve.': 'Te veel opties, te weinig energie om te kiezen. Dat is het hele probleem dat deze app probeert op te lossen.',
+  'Why this app exists': 'Waarom deze app bestaat',
+  'In 2007 Brian Wansink and Jeffery Sobal asked people how many food decisions they thought they made in a day. The answer came back at roughly 14. Asked to count again per meal, per snack and per drink, the same people arrived at about 226.': 'In 2007 vroegen Brian Wansink en Jeffery Sobal aan mensen hoeveel eetbeslissingen ze dachten te nemen op een dag. Het antwoord was ongeveer 14. Toen dezelfde mensen opnieuw telden, per maaltijd, per snack en per drankje, kwamen ze uit op zo’n 226.',
+  'That number is disputed now. Researchers at the Max Planck Institute for Human Development argue the gap says more about how the question was asked than about how anyone eats. What nobody disputes is the direction: you make far more of these decisions than you notice, and every one of them takes a little something out of you.': 'Dat getal ligt inmiddels onder vuur. Onderzoekers van het Max Planck Institute for Human Development stellen dat het verschil meer zegt over hoe de vraag gesteld werd dan over hoe iemand eet. Waar niemand het over oneens is, is de richting: je neemt veel meer van dit soort beslissingen dan je doorhebt, en elke beslissing kost je een beetje.',
+  'CHCS takes a few of them off your hands. You pick a mood, it picks the rest.': 'CHCS neemt er een paar van je over. Jij kiest een stemming, de rest kiest de app.',
+  'Read the study (Environment and Behavior, 2007)': 'Lees het onderzoek (Environment and Behavior, 2007)',
   'Made by one person': 'Gemaakt door één persoon',
   'CHCS says “we” a lot. It’s really just me, Steven, in the Netherlands, building this on evenings and weekends.': 'CHCS zegt vaak “wij”. Dat ben eigenlijk gewoon ik, Steven, uit Nederland, die hieraan bouwt in de avonden en weekenden.',
   'It started with dinner, because deciding what to eat was somehow harder than cooking it. Then it grew into films, books, playlists and places to go.': 'Het begon met het avondeten, omdat kiezen wát je ging eten op de een of andere manier moeilijker was dan het koken zelf. Daarna groeide het uit naar films, boeken, playlists en plekken om heen te gaan.',

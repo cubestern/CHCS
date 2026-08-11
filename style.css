@@ -2964,6 +2964,46 @@ button.ob-skip:hover { color: var(--teal); }
   animation: emojiBounce 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
+/* First slide leads with a screenshot instead of an emoji. It is a light-mode
+   screenshot in both themes, so the frame is painted white on purpose: a bright
+   panel in dark mode reads as a pinned screenshot, a half-dimmed one reads as a
+   bug. --shadow-lg resolves to none under the quiet design. */
+/* Sized so the whole slide clears the fixed bottom nav on a small phone: this is
+   the first screen anyone sees and the Next button must not need a scroll. */
+.ob-body.has-figure { justify-content: flex-start; padding-top: 2px; }
+
+.ob-figure {
+  width: 100%;
+  max-width: 280px;
+  margin: 0 0 16px;
+}
+
+.ob-shot {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+}
+
+.ob-credit {
+  margin-top: 9px;
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 1.1px;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+.ob-source {
+  margin: 14px auto 0;
+  line-height: 1.45;
+  text-align: center;
+  color: var(--accent);
+}
+
 .ob-title {
   font-family: var(--font-display);
   font-size: 1.9rem;

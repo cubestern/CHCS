@@ -25,6 +25,7 @@ Cache-busting is manual: bump the `?v=N` query string on `<script>` and `<link>`
 - **`index.html`**: shell with sticky header, `#mainContent` mount point, fixed bottom bar, footer. Instantiates `app` on load.
 - **`style.css`**: all styles. CSS custom properties handle light/dark theming via `[data-theme]` on `<html>`.
 - **`data/*.js`**: content as top-level `const` arrays. Loaded via `<script>` tags in `index.html` so each global is available to `app.js`.
+- **`images/`**: content images referenced from the app (as opposed to `icons/`, which is app iconography and the OG image). Cache-busted with `?v=N` like everything else, and not in the service worker `SHELL`: any same-origin asset is cached on first fetch anyway.
 - **`sw.js`** + **`manifest.json`**: PWA support. Service worker is network-first for HTML (so deploys are visible immediately) and cache-first for assets.
 
 ### Data
@@ -147,6 +148,23 @@ The monthly content-batch routine prompt lives in [routines/monthly-content-batc
 | `renderSearch()` | Cross-category search |
 | `renderWeekPlan()` | 5-day meal plan builder |
 | `renderAccount()` | Stats and settings |
-| `renderAbout()` | Who made it, the privacy statement, contact, reached from Account |
+| `renderOnboarding(step)` | First-run slides. Slide 0 is the figure slide (see below); the rest carry an emoji |
+| `renderAbout()` | Why the app exists, who made it, the privacy statement, contact, reached from Account |
+
+### The citation
+
+Onboarding opens on a screenshot of a post about food decision fatigue
+([images/decision-fatigue-post.jpg](images/decision-fatigue-post.jpg)) and links out to
+`PAPER_URL`: Wansink & Sobal, "Mindless Eating: The 200 Daily Food Decisions We Overlook",
+*Environment and Behavior* 39(1), 2007. `renderAbout()` tells the same story at length.
+
+The paper's headline number (people estimate 14 food decisions a day, count 226) is **contested**:
+the Max Planck Institute for Human Development published a critique arguing the gap is the
+subadditivity effect, not a finding about eating. The About copy states the number and the
+dispute together on purpose. If you edit that section, do not quietly promote 226 to a fact.
+
+An onboarding slide carries either `emoji` or `figure`, never both, and `figure` slides get
+`has-figure` on `.ob-body`. That slide is sized to clear the fixed bottom nav on a small phone
+without scrolling, so check the Next button still fits if you add to it.
 
 The share image feature uses `html2canvas` (loaded from CDN in `index.html`) to screenshot a hidden `.share-card` div, then `navigator.share()` with fallback to direct download.

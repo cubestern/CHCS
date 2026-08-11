@@ -21,6 +21,12 @@ const PLUS_CODE_HASHES = ['60d51bda', 'c7fee8bb', 'fb0a462d'];
 const PLUS_BUY_URL = ''; // paste the Stripe Payment Link here to show a buy button on the Plus screen
 const HISTORY_MAX = 60;
 
+// Wansink & Sobal, "Mindless Eating: The 200 Daily Food Decisions We Overlook",
+// Environment and Behavior 39(1), 2007. Cited in onboarding and in About as the
+// reason this app exists. See renderAbout() for why the headline number is
+// quoted with a caveat rather than as settled fact.
+const PAPER_URL = 'https://journals.sagepub.com/doi/10.1177/0013916506295573';
+
 // ── Language ──────────────────────────────────────────────
 // English strings are the source; I18N_NL (data/i18n.js) maps them to Dutch.
 // t() falls back to the English key, so missing entries never break the UI.
@@ -1695,6 +1701,14 @@ class CHCSApp {
         <p class="about-lede">${t('Too many options, not enough energy to pick one. That’s the whole problem this app tries to solve.')}</p>
 
         <div class="about-section">
+          <h4>${t('Why this app exists')}</h4>
+          <p>${t('In 2007 Brian Wansink and Jeffery Sobal asked people how many food decisions they thought they made in a day. The answer came back at roughly 14. Asked to count again per meal, per snack and per drink, the same people arrived at about 226.')}</p>
+          <p>${t('That number is disputed now. Researchers at the Max Planck Institute for Human Development argue the gap says more about how the question was asked than about how anyone eats. What nobody disputes is the direction: you make far more of these decisions than you notice, and every one of them takes a little something out of you.')}</p>
+          <p>${t('CHCS takes a few of them off your hands. You pick a mood, it picks the rest.')}</p>
+          <button class="link-btn" onclick="app.openPaper()">${t('Read the study (Environment and Behavior, 2007)')}</button>
+        </div>
+
+        <div class="about-section">
           <h4>${t('Made by one person')}</h4>
           <p>${t('CHCS says “we” a lot. It’s really just me, Steven, in the Netherlands, building this on evenings and weekends.')}</p>
           <p>${t('It started with dinner, because deciding what to eat was somehow harder than cooking it. Then it grew into films, books, playlists and places to go.')}</p>
@@ -1726,6 +1740,8 @@ class CHCSApp {
   _mailAddress() { return ['hoi', 'chcs.app'].join('@'); }
 
   mailSteven() { window.location.href = 'mail' + 'to:' + this._mailAddress(); }
+
+  openPaper() { window.open(PAPER_URL, '_blank', 'noopener,noreferrer'); }
 
   setThemeChoice(t) {
     this.theme = t;
@@ -1797,8 +1813,22 @@ class CHCSApp {
   }
 
   // ── Onboarding ──────────────────────────────────────────
+  // The first slide opens on someone else's words rather than ours: a post that
+  // 1.7M people read, and the paper that put the same problem in a journal.
+  // A slide carries either an emoji or a figure, never both.
   renderOnboarding(step = 0) {
     const slides = [
+      {
+        figure: `
+          <figure class="ob-figure">
+            <img class="ob-shot" src="images/decision-fatigue-post.jpg?v=1" width="900" height="696"
+                 alt="${t('A post on X reading: Do you ever get exhausted by food? Not the food itself, just the endless cycle of deciding what to eat, shopping for it, cooking it, and having to do it all over again every single freaking day.')}">
+            <figcaption class="ob-credit">${t('@OrevaZSN on X · 1.7M views, 40k likes')}</figcaption>
+          </figure>`,
+        title: t('Not the food. The <em>deciding</em>.'),
+        text: t('This is the decision that comes back every single day, and it is the one CHCS was built for. Researchers have been counting these decisions, and arguing about the total, since 2007.'),
+        link: t('Wansink & Sobal (2007)'),
+      },
       { emoji: '👋', title: t("Can't handle <em>choosing</em> stuff?"), text: t('Neither can we. CHCS decides what you eat, watch, read and hear, and where you go next. You just show up.') },
       { emoji: '🃏', title: t('Pick a mood, <em>swipe</em>, done'), text: t("Tell us the vibe, swipe away what you don't fancy, and accept the one that clicks. No more endless scrolling past 400 options.") },
       { emoji: '✦', title: t('Free to use, <em>Plus</em> for superfans'), text: tf('You get {n} “nah, next” swipes a day, free. Accepting a pick never costs anything. CHCS Plus removes the limit; you’ll find it under Account.', { n: FREE_SWIPE_LIMIT }) },
@@ -1808,10 +1838,11 @@ class CHCSApp {
     this._screen.innerHTML = `
       <section class="view onboarding" style="animation:fadeInUp .3s ease">
         ${last ? '<span class="ob-skip"></span>' : `<button class="ob-skip" onclick="app.finishOnboarding()">${t('Skip')}</button>`}
-        <div class="ob-body">
-          <div class="ob-emoji">${sl.emoji}</div>
+        <div class="ob-body${sl.figure ? ' has-figure' : ''}">
+          ${sl.figure || `<div class="ob-emoji">${sl.emoji}</div>`}
           <h1 class="ob-title">${sl.title}</h1>
           <p class="ob-text">${sl.text}</p>
+          ${sl.link ? `<button class="link-btn ob-source" onclick="app.openPaper()">${sl.link} &rarr;</button>` : ''}
         </div>
         <div class="ob-footer">
           <div class="ob-dots">${slides.map((_, i) => `<span class="ob-dot${i === step ? ' active' : ''}"></span>`).join('')}</div>
