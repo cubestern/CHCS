@@ -328,7 +328,6 @@ class CHCSApp {
             </div>
           `).join('')}
         </div>
-        ${this._installHintHTML()}
         <div class="duo-banner" onclick="app.showDuo()">
           <div class="duo-banner-icon">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
@@ -339,6 +338,7 @@ class CHCSApp {
           </div>
           <svg class="mode-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
         </div>
+        ${this._installHintHTML()}
         <p class="home-footer-hint">${t('New features and suggestions added weekly.')}</p>
       </section>`;
     this._updateNav('home');
@@ -1747,10 +1747,9 @@ class CHCSApp {
 
         <div class="about-section">
           <h4>${t('Why this app exists')}</h4>
-          <p>${t('In 2007 Brian Wansink and Jeffery Sobal asked people how many food decisions they thought they made in a day. The answer came back at roughly 14. Asked to count again per meal, per snack and per drink, the same people arrived at about 226.')}</p>
+          <p><a class="about-cite" href="${PAPER_URL}" target="_blank" rel="noopener noreferrer">${t('In 2007 Brian Wansink and Jeffery Sobal asked people how many food decisions they thought they made in a day.')}</a> ${t('The answer came back at roughly 14. Asked to count again per meal, per snack and per drink, the same people arrived at about 226.')}</p>
           <p>${t('That number is disputed now. Researchers at the Max Planck Institute for Human Development argue the gap says more about how the question was asked than about how anyone eats. What nobody disputes is the direction: you make far more of these decisions than you notice, and every one of them takes a little something out of you.')}</p>
           <p>${t('CHCS takes a few of them off your hands. You pick a mood, it picks the rest.')}</p>
-          <button class="link-btn" onclick="app.openPaper()">${t('Read the study (Environment and Behavior, 2007)')}</button>
         </div>
 
         <div class="about-section">

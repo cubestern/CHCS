@@ -45,6 +45,10 @@ IDs follow the pattern `<type>-NNN`, sequential, no gaps. The running app reads 
 
 After any data edit, run **`node check-data.js`** to verify no duplicate IDs, no numbering gaps, no missing required fields, and no sparse-array holes (stray commas). Output must be `All data files clean.` before committing.
 
+### Writing style
+
+**No em-dashes anywhere**, in UI copy, comments or docs. Use a colon, a full stop or a comma instead. This is a standing preference of Steven's and the repo was swept clean of them once already; don't reintroduce them.
+
 ### Languages (i18n)
 
 UI is bilingual (English/Dutch). English strings in `app.js`/`index.html` are the source of truth; `data/i18n.js` maps them verbatim to Dutch (`I18N_NL`). Every user-visible string in a render method must go through `t('…')` (exact-match lookup, falls back to English) or `tf('… {n} …', { n })` for interpolation. Language is `chcs_lang` in localStorage, auto-detected from `navigator.language` on first visit, switchable under Account. **Gotcha:** dictionary keys must match the source string byte-for-byte, including curly vs straight apostrophes. Never name a local variable or arrow parameter `t` in a scope that calls `t()` (the travel code uses `tr` for this reason). Content data (meal names, pitches) is not translated, UI only.

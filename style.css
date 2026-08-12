@@ -2388,7 +2388,9 @@ button {
   display: flex;
   align-items: center;
   gap: 14px;
-  margin-top: 14px;
+  /* Matches .category-grid's gap so every card on the home screen sits the
+     same distance apart. */
+  margin-top: 12px;
   padding: 18px;
   background: var(--bg-card);
   border: 1px solid var(--border);
@@ -2808,7 +2810,8 @@ button {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin: 4px 0 20px;
+  /* Same 12px rhythm as the category grid and the duo banner above it. */
+  margin: 12px 0 0;
   padding: 14px 14px 14px 16px;
   background: var(--bg-card);
   border: 1px solid var(--border);
@@ -2909,6 +2912,20 @@ button {
 .about-section p:last-child { margin-bottom: 0; }
 
 .about-links { margin-top: 20px; }
+
+/* An inline citation: the sentence itself is the link to the paper. */
+.about-cite {
+  color: var(--teal);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+  text-decoration-color: rgba(27, 107, 109, 0.35);
+  transition: text-decoration-color 0.2s ease;
+}
+
+.about-cite:hover { text-decoration-color: var(--teal); }
+
+[data-theme="dark"] .about-cite { text-decoration-color: rgba(45, 186, 184, 0.4); }
 
 .about-foot {
   text-align: center;
