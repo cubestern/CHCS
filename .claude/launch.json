@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "chcs",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "http.server", "8123"],
+      "port": 8123
+    },
+    {
+      "name": "beter-beleid",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["C:\\Users\\bloks\\vibe_apps\\beter-beleid\\dev-server.js"],
+      "port": 3000
+    }
+  ]
+}

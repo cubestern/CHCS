@@ -1,4 +1,4 @@
-/* ========== CSS VARIABLES — LUXURY EDITORIAL ========== */
+/* ========== CSS VARIABLES: LUXURY EDITORIAL ========== */
 :root {
   --bg: #F3EDE5;
   --bg-card: #FEFCF9;
@@ -174,7 +174,7 @@ button {
   z-index: 1;
 }
 
-/* ========== HEADER — Sixtine minimal ========== */
+/* ========== HEADER: retired ========== */
 /* There is no header: the app carries a bottom bar only. The theme toggle
    lives there as the last item. */
 [data-theme="light"] .moon-icon { display: none; }
@@ -188,7 +188,7 @@ button {
   padding: calc(26px + env(safe-area-inset-top, 0px)) 24px 0;
 }
 
-/* ========== HERO CARD — Dark moody Sixtine ========== */
+/* ========== HERO CARD: Dark moody Sixtine ========== */
 .hero-card {
   background: var(--hero-bg);
   color: var(--hero-text);
@@ -281,7 +281,7 @@ button {
   background: var(--gold-hover);
 }
 
-/* ========== STATS ROW — Sixtine horizontal data rows ========== */
+/* ========== STATS ROW: Sixtine horizontal data rows ========== */
 .stats-row {
   display: flex;
   flex-direction: column;
@@ -328,7 +328,7 @@ button {
   100% { transform: scale(1); color: var(--text-primary); }
 }
 
-/* ========== SECTION TITLE — Small caps ========== */
+/* ========== SECTION TITLE: Small caps ========== */
 .section-title {
   font-family: var(--font-body);
   font-size: 0.68rem;
@@ -339,7 +339,7 @@ button {
   margin-bottom: 18px;
 }
 
-/* ========== CATEGORY GRID — Dental icon cards ========== */
+/* ========== CATEGORY GRID: Dental icon cards ========== */
 .category-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -533,7 +533,7 @@ button {
   letter-spacing: 0.2px;
 }
 
-/* ========== BACK BUTTON — Sixtine arrow CTA ========== */
+/* ========== BACK BUTTON: Sixtine arrow CTA ========== */
 .back-btn {
   display: inline-flex;
   align-items: center;
@@ -786,7 +786,7 @@ button {
   color: var(--text-secondary);
 }
 
-/* ========== MODE CARDS — Sixtine data rows ========== */
+/* ========== MODE CARDS: Sixtine data rows ========== */
 .mode-cards {
   display: flex;
   flex-direction: column;
@@ -822,7 +822,7 @@ button {
   text-align: center;
 }
 
-/* Rows may carry a line icon instead of an emoji — same family as the
+/* Rows may carry a line icon instead of an emoji: same family as the
    category icons on the home screen. */
 .mode-icon svg {
   width: 22px;
@@ -974,7 +974,7 @@ button {
   color: var(--tag-text);
 }
 
-/* ========== CARD ACTIONS — Dental pill buttons ========== */
+/* ========== CARD ACTIONS: Dental pill buttons ========== */
 .card-actions {
   display: flex;
   gap: 10px;
@@ -1936,7 +1936,7 @@ button {
   box-shadow: 0 4px 20px var(--teal-glow);
 }
 
-/* ========== APP NAV — Bottom tab bar ========== */
+/* ========== APP NAV: Bottom tab bar ========== */
 .app-nav {
   position: fixed;
   bottom: 0;
@@ -2958,6 +2958,46 @@ button.ob-skip:hover { color: var(--teal); }
   animation: emojiBounce 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
+/* First slide leads with a screenshot instead of an emoji. It is a light-mode
+   screenshot in both themes, so the frame is painted white on purpose: a bright
+   panel in dark mode reads as a pinned screenshot, a half-dimmed one reads as a
+   bug. --shadow-lg resolves to none under the quiet design. */
+/* Sized so the whole slide clears the fixed bottom nav on a small phone: this is
+   the first screen anyone sees and the Next button must not need a scroll. */
+.ob-body.has-figure { justify-content: flex-start; padding-top: 2px; }
+
+.ob-figure {
+  width: 100%;
+  max-width: 280px;
+  margin: 0 0 16px;
+}
+
+.ob-shot {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+}
+
+.ob-credit {
+  margin-top: 9px;
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 1.1px;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+.ob-source {
+  margin: 14px auto 0;
+  line-height: 1.45;
+  text-align: center;
+  color: var(--accent);
+}
+
 .ob-title {
   font-family: var(--font-display);
   font-size: 1.9rem;
@@ -3349,11 +3389,11 @@ button.ob-skip:hover { color: var(--teal); }
 }
 
 /* ============================================================
-   DESIGN LAYERS — toggled in Account (see DESIGNS in app.js)
+   DESIGN LAYERS: toggled in Account (see DESIGNS in app.js)
    Both are overrides on top of the base styles above.
-   "elegant" (default) — refined, editorial, italic serif accents.
-   "quiet"             — minimal and calm: no shadows, no hover
-                         motion, hairline borders, same palette.
+   "elegant" (default): refined, editorial, italic serif accents.
+   "quiet":             minimal and calm: no shadows, no hover
+                        motion, hairline borders, same palette.
    ============================================================ */
 
 /* ---------- ELEGANT ---------- */
@@ -3582,7 +3622,7 @@ button.ob-skip:hover { color: var(--teal); }
   font-weight: 400;
 }
 
-/* Roman display headings — the italic serif is elegant's signature. The gold
+/* Roman display headings: the italic serif is elegant's signature. The gold
    italic word in the home greeting stays; it carries the warmth on its own. */
 [data-design="quiet"] .category-header-text h2,
 [data-design="quiet"] .mood-header h2,
