@@ -2,3 +2,6 @@
 Thumbs.db
 node_modules/
 *.log
+
+# Local Claude Code tooling: dev-server config and machine-specific settings.
+.claude/
