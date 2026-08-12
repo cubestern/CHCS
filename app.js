@@ -92,6 +92,9 @@ class CHCSApp {
     document.documentElement.setAttribute('data-design', this.design);
     localStorage.setItem('chcs_design', this.design);
     this._applyStaticLang();
+    // Chrome fires this when the app qualifies for installation; holding on to
+    // it lets the hint offer a real install button instead of instructions.
+    window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); this._installPrompt = e; });
     // A buyer coming back from Stripe lands on /?plus=<session id>; that takes
     // priority over the normal home/onboarding route.
     if (this._pendingPlusSession()) this._redeemPlusSession();
@@ -319,6 +322,7 @@ class CHCSApp {
             </div>
           `).join('')}
         </div>
+        ${this._installHintHTML()}
         <div class="duo-banner" onclick="app.showDuo()">
           <div class="duo-banner-icon">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
@@ -332,6 +336,45 @@ class CHCSApp {
         <p class="home-footer-hint">${t('New features and suggestions added weekly.')}</p>
       </section>`;
     this._updateNav('home');
+  }
+
+  // ── "Add to home screen" hint ─────────────────────────
+  // Shown on the home screen, but only once the app has actually been useful
+  // (two accepted picks) and never again after it is waved away. Asking on
+  // first open is what makes install prompts feel pushy.
+  _installHintDue() {
+    if (localStorage.getItem('chcs_install_hint') === 'off') return false;
+    if (window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true) return false;
+    return this.stats.choices >= 2;
+  }
+
+  _installHintHTML() {
+    if (!this._installHintDue()) return '';
+    return `
+      <div class="install-hint">
+        <div class="install-hint-text">
+          <h4>${t('Keep CHCS one tap away')}</h4>
+          <p>${t('Put it on your home screen — it opens like an app and works offline.')}</p>
+        </div>
+        <button class="install-hint-btn" onclick="app.installApp()">${t('Add')}</button>
+        <button class="install-hint-x" onclick="app.dismissInstallHint()" aria-label="${t('Dismiss')}">×</button>
+      </div>`;
+  }
+
+  installApp() {
+    if (this._installPrompt) {
+      this._installPrompt.prompt();
+      this._installPrompt.userChoice.finally(() => { this._installPrompt = null; this.dismissInstallHint(); });
+      return;
+    }
+    // Safari has no install API, so the two taps have to be spelled out.
+    this._toast(t('Tap the share button, then “Add to Home Screen”'));
+  }
+
+  dismissInstallHint() {
+    localStorage.setItem('chcs_install_hint', 'off');
+    const el = document.querySelector('.install-hint');
+    if (el) el.remove();
   }
 
   // ── Daily pick ────────────────────────────────────────
@@ -1674,7 +1717,9 @@ class CHCSApp {
 
         <h3 class="section-title">${t('About')}</h3>
         <div class="mode-card" onclick="app.renderAbout()">
-          <div class="mode-icon">✦</div>
+          <div class="mode-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+          </div>
           <div class="mode-text">
             <h4>${t('About CHCS')}</h4>
             <p>${t('Who made this, and what happens to your data')}</p>
@@ -1705,16 +1750,29 @@ class CHCSApp {
           <p>${t('There are no accounts and no server holding your things. Your saved picks, history and settings live in this browser only — which is exactly why moving to another device needs a sync code.')}</p>
           <p>${t('Visits are counted anonymously so I know whether anyone is out there. Nothing personal, no advertising trackers, nothing sold to anyone.')}</p>
           <p>${t('You don’t have to take my word for it: the entire app is open source.')}</p>
-          <button class="link-btn" onclick="window.open('https://github.com/cubestern/CHCS','_blank','noopener,noreferrer')">${t('Read the code on GitHub')}</button>
         </div>
 
-        <div class="about-section">
-          <h4>${t('Say hello')}</h4>
-          <p>${t('Something broken, an idea, or a meal that absolutely has to be in here? I read everything.')}</p>
-          <button class="about-mail" onclick="app.mailSteven()">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-            ${this._mailAddress()}
-          </button>
+        <div class="mode-cards about-links">
+          <div class="mode-card" onclick="window.open('https://github.com/cubestern/CHCS','_blank','noopener,noreferrer')">
+            <div class="mode-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+            </div>
+            <div class="mode-text">
+              <h4>${t('Read the code on GitHub')}</h4>
+              <p>${t('See for yourself what it does and doesn’t send')}</p>
+            </div>
+            <svg class="mode-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+          </div>
+          <div class="mode-card" onclick="app.mailSteven()">
+            <div class="mode-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            </div>
+            <div class="mode-text">
+              <h4>${this._mailAddress()}</h4>
+              <p>${t('Something broken, an idea, or a meal that has to be in here')}</p>
+            </div>
+            <svg class="mode-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+          </div>
         </div>
 
         <p class="about-foot">${t('CHCS · made in the Netherlands')}</p>

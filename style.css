@@ -175,95 +175,17 @@ button {
 }
 
 /* ========== HEADER — Sixtine minimal ========== */
-.app-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 18px 28px 14px;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-}
-
-.logo {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  cursor: pointer;
-}
-
-.logo-icon {
-  width: 32px;
-  height: 32px;
-  border: 1.5px solid var(--teal);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--teal);
-  transition: all 0.3s ease;
-}
-
-.logo-icon svg {
-  width: 16px;
-  height: 16px;
-}
-
-.logo:hover .logo-icon {
-  background: var(--teal);
-  color: #fff;
-}
-
-.logo-text {
-  font-family: var(--font-body);
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 2.5px;
-  text-transform: uppercase;
-  color: var(--text-primary);
-  transition: color 0.25s ease;
-}
-
-.logo:hover .logo-text {
-  color: var(--teal);
-}
-
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.icon-btn {
-  width: 38px;
-  height: 38px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  color: var(--text-secondary);
-  border: 1.5px solid var(--border);
-  transition: all 0.25s ease;
-}
-
-.icon-btn:hover {
-  border-color: var(--teal);
-  color: var(--teal);
-  background: var(--teal-soft);
-}
-
-.icon-btn svg {
-  width: 16px;
-  height: 16px;
-}
-
+/* There is no header: the app carries a bottom bar only. The theme toggle
+   lives there as the last item. */
 [data-theme="light"] .moon-icon { display: none; }
 [data-theme="dark"] .sun-icon { display: none; }
 
 /* ========== MAIN CONTENT ========== */
 .app-main {
   flex: 1;
-  padding: 0 24px;
+  /* Top padding replaces the retired header, and clears the status bar on
+     notched phones (index.html sets viewport-fit=cover). */
+  padding: calc(26px + env(safe-area-inset-top, 0px)) 24px 0;
 }
 
 /* ========== HERO CARD — Dark moody Sixtine ========== */
@@ -898,6 +820,15 @@ button {
   flex-shrink: 0;
   width: 36px;
   text-align: center;
+}
+
+/* Rows may carry a line icon instead of an emoji — same family as the
+   category icons on the home screen. */
+.mode-icon svg {
+  width: 22px;
+  height: 22px;
+  color: var(--teal);
+  vertical-align: middle;
 }
 
 .mode-text {
@@ -2016,8 +1947,10 @@ button {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 20px;
-  padding: 12px 24px;
+  /* Five items now (the theme toggle joined); the gap shrinks on narrow
+     phones rather than letting the bar overflow. */
+  gap: clamp(8px, 3.5vw, 20px);
+  padding: 12px 16px;
   padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
   background: rgba(243, 237, 229, 0.82);
   border-top: 1px solid var(--border);
@@ -2841,19 +2774,93 @@ button {
 
 .danger-link {
   display: block;
-  margin: 0 auto 12px;
-  padding: 8px 16px;
-  font-size: 0.75rem;
+  /* Deliberate distance from whatever sits above: this one is destructive. */
+  margin: 36px auto 10px;
+  padding: 11px 24px;
+  font-family: var(--font-body);
+  font-size: 0.78rem;
   font-weight: 600;
   color: #B8443A;
   background: none;
-  border: none;
+  border: 1.5px solid rgba(184, 68, 58, 0.32);
+  border-radius: var(--radius-pill);
   cursor: pointer;
-  opacity: 0.75;
-  transition: opacity 0.2s;
+  transition: all 0.25s ease;
 }
 
-.danger-link:hover { opacity: 1; text-decoration: underline; }
+.danger-link:hover {
+  border-color: #B8443A;
+  background: rgba(184, 68, 58, 0.07);
+}
+
+[data-theme="dark"] .danger-link {
+  color: #D9776C;
+  border-color: rgba(217, 119, 108, 0.32);
+}
+
+[data-theme="dark"] .danger-link:hover {
+  border-color: #D9776C;
+  background: rgba(217, 119, 108, 0.1);
+}
+
+/* ========== INSTALL HINT ========== */
+.install-hint {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 4px 0 20px;
+  padding: 14px 14px 14px 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.install-hint-text { flex: 1; min-width: 0; }
+
+.install-hint-text h4 {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 3px;
+}
+
+.install-hint-text p {
+  font-size: 0.74rem;
+  line-height: 1.45;
+  color: var(--text-secondary);
+}
+
+.install-hint-btn {
+  flex-shrink: 0;
+  padding: 8px 16px;
+  border-radius: var(--radius-pill);
+  background: var(--teal);
+  color: #fff;
+  border: none;
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.install-hint-btn:hover { background: var(--teal-hover); }
+
+.install-hint-x {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: none;
+  color: var(--text-secondary);
+  font-size: 1.15rem;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0.45;
+  transition: opacity 0.2s ease;
+}
+
+.install-hint-x:hover { opacity: 1; }
 
 .hero-daily-note {
   position: relative;
@@ -2901,20 +2908,7 @@ button {
 
 .about-section p:last-child { margin-bottom: 0; }
 
-.about-mail {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  margin-top: 4px;
-  padding: 9px 18px;
-  border-radius: var(--radius-pill);
-  background: var(--accent);
-  color: #fff;
-  font-size: 0.85rem;
-  font-weight: 600;
-  border: none;
-  cursor: pointer;
-}
+.about-links { margin-top: 20px; }
 
 .about-foot {
   text-align: center;
@@ -3378,9 +3372,7 @@ button.ob-skip:hover { color: var(--teal); }
   --shadow-xl: 0 24px 70px rgba(0, 0, 0, 0.55), 0 4px 12px rgba(0, 0, 0, 0.25);
 }
 
-[data-design="elegant"] .app-main { padding: 0 26px; }
-
-[data-design="elegant"] .app-header { padding: 22px 30px 16px; }
+[data-design="elegant"] .app-main { padding: calc(28px + env(safe-area-inset-top, 0px)) 26px 0; }
 
 [data-design="elegant"] .home-greeting { padding: 10px 0 28px; }
 
@@ -3477,8 +3469,7 @@ button.ob-skip:hover { color: var(--teal); }
 }
 
 /* ----- Layout: a little more air ----- */
-[data-design="quiet"] .app-main { padding: 0 24px; }
-[data-design="quiet"] .app-header { padding: 20px 26px 14px; }
+[data-design="quiet"] .app-main { padding: calc(26px + env(safe-area-inset-top, 0px)) 24px 0; }
 [data-design="quiet"] .home-greeting { padding: 8px 0 26px; }
 
 [data-design="quiet"] .home-greeting-title {

@@ -22,7 +22,7 @@ Cache-busting is manual: bump the `?v=N` query string on `<script>` and `<link>`
 ## Architecture
 
 - **`app.js`** — the entire application. One class (`CHCSApp`) that renders all views by setting `#mainContent.innerHTML`. No routing library, no virtual DOM. Categories: Food, Movies, Music (playlists), Travel. Plus Favorites, Search, Account, and a week planner.
-- **`index.html`** — shell with sticky header, `#mainContent` mount point, fixed bottom bar, footer. Instantiates `app` on load.
+- **`index.html`** — shell with a `#mainContent` mount point and a fixed bottom bar. There is deliberately **no header**: the bottom bar carries everything, including the theme toggle as its fifth item (a control, so it has no `id` and `_updateNav()` never marks it active). `.app-main` supplies the top padding the header used to.
 - **`style.css`** — all styles. CSS custom properties handle light/dark theming via `[data-theme]` on `<html>`.
 - **`data/*.js`** — content as top-level `const` arrays. Loaded via `<script>` tags in `index.html` so each global is available to `app.js`.
 - **`sw.js`** + **`manifest.json`** — PWA support. Service worker is network-first for HTML (so deploys are visible immediately) and cache-first for assets.
