@@ -291,6 +291,9 @@ const I18N_NL = {
   'Back to CHCS Plus': 'Terug naar CHCS Plus',
 
   // ── About ──
+  'App': 'App',
+  'Add to home screen': 'Zet op je beginscherm',
+  'Opens like an app and works offline': 'Opent als een app en werkt offline',
   'About': 'Over',
   'About CHCS': 'Over CHCS',
   'Who made this, and what happens to your data': 'Wie dit maakte, en wat er met je gegevens gebeurt',
@@ -369,6 +372,7 @@ const I18N_NL = {
   'Shared! 🎉': 'Gedeeld! 🎉',
   'Image downloaded! 📸': 'Afbeelding gedownload! 📸',
   'My CHCS Pick': 'Mijn CHCS-pick',
+  'That link no longer works, so here is home instead': 'Die link werkt niet meer, dus hier is de homepagina',
   'Tonight I’m making {name}!': 'Vanavond maak ik {name}!',
   'Tonight I’m watching {name}!': 'Vanavond kijk ik {name}!',
 };

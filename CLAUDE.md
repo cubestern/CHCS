@@ -64,6 +64,16 @@ All persistent state is `localStorage`:
 - `chcs_plus`: `'1'` once CHCS Plus is unlocked
 - Plus favorites and last-selected-mood per category
 
+### Routing
+
+Real paths, not hashes: [vercel.json](vercel.json) rewrites anything that is not a real file to `index.html`, and `_routeFromLocation()` reads `location.pathname` on boot and on `popstate`. Screens call `this._go(path, title)`, which pushes history and rewrites `document.title`, the canonical `<link>` and `og:url` so each deep link stops claiming to be the home page.
+
+Routes: `/`, `/food`, `/movies`, `/music`, `/books`, `/travel`, `/other`, `/duo`, `/search`, `/saved`, `/account`, `/about`, `/plus`, plus item pages `/meal/<id>`, `/movie/<id>`, `/book/<id>`, `/trip/<id>`, `/playlist/<id>`. Unknown paths fall back to home via `_notFound()`.
+
+Two deliberate omissions: **swipe decks do not get a path** (one history entry per swipe would ruin the back button, and "the card I am on" is not worth linking to), and **link previews stay generic** because scrapers do not run JS, so a shared `/meal/x` shows the site-wide OG card.
+
+**Because the app can now be served from any path, every asset reference in [index.html](index.html) must stay absolute** (`/app.js`, not `app.js`), or a deep link will 404 on its own scripts.
+
 ### Daily pick (the home hero)
 
 `_dailySlot()` maps the clock to a category: music 06–11, travel 11–16, food 16–20, movies 20–23, books otherwise, and `_dailyPick()` selects one item from that category by hashing `slot + local date`. Two properties are deliberate, not accidental: the pick is **stable for the whole day** (so the hero does not shuffle on every re-render) and **identical for every user** (so "today's pick" means the same thing to two people). It is derived, never stored.

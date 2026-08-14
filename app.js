@@ -101,11 +101,16 @@ class CHCSApp {
     // Chrome fires this when the app qualifies for installation; holding on to
     // it lets the hint offer a real install button instead of instructions.
     window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); this._installPrompt = e; });
+    window.addEventListener('popstate', () => this._routeFromLocation());
+
+    const deepLink = location.pathname !== '/';
     // A buyer coming back from Stripe lands on /?plus=<session id>; that takes
-    // priority over the normal home/onboarding route.
+    // priority over the normal route.
     if (this._pendingPlusSession()) this._redeemPlusSession();
-    else if (!localStorage.getItem('chcs_onboarded')) this.renderOnboarding();
-    else this.renderHome();
+    // Someone arriving on a shared link came for that thing, not for the
+    // intro; the onboarding still waits for them on a plain visit.
+    else if (!localStorage.getItem('chcs_onboarded') && !deepLink) this.renderOnboarding();
+    else this._routeFromLocation();
   }
 
   toggleTheme() {
@@ -297,6 +302,7 @@ class CHCSApp {
   // ══════════════════════════════════════════════════════════
 
   renderHome() {
+    this._go('/');
     localStorage.setItem('chcs_onboarded', '1'); // any route to home counts as onboarded
     const daily = this._dailyPick();
     const hour = new Date().getHours();
@@ -344,13 +350,92 @@ class CHCSApp {
     this._updateNav('home');
   }
 
+  // ── Routing ───────────────────────────────────────────
+  // Real paths, not hashes, so a pick can be linked to and a search engine
+  // can treat it as its own page. vercel.json rewrites everything that is not
+  // a real file to index.html; the app then reads location.pathname.
+  //
+  // Only addressable screens push a path. Swipe decks deliberately do not:
+  // "the card I happen to be on" is not a place worth linking to, and pushing
+  // one entry per swipe would wreck the back button.
+  _go(path, title) {
+    if (this._path === path) { this._setMeta(path, title); return; }
+    this._path = path;
+    if (location.pathname !== path) history.pushState({}, '', path);
+    this._setMeta(path, title);
+  }
+
+  // Without this every deep link would keep advertising the home page as its
+  // canonical URL, and a search engine would fold them all back into one.
+  _setMeta(path, title) {
+    document.title = title ? `${title} · CHCS` : "CHCS - Can't Handle Choosing Stuff";
+    const url = location.origin + path;
+    const canonical = document.querySelector('link[rel="canonical"]');
+    if (canonical) canonical.setAttribute('href', url);
+    const og = document.querySelector('meta[property="og:url"]');
+    if (og) og.setAttribute('content', url);
+  }
+
+  _routeFromLocation() {
+    const [head, id] = location.pathname.split('/').filter(Boolean);
+    // Adopt the incoming path first so the render below does not push it again.
+    this._path = location.pathname;
+
+    const byId = (pool, fn) => {
+      const item = pool.find(x => x.id === id);
+      if (!item) return this._notFound();
+      return fn(item);
+    };
+
+    switch (head) {
+      case undefined:  return this.renderHome();
+      case 'food':     return this.showFood();
+      case 'movies':   return this.showMovies();
+      case 'music':    return this.showMusic();
+      case 'books':    return this.showBooks();
+      case 'travel':   return this.showTravel();
+      case 'other':    return this.showOther();
+      case 'duo':      return this.showDuo();
+      case 'search':   return this.renderSearch();
+      case 'saved':    return this.renderFavorites();
+      case 'account':  return this.renderAccount();
+      case 'about':    return this.renderAbout();
+      case 'plus':     return this.renderPlus();
+      case 'meal':     return byId(MEALS,     () => this._openMeal(id));
+      case 'movie':    return byId(MOVIES,    () => this._openMovie(id));
+      case 'book':     return byId(BOOKS,     () => this._openBook(id));
+      case 'trip':     return byId(TRAVEL,    () => this._openTravel(id));
+      case 'playlist': return byId(PLAYLISTS, () => this._openPlaylist(id));
+      default:         return this._notFound();
+    }
+  }
+
+  // A link to something that no longer exists should not dump people on a
+  // blank screen; send them home with a word about what happened.
+  _notFound() {
+    this._path = '/';
+    history.replaceState({}, '', '/');
+    this.renderHome();
+    this._toast(t('That link no longer works, so here is home instead'));
+  }
+
+  // The full, shareable URL of whatever is on screen right now.
+  _currentUrl() { return location.origin + (this._path || '/'); }
+
   // ── "Add to home screen" hint ─────────────────────────
   // Shown on the home screen, but only once the app has actually been useful
   // (two accepted picks) and never again after it is waved away. Asking on
   // first open is what makes install prompts feel pushy.
+  _isInstalled() {
+    return window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+  }
+
+  // The banner is dismissible and never returns, so Account carries a
+  // permanent entry point as well. Waving the banner away should not remove
+  // the ability to install.
   _installHintDue() {
     if (localStorage.getItem('chcs_install_hint') === 'off') return false;
-    if (window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true) return false;
+    if (this._isInstalled()) return false;
     return this.stats.choices >= 2;
   }
 
@@ -450,6 +535,7 @@ class CHCSApp {
   }
 
   _renderFoodMoodScreen() {
+    this._go('/food', t('Food'));
     const moods = [
       { key: 'lazy',        emoji: '😴', label: 'Lazy',        desc: 'Quick & easy meals' },
       { key: 'normal',      emoji: '🙂', label: 'Normal',      desc: 'Easy to medium effort' },
@@ -639,6 +725,7 @@ class CHCSApp {
   }
 
   _renderFoodResult(m) {
+    this._go('/meal/' + m.id, m.name);
     const effortLabel = t(m.effort === 'easy' ? 'Easy' : m.effort === 'medium' ? 'Medium' : 'Involved');
     this._screen.innerHTML = `
       <section class="view" style="animation:fadeInUp .3s ease">
@@ -736,6 +823,7 @@ class CHCSApp {
   }
 
   _renderMovieMoodScreen() {
+    this._go('/movies', t('Movies'));
     const moods = [
       { key: 'chill',   emoji: '😌', label: 'Chill',          desc: 'Light & easy vibes' },
       { key: 'intense', emoji: '🔥', label: 'Intense',        desc: 'Edge of your seat' },
@@ -832,6 +920,7 @@ class CHCSApp {
   }
 
   _renderMovieResult(m) {
+    this._go('/movie/' + m.id, m.title);
     this._screen.innerHTML = `
       <section class="view" style="animation:fadeInUp .3s ease">
         ${this._backBtn('app.renderHome()')}
@@ -885,6 +974,7 @@ class CHCSApp {
   }
 
   _renderMusicMoodScreen() {
+    this._go('/music', t('Music'));
     const moods = [
       { key: 'chill',      emoji: '😌', label: 'Chill',      desc: 'Relaxed & mellow' },
       { key: 'energy',     emoji: '⚡', label: 'Energy',     desc: 'High-octane & pumping' },
@@ -1027,6 +1117,7 @@ class CHCSApp {
   }
 
   _renderTravelMoodScreen() {
+    this._go('/travel', t('Travel'));
     const moods = [
       { key: 'culture',   emoji: '🏛️', label: 'Culture',    desc: 'History, cities & art' },
       { key: 'adventure', emoji: '🧗', label: 'Adventure',  desc: 'Hiking, wild & roads' },
@@ -1127,6 +1218,7 @@ class CHCSApp {
   }
 
   _renderTravelResult(tr) {
+    this._go('/trip/' + tr.id, tr.name);
     const typeEmoji = { 'city trip': '🏙️', 'nature': '🌲', 'beach & coast': '🏖️', 'road trip': '🚗', 'day trip': '🚶' };
     const budgetLabel = { budget: t('Budget (€)'), moderate: t('Moderate (€€)'), expensive: t('Splurge (€€€)') };
     const moodLabel = { culture: `🏛️ ${t('Culture')}`, adventure: `🧗 ${t('Adventure')}`, unwind: `🌊 ${t('Unwind')}`, romance: `💑 ${t('Romance')}`, cozy: `🧣 ${t('Cozy')}` };
@@ -1326,7 +1418,14 @@ class CHCSApp {
         const file = new File([blob], `chcs-${type}-pick.png`, { type: 'image/png' });
         if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
           try {
-            await navigator.share({ files: [file], title: t('My CHCS Pick'), text: type === 'food' ? tf('Tonight I’m making {name}!', { name: this.currentMeal.name }) : tf('Tonight I’m watching {name}!', { name: this.currentMovie.title }) });
+            // The url makes the picture actionable: whoever receives it can
+            // open the exact same pick instead of just looking at it.
+            await navigator.share({
+              files: [file],
+              title: t('My CHCS Pick'),
+              text: type === 'food' ? tf('Tonight I’m making {name}!', { name: this.currentMeal.name }) : tf('Tonight I’m watching {name}!', { name: this.currentMovie.title }),
+              url: this._currentUrl(),
+            });
             this._toast(t('Shared! 🎉'));
           } catch (e) {
             if (e.name !== 'AbortError') this._downloadBlob(blob, `chcs-${type}-pick.png`);
@@ -1417,6 +1516,7 @@ class CHCSApp {
   }
 
   _renderBookMoodScreen() {
+    this._go('/books', t('Books'));
     const moods = [
       { key: 'gripping',    emoji: '😰', label: 'Gripping',    desc: 'Thriller, crime & horror' },
       { key: 'funny',       emoji: '😂', label: 'Funny',       desc: 'Humour & satire' },
@@ -1503,6 +1603,7 @@ class CHCSApp {
   }
 
   _renderBookResult(b) {
+    this._go('/book/' + b.id, b.title);
     const moodEmoji = { gripping: '😰', funny: '😂', fantasy: '🧙', moving: '😢', 'non-fiction': '🔍' };
     const moodLabel = { gripping: 'Gripping', funny: 'Funny', fantasy: 'Fantasy', moving: 'Moving', 'non-fiction': 'Non-fiction' };
     const searchUrl = `https://www.goodreads.com/search?q=${encodeURIComponent(b.title + ' ' + b.author)}`;
@@ -1536,6 +1637,7 @@ class CHCSApp {
 
   // ── Search ─────────────────────────────────────────────
   renderSearch() {
+    this._go('/search', t('Search'));
     this._updateNav('search');
     this._screen.innerHTML = `
       <section class="view" style="animation:fadeInUp .3s ease">
@@ -1593,6 +1695,7 @@ class CHCSApp {
 
   // ── Favorites view ──────────────────────────────────────
   renderFavorites() {
+    this._go('/saved', t('Saved'));
     this._updateNav('favorites');
     const favItems = [...this.favorites].map(key => {
       const [type, id] = key.split(':');
@@ -1636,6 +1739,7 @@ class CHCSApp {
   }
 
   renderAccount() {
+    this._go('/account', t('Account'));
     this._updateNav('account');
     const s = this.stats;
     const histIcon = { food: '🍽️', movie: '🎬', book: '📚', travel: '✈️', playlist: '🎵', other: '🎲', week: '📅', duo: '👥' };
@@ -1721,7 +1825,18 @@ class CHCSApp {
           </div>
         </div>
 
-        <h3 class="section-title">${t('About')}</h3>
+        <h3 class="section-title">${t('App')}</h3>
+        ${this._isInstalled() ? '' : `
+        <div class="mode-card" onclick="app.installApp()">
+          <div class="mode-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+          </div>
+          <div class="mode-text">
+            <h4>${t('Add to home screen')}</h4>
+            <p>${t('Opens like an app and works offline')}</p>
+          </div>
+          <svg class="mode-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>`}
         <div class="mode-card" onclick="app.renderAbout()">
           <div class="mode-icon">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
@@ -1739,6 +1854,7 @@ class CHCSApp {
 
   // ── About ───────────────────────────────────────────────
   renderAbout() {
+    this._go('/about', t('About'));
     this._screen.innerHTML = `
       <section class="view" style="animation:fadeInUp .3s ease">
         ${this._backBtn('app.renderAccount()')}
@@ -1878,7 +1994,7 @@ class CHCSApp {
       {
         figure: `
           <figure class="ob-figure">
-            <img class="ob-shot" src="images/decision-fatigue-post.jpg?v=1" width="900" height="696"
+            <img class="ob-shot" src="/images/decision-fatigue-post.jpg?v=1" width="900" height="696"
                  alt="${t('A post on X reading: Do you ever get exhausted by food? Not the food itself, just the endless cycle of deciding what to eat, shopping for it, cooking it, and having to do it all over again every single freaking day.')}">
             <figcaption class="ob-credit">${t('@OrevaZSN on X · 1.7M views, 40k likes')}</figcaption>
           </figure>`,
@@ -1988,6 +2104,7 @@ class CHCSApp {
   }
 
   renderPlus(limitHit = false) {
+    this._go('/plus');
     this._screen.innerHTML = `
       <section class="view" style="animation:fadeInUp .3s ease">
         ${this._backBtn('app.renderHome()')}
@@ -2040,6 +2157,7 @@ class CHCSApp {
   _saveCustomLists()   { localStorage.setItem('chcs_custom_lists', JSON.stringify(this.customLists)); }
 
   _renderOtherScreen() {
+    this._go('/other');
     const opts = this.customOptions;
     const ready = opts.length >= 2;
     this._screen.innerHTML = `
@@ -2219,6 +2337,7 @@ class CHCSApp {
   }
 
   showDuo() {
+    this._go('/duo', t('Duo mode'));
     const cfg = this._duoConfig();
     this._screen.innerHTML = `
       <section class="view" style="animation:fadeInUp .3s ease">
@@ -2362,6 +2481,9 @@ class CHCSApp {
   _openPlaylist(id) {
     this.currentPlaylist = PLAYLISTS.find(x => x.id === id);
     this.selectedPlaylistMood = null;
+    // Routed here rather than in renderPlaylistCard, which also draws the
+    // swipe deck and would otherwise push a path on every swipe.
+    this._go('/playlist/' + id, this.currentPlaylist.name);
     this.renderPlaylistCard();
   }
 
