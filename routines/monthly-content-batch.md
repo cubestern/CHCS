@@ -1,9 +1,9 @@
-# Biweekly Content Batch: Routine Prompt
+# Weekly Content Batch: Routine Prompt
 
 Self-contained prompt for a scheduled Claude Code routine that adds 40 curated
-entries to one CHCS data category per run. Runs on the 1st and 15th of each month.
+entries to one CHCS data category per run. Runs every Monday.
 
-Cron: `0 7 1,15 * *` (7:00 UTC = 9:00 Amsterdam CEST).
+Cron: `0 7 * * 1` (7:00 UTC = 9:00 Amsterdam CEST).
 
 Iterate this prompt, content tasks always need 2–3 rounds of tuning before
 output is consistent. Save changes back here so the routine stays in sync.
@@ -13,7 +13,7 @@ output is consistent. Save changes back here so the routine stays in sync.
 ## Prompt
 
 ```
-You are adding a biweekly batch of curated entries to the CHCS app
+You are adding a weekly batch of curated entries to the CHCS app
 (https://github.com/cubestern/CHCS). CHCS is Steven's personal "can't handle
 choosing stuff" app, every entry should feel hand-picked, not algorithmic.
 
@@ -28,8 +28,9 @@ Read these files in full before doing anything:
 
 ## Step 2: Pick the category for this run
 Determine today's run number from the current date:
-  runNumber = (month - 1) * 2 + (day >= 15 ? 1 : 0)
-  (where month = 1–12, day = day of month)
+  startOfYear = Jan 1 of current year
+  weekOfYear  = floor((today - startOfYear) / 7 days)  [0-indexed]
+  runNumber   = weekOfYear % 5
 
 Then: runNumber % 5 determines the category:
 - 0 → MEALS
@@ -112,3 +113,5 @@ Track what you change here so the routine stays predictable:
 - _2026-05-31_: initial draft.
 - _2026-06-04_: switched to biweekly (1st + 15th), removed auto-PR, updated
   category rotation to use runNumber formula instead of month % 5.
+- _2026-08-15_: switched to weekly (every Monday), updated runNumber formula
+  to week-of-year instead of biweekly day-of-month.
