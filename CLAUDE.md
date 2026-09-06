@@ -100,7 +100,17 @@ Two themes driven by `data-theme="light|dark"` on `<html>`. CSS variables are de
 Independently of theme, `data-design="elegant|quiet"` on `<html>` selects a **design layer**, both are override blocks at the bottom of [style.css](style.css), stacked on the base styles, and both work in either theme:
 
 - **elegant** (default): refined and editorial: italic serif headings, dark hero card, soft shadows.
-- **quiet**: minimal and calm: no shadows, no hover motion, hairline borders, light hero panel, roman headings, and **no emoji**. Same colour palette as elegant.
+- **quiet**: monochrome iOS, built from the "turn 3" Claude Design concepts. **It does not share elegant's palette**: it redefines the colour variables to pure greyscale in both themes and collapses `--teal` and `--gold` to a single ink (black in light, white in dark), so the only emphatic thing on a screen is the act of choosing. Also **no emoji**.
+
+  Quiet's vocabulary, and the reasons it deviates from the base styles:
+  - **System sans** (`-apple-system` / `system-ui`) replaces DM Sans for everything structural. This is what makes the layer read as native rather than as a web page.
+  - **Source Serif 4 italic** replaces Fraunces as `--font-display`, and only ever sets the single largest line on a screen (greeting, hero title, result title, swipe-card title). Fraunces is deliberately wonky and reads as a display face; the concepts want a quiet book italic. Small headings that use `--font-display` in the base styles (`.category-card h4`, `.mood-pill-label`, `.duo-banner-text h4`, `.stat-number`) are pushed back to the sans.
+  - **Browse becomes a grouped list**, not a 2-column grid: `.category-grid` goes to one column and `.category-card` becomes a `grid-template-areas` row (circular outlined glyph badge, title over detail, chevron). The chevron is a `::after` on the card, which works because a grid pseudo-element is a grid item, so no markup changed.
+  - **One shadow** (`0 1px 2px rgba(0,0,0,0.05)`) in light, none in dark, where the hairline border carries the edge. Quiet used to have no shadow at all; the concepts do use this hairline lift on white cards.
+  - **Ink fill marks the chosen thing**: hero slab, `.btn-primary`, `.action-accept`, `.mood-pill.active`, `.filter-chip.active`.
+  - The bottom bar drops its bordered circles for plain glyphs, and `body::before`'s tinted radial washes are switched off (they are the last hue in the app).
+
+  Two base rules need a manual flip whenever they are touched: `.hero-btn` and `.hero-label` read `--gold` directly, which is ink in quiet and would go black-on-black on the ink slab, so quiet overrides both. Same for `.action-accept`'s hardcoded white label, which has to follow `--teal` when it inverts to white in dark.
 
 Quiet's emoji removal is not CSS, emoji sit in the templates (~90 places) and in some playlist titles. Instead every view paints through `this._screen.innerHTML` (or `_paintInto(el, html)` for the search results and share card) rather than touching `#mainContent` directly, and that choke point calls `CHCSApp.stripEmoji()` when the design is quiet. It walks text nodes, so attributes, URLs and ids are never touched. Monochrome marks that read as typography are kept via `EMOJI_KEEP` (♥ ♡; ✓ ✗ → ✦ are not pictographic and never match). Wrapper elements that only held an emoji are hidden in the CSS layer so they don't leave gaps. **When adding a view, assign to `this._screen.innerHTML`, not to `#mainContent` directly**, or it will keep its emoji in quiet.
 
@@ -109,7 +119,8 @@ The valid values live in the `DESIGNS` array in [app.js](app.js); `CHCSApp.resol
 ## Design language
 
 Visual decisions follow the **steven-design** skill (`~/.claude/skills/steven-design/`). Key constraints:
-- Fonts: Fraunces (display/serif) + DM Sans (body), loaded from Google Fonts
+- Fonts: Fraunces (display/serif) + DM Sans (body), loaded from Google Fonts. Source Serif 4 is loaded from the same stylesheet but is used **only** by the quiet design layer, so it costs nothing while elegant is active (the browser fetches font files only for families a page actually renders).
+- Note: `--font-display` in `:root` names `'Cormorant Garamond'`, which the app never loads, so the elegant layer's display type currently resolves to the Georgia fallback rather than to Fraunces. Pre-existing, left alone here because fixing it would change elegant's look.
 - Colours: warm cream bg, teal primary, gold accent, all via CSS custom properties
 - Radius: `--radius-xl: 20px` (cards), `--radius-pill: 50px` (buttons)
 - Shadows: warm-tinted, never harsh

@@ -3507,81 +3507,302 @@ button.ob-skip:hover { color: var(--teal); }
   letter-spacing: 0;
 }
 
+
 /* ---------- QUIET ----------
-   Minimal but friendly. Same palette as elegant in both themes; the
-   difference is everything that shouts: shadows, hover lifts, gradient
-   stripes and the dark hero are all removed. What is left is hairline
-   borders, soft tinted fills and more air. */
+   Monochrome iOS, after the turn 3 concepts. Nothing on this layer carries
+   hue: the palette is pure greyscale in both themes and ink (black in light,
+   white in dark) is the only "colour" a control ever gets, so the act of
+   choosing is the one thing that stands out.
+
+   The vocabulary, in order of how often it shows up:
+     - grouped list rows with a circular outlined glyph badge on the left
+     - white cards on a grey field, hairline borders, one 1px shadow
+     - system sans for structure, Fraunces italic for the one display line
+     - a filled ink slab for the primary moment (hero, accept, active mood)
+     - uppercase micro-labels at wide tracking for anything secondary */
 [data-design="quiet"] {
+  /* Greyscale field. iOS grouped-list values, warmed by exactly nothing. */
+  --bg: #F2F2F2;
+  --bg-card: #FFFFFF;
+  --bg-card-hover: #F7F7F7;
+  --text-primary: #111111;
+  --text-secondary: #6D6D72;
+  --text-tertiary: #8A8A8E;
+  --border: #E0E0E0;
+  --border-subtle: #ECECEC;
+
+  /* Both accents collapse to ink. Every rule that reached for teal or gold
+     now reaches for black, which is why so little else needs overriding. */
+  --teal: #111111;
+  --teal-hover: #000000;
+  --teal-soft: rgba(0, 0, 0, 0.05);
+  --teal-glow: rgba(0, 0, 0, 0.06);
+  --gold: #111111;
+  --gold-hover: #000000;
+  --gold-soft: rgba(0, 0, 0, 0.05);
+  --gold-glow: rgba(0, 0, 0, 0.06);
+
+  --vibe-bg: transparent;
+  --vibe-bg-active: #111111;
+  --vibe-text: #6D6D72;
+  --vibe-text-active: #FFFFFF;
+  --input-bg: #FFFFFF;
+  --input-border: #E0E0E0;
+  --tag-bg: #F0F0F0;
+  --tag-text: #6D6D72;
+
+  /* One hairline lift, used everywhere a card sits on the grey field. It is
+     the whole shadow budget for this layer. */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-lg: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 1px 2px rgba(0, 0, 0, 0.05);
+
   --radius-xl: 18px;
-  --radius: 14px;
+  --radius: 16px;
+  --radius-sm: 12px;
+  --radius-xs: 8px;
+
+  /* System sans is the point: it is what makes the layer read as native
+     rather than as a web page wearing a serif. */
+  --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, "Helvetica Neue", Arial, sans-serif;
+  /* Source Serif 4, not the app's Fraunces: Fraunces is deliberately wonky
+     and reads as a display face, where the concepts want a quiet book italic
+     that sits next to system sans without shouting. */
+  --font-display: "Source Serif 4", Georgia, serif;
+
+  /* The hero is a filled ink slab, not a soft panel. */
+  --hero-bg: #111111;
+  --hero-text: #FFFFFF;
+  --grain-opacity: 0;
+}
+
+[data-design="quiet"][data-theme="dark"] {
+  --bg: #000000;
+  --bg-card: #1C1C1E;
+  --bg-card-hover: #262628;
+  --text-primary: #FFFFFF;
+  --text-secondary: rgba(255, 255, 255, 0.62);
+  --text-tertiary: rgba(255, 255, 255, 0.42);
+  --border: #2C2C2E;
+  --border-subtle: #232325;
+
+  /* Ink inverts: white is now the emphatic fill. */
+  --teal: #FFFFFF;
+  --teal-hover: #F0F0F0;
+  --teal-soft: rgba(255, 255, 255, 0.08);
+  --teal-glow: rgba(255, 255, 255, 0.1);
+  --gold: #FFFFFF;
+  --gold-hover: #F0F0F0;
+  --gold-soft: rgba(255, 255, 255, 0.08);
+  --gold-glow: rgba(255, 255, 255, 0.1);
+
+  --vibe-bg: transparent;
+  --vibe-bg-active: #FFFFFF;
+  --vibe-text: rgba(255, 255, 255, 0.62);
+  --vibe-text-active: #111111;
+  --input-bg: #1C1C1E;
+  --input-border: #2C2C2E;
+  --tag-bg: #2C2C2E;
+  --tag-text: rgba(255, 255, 255, 0.62);
+
+  /* A shadow does nothing on a black field; the hairline border carries it. */
   --shadow-xs: none;
   --shadow: none;
   --shadow-lg: none;
   --shadow-xl: none;
-  /* The hero becomes a calm panel instead of a dark slab. */
-  --hero-bg: var(--bg-card);
-  --hero-text: var(--text-primary);
-  --grain-opacity: 0;
+
+  --hero-bg: #1C1C1E;
+  --hero-text: #FFFFFF;
 }
 
-/* ----- Layout: a little more air ----- */
-[data-design="quiet"] .app-main { padding: calc(26px + env(safe-area-inset-top, 0px)) 24px 0; }
-[data-design="quiet"] .home-greeting { padding: 8px 0 26px; }
+/* The tinted radial washes are the last hue in the app. */
+[data-design="quiet"] body::before { display: none; }
+
+/* ----- Layout ----- */
+[data-design="quiet"] .app-main { padding: calc(26px + env(safe-area-inset-top, 0px)) 20px 0; }
+[data-design="quiet"] .home-greeting { padding: 6px 0 22px; }
+
+/* ----- Display type: one serif italic line per screen, sans for the rest ---- */
+[data-design="quiet"] .home-greeting-label {
+  font-weight: 700;
+  font-size: 0.6rem;
+  letter-spacing: 0.14em;
+  color: var(--text-tertiary);
+}
 
 [data-design="quiet"] .home-greeting-title {
-  font-size: 1.7rem;
-  font-weight: 400;
+  font-family: var(--font-display);
+  font-size: 1.9rem;
+  font-style: italic;
+  font-weight: 600;
+  line-height: 1.06;
+  letter-spacing: 0;
+}
+
+/* No gold to inherit, so the emphasised word carries no colour of its own. */
+[data-design="quiet"] .home-greeting-title em { color: inherit; }
+
+/* Structural headings go back to the system sans: in the concepts the serif
+   is reserved for the single largest line on a screen, never for a row. */
+[data-design="quiet"] .category-card h4,
+[data-design="quiet"] .mood-pill-label,
+[data-design="quiet"] .duo-banner-text h4,
+[data-design="quiet"] .fav-info h4,
+[data-design="quiet"] .other-card h4,
+[data-design="quiet"] .stat-number {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-style: normal;
   letter-spacing: -0.2px;
 }
 
-/* ----- Section labels: quieter than the base small-caps ----- */
-[data-design="quiet"] .section-title {
-  font-weight: 600;
-  font-size: 0.66rem;
-  letter-spacing: 1.6px;
+/* ----- Section labels ----- */
+[data-design="quiet"] .section-title,
+[data-design="quiet"] .filter-label {
+  font-weight: 700;
+  font-size: 0.63rem;
+  letter-spacing: 0.14em;
   color: var(--text-tertiary);
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
-/* ----- Hero: soft panel, no texture, no glow ----- */
+/* ----- Hero: the ink slab ----- */
 [data-design="quiet"] .hero-card {
-  border: 1px solid var(--border-subtle);
-  padding: 34px 26px 30px;
+  padding: 20px 18px 18px;
+  border: none;
 }
 
 [data-design="quiet"] .hero-card::before,
 [data-design="quiet"] .hero-card::after { display: none; }
 
 [data-design="quiet"] .hero-label {
-  color: var(--text-tertiary);
-  font-weight: 600;
-  letter-spacing: 1.6px;
+  color: rgba(255, 255, 255, 0.55);
+  font-weight: 700;
+  font-size: 0.6rem;
+  letter-spacing: 0.14em;
+  margin-bottom: 8px;
 }
 
 [data-design="quiet"] .hero-title {
-  font-size: 1.75rem;
-  font-weight: 400;
-  font-style: normal;
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  font-style: italic;
+  font-weight: 600;
+  line-height: 1.1;
 }
 
-[data-design="quiet"] .hero-desc { color: var(--text-secondary); }
+[data-design="quiet"] .hero-desc {
+  color: rgba(255, 255, 255, 0.62);
+  margin-bottom: 18px;
+}
 
+/* White on ink, a rounded rect rather than a pill: the concepts' one CTA. */
 [data-design="quiet"] .hero-btn {
-  background: var(--teal-soft);
-  color: var(--teal);
-  border: 1px solid var(--teal);
-  font-weight: 500;
+  background: #FFFFFF;
+  color: #111111;
+  border-radius: 12px;
+  padding: 11px 22px;
+  font-weight: 600;
+  letter-spacing: -0.1px;
 }
 
 [data-design="quiet"] .hero-btn:hover {
-  background: var(--teal);
-  color: #FFFFFF;
+  background: #FFFFFF;
   transform: none;
   box-shadow: none;
+  opacity: 0.9;
 }
 
-/* ----- Cards: flat, hairline, no lift ----- */
+[data-design="quiet"] .hero-daily-note { color: rgba(255, 255, 255, 0.4); }
+
+/* In dark the slab is a raised card, so its text uses the normal scale. */
+[data-design="quiet"][data-theme="dark"] .hero-card { border: 1px solid var(--border); }
+[data-design="quiet"][data-theme="dark"] .hero-label { color: var(--text-tertiary); }
+[data-design="quiet"][data-theme="dark"] .hero-desc { color: var(--text-secondary); }
+[data-design="quiet"][data-theme="dark"] .hero-daily-note { color: var(--text-tertiary); }
+
+/* ----- Browse: a grouped list, not a grid of tiles -----
+   The single most characteristic move of the concepts: full-width rows, a
+   circular outlined glyph badge on the left, title over detail, chevron. */
+[data-design="quiet"] .category-grid {
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+[data-design="quiet"] .category-card {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  grid-template-areas:
+    "icon title chev"
+    "icon desc  chev";
+  align-items: center;
+  align-content: center;
+  column-gap: 12px;
+  text-align: left;
+  padding: 11px 14px;
+}
+
+/* A grid pseudo-element is a grid item, so the chevron needs no markup. */
+[data-design="quiet"] .category-card::after {
+  content: "\203A";
+  grid-area: chev;
+  font-size: 1.1rem;
+  line-height: 1;
+  color: var(--text-tertiary);
+  padding-left: 4px;
+}
+
+[data-design="quiet"] .category-card.coming-soon::after { content: none; }
+
+[data-design="quiet"] .category-card h4 {
+  grid-area: title;
+  font-size: 0.92rem;
+  margin-bottom: 0;
+}
+
+[data-design="quiet"] .category-card p,
+[data-design="quiet"] .coming-soon-badge { grid-area: desc; }
+
+[data-design="quiet"] .category-card p {
+  font-size: 0.73rem;
+  color: var(--text-secondary);
+}
+
+/* The badge: outlined circle, ink glyph, no per-category tint. */
+[data-design="quiet"] .category-card .category-icon,
+[data-design="quiet"] .category-header .category-icon,
+[data-design="quiet"] .duo-banner-icon {
+  background: transparent;
+  color: var(--text-primary);
+  border: 1.4px solid var(--border);
+}
+
+[data-design="quiet"] .category-card .category-icon {
+  grid-area: icon;
+  width: 34px;
+  height: 34px;
+  margin: 0;
+}
+
+[data-design="quiet"] .category-card .category-icon svg { width: 17px; height: 17px; }
+
+[data-design="quiet"] .category-header .category-icon { width: 44px; height: 44px; }
+
+[data-design="quiet"] .category-card:hover,
+[data-design="quiet"] .mood-pill:hover,
+[data-design="quiet"] .duo-banner:hover,
+[data-design="quiet"] .fav-item:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--border);
+  transform: none;
+  box-shadow: var(--shadow);
+}
+
+[data-design="quiet"] .category-card:active,
+[data-design="quiet"] .mood-pill:active { transform: none; scale: 1; }
+
+/* ----- Cards: white on grey, hairline, one shadow ----- */
 [data-design="quiet"] .category-card,
 [data-design="quiet"] .mood-pill,
 [data-design="quiet"] .swipe-card,
@@ -3590,94 +3811,144 @@ button.ob-skip:hover { color: var(--teal); }
 [data-design="quiet"] .other-card,
 [data-design="quiet"] .route-planner,
 [data-design="quiet"] .plus-cta-card,
-[data-design="quiet"] .duo-banner {
+[data-design="quiet"] .duo-banner,
+[data-design="quiet"] .fav-item {
   border: 1px solid var(--border-subtle);
-  box-shadow: none;
+  box-shadow: var(--shadow);
 }
 
-[data-design="quiet"] .category-card { padding: 26px 18px; }
+[data-design="quiet"] .duo-banner { padding: 12px 14px; }
+[data-design="quiet"] .duo-banner-icon { width: 34px; height: 34px; }
+[data-design="quiet"] .duo-banner-text h4 { font-size: 0.92rem; }
+[data-design="quiet"] .duo-banner-text p { font-size: 0.73rem; }
 
-[data-design="quiet"] .category-card:hover,
-[data-design="quiet"] .mood-pill:hover,
-[data-design="quiet"] .duo-banner:hover {
-  background: var(--bg-card-hover);
-  border-color: var(--border);
-  transform: none;
-  box-shadow: none;
-}
-
-[data-design="quiet"] .category-card:active,
-[data-design="quiet"] .mood-pill:active { transform: none; scale: 1; }
-
-[data-design="quiet"] .category-icon {
-  width: 40px;
-  height: 40px;
-  margin: 0 auto 14px;
-}
-
-[data-design="quiet"] .category-card h4 {
-  font-weight: 500;
-  font-size: 1.05rem;
-}
-
-/* ----- Mood pills: soft tint instead of a glow ring ----- */
-[data-design="quiet"] .mood-pill { padding: 22px 14px; }
+/* ----- Moods: ink fill marks the chosen one ----- */
+[data-design="quiet"] .mood-pill { padding: 20px 14px; }
 
 [data-design="quiet"] .mood-pill.active {
-  background: var(--teal-soft);
-  border-color: var(--teal);
+  background: var(--text-primary);
+  border-color: var(--text-primary);
   box-shadow: none;
 }
+
+[data-design="quiet"] .mood-pill.active .mood-pill-label,
+[data-design="quiet"] .mood-pill.active .mood-pill-desc { color: var(--bg-card); }
 
 [data-design="quiet"] .mood-pill:hover .mood-pill-emoji,
 [data-design="quiet"] .mood-pill.active .mood-pill-emoji { transform: none; }
 
-[data-design="quiet"] .mood-pill-label { font-weight: 500; }
+[data-design="quiet"] .mood-pill-label { font-size: 0.95rem; }
 
-[data-design="quiet"] .mood-header h2 {
-  font-size: 1.7rem;
-  font-weight: 400;
+[data-design="quiet"] .mood-surprise {
+  border-style: solid;
+  border-width: 1px;
+  border-color: var(--border);
+  border-radius: var(--radius);
 }
 
-/* Roman display headings: the italic serif is elegant's signature. The gold
-   italic word in the home greeting stays; it carries the warmth on its own. */
-[data-design="quiet"] .category-header-text h2,
+[data-design="quiet"] .mood-header { padding: 8px 0 24px; }
+
 [data-design="quiet"] .mood-header h2,
-[data-design="quiet"] .accepted-state h2,
-[data-design="quiet"] .result-title,
-[data-design="quiet"] .spin-title,
-[data-design="quiet"] .swipe-card-desc { font-style: normal; }
+[data-design="quiet"] .category-header-text h2 {
+  font-size: 1.75rem;
+  font-weight: 600;
+  letter-spacing: 0;
+}
 
-/* ----- Swipe + result: drop the gradient stripe ----- */
-[data-design="quiet"] .swipe-card { padding: 34px 24px 30px; }
+/* ----- Chips: ink pill when active, hairline outline when not ----- */
+[data-design="quiet"] .filter-chip {
+  background: transparent;
+  border-color: var(--border);
+  font-weight: 500;
+}
 
-[data-design="quiet"] .result-card { padding: 34px 26px 26px; }
+[data-design="quiet"] .filter-chip:hover {
+  border-color: var(--text-primary);
+  color: var(--text-primary);
+}
+
+[data-design="quiet"] .filter-chip.active {
+  border-color: var(--vibe-bg-active);
+  font-weight: 600;
+}
+
+/* ----- Swipe + result ----- */
+[data-design="quiet"] .swipe-card { padding: 30px 22px 26px; }
+[data-design="quiet"] .result-card { padding: 32px 24px 24px; }
 
 [data-design="quiet"] .swipe-card::before,
 [data-design="quiet"] .result-card::before { display: none; }
 
+/* The concepts set the meal title itself in serif italic on the card. */
 [data-design="quiet"] .swipe-card-title {
-  font-size: 1.55rem;
-  font-weight: 500;
+  font-size: 1.5rem;
+  font-style: italic;
+  font-weight: 600;
+  letter-spacing: 0;
 }
 
 [data-design="quiet"] .result-title {
-  font-size: 1.8rem;
-  font-weight: 400;
+  font-size: 1.75rem;
+  font-style: italic;
+  font-weight: 600;
+  letter-spacing: 0;
 }
 
-/* ----- Buttons: soft fill, no lift, no glow ----- */
+[data-design="quiet"] .swipe-card-badge {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* ----- Buttons: filled ink primary, hairline secondary ----- */
+[data-design="quiet"] .btn,
+[data-design="quiet"] .action-btn {
+  border-radius: 12px;
+  letter-spacing: -0.1px;
+}
+
 [data-design="quiet"] .btn-primary {
-  background: var(--teal-soft);
-  border: 1px solid var(--teal);
-  font-weight: 500;
+  background: var(--text-primary);
+  color: var(--bg-card);
+  border: 1.5px solid var(--text-primary);
+  font-weight: 600;
 }
 
 [data-design="quiet"] .btn-primary:hover {
-  background: var(--teal);
-  color: #FFFFFF;
+  background: var(--text-primary);
+  color: var(--bg-card);
   transform: none;
   box-shadow: none;
+  opacity: 0.88;
+}
+
+/* --teal is white in dark, so the accept label has to flip with it. */
+[data-design="quiet"] .action-accept { color: var(--bg-card); }
+
+[data-design="quiet"] .action-accept:hover {
+  transform: none;
+  box-shadow: none;
+  opacity: 0.88;
+}
+
+/* Rejecting is not an error, so it stays greyscale like everything else. */
+[data-design="quiet"] .action-reject:hover {
+  border-color: var(--text-primary);
+  color: var(--text-primary);
+  background: var(--teal-soft);
+}
+
+[data-design="quiet"] .plan-week-btn {
+  border-style: solid;
+  border-width: 1px;
+  border-radius: 12px;
+}
+
+[data-design="quiet"] .plan-week-btn:hover {
+  border-color: var(--text-primary);
+  color: var(--text-primary);
+  background: var(--teal-soft);
 }
 
 [data-design="quiet"] .action-btn:hover,
@@ -3687,23 +3958,123 @@ button.ob-skip:hover { color: var(--teal); }
   box-shadow: none;
 }
 
-[data-design="quiet"] .seg-btn.active { box-shadow: none; }
+/* .ob-next is a .hero-btn, but it sits on the grey field rather than on the
+   ink slab, so the hero's white-on-ink treatment has to invert back. */
+[data-design="quiet"] .ob-next {
+  background: var(--text-primary);
+  color: var(--bg-card);
+}
 
-/* ----- Chrome ----- */
-[data-design="quiet"] .app-nav { border-top-color: var(--border-subtle); }
+[data-design="quiet"] .ob-next:hover {
+  background: var(--text-primary);
+  box-shadow: none;
+  opacity: 0.88;
+}
 
-[data-design="quiet"] .travel-map-wrap { margin: 0 -24px; }
+/* ----- The last of the hue -----
+   These rules reach past the variables for a literal green / red / gold, so
+   collapsing --teal and --gold to ink does not catch them. Each one is a
+   content tag or a hairline that would otherwise be the only coloured pixel
+   on the screen. */
+[data-design="quiet"] .effort-easy,
+[data-design="quiet"] .effort-medium,
+[data-design="quiet"] .effort-involved,
+[data-design="quiet"] .mood-light,
+[data-design="quiet"] .mood-intense,
+[data-design="quiet"] .mood-thought-provoking,
+[data-design="quiet"] .mood-funny {
+  background: var(--tag-bg);
+  color: var(--tag-text);
+}
+
+[data-design="quiet"] .continent-pill.active {
+  background: var(--vibe-bg-active);
+  border-color: var(--vibe-bg-active);
+  color: var(--vibe-text-active);
+}
+
+[data-design="quiet"] .swipe-hint-accept {
+  color: var(--text-primary);
+  background: var(--teal-soft);
+  border-color: var(--border);
+}
+
+[data-design="quiet"] .route-step-num,
+[data-design="quiet"] .plus-benefits li span {
+  background: var(--teal-soft);
+  color: var(--text-primary);
+  border-color: var(--border);
+}
+
+[data-design="quiet"] .plus-active-card,
+[data-design="quiet"] .plus-limit-banner {
+  background: var(--teal-soft);
+  border-color: var(--border);
+}
+
+[data-design="quiet"] .about-cite {
+  color: var(--text-primary);
+  text-decoration-color: var(--border);
+}
+
+/* ----- Settings: an iOS grouped list ----- */
+[data-design="quiet"] .settings-card { padding: 2px 16px; }
+[data-design="quiet"] .settings-row { padding: 12px 0; }
+[data-design="quiet"] .settings-row + .settings-row { border-top-width: 0.5px; }
+
+[data-design="quiet"] .seg {
+  background: var(--teal-soft);
+  border-radius: 10px;
+  padding: 2px;
+}
+
+[data-design="quiet"] .seg-btn { border-radius: 8px; font-weight: 500; }
+
+[data-design="quiet"] .seg-btn.active {
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-weight: 600;
+  box-shadow: var(--shadow-xs);
+}
+
+[data-design="quiet"][data-theme="dark"] .seg-btn.active { background: #3A3A3C; }
+
+/* ----- Chrome: a native tab bar, not a row of bordered circles ----- */
+[data-design="quiet"] .app-nav {
+  background: rgba(242, 242, 242, 0.85);
+  border-top: 0.5px solid var(--border);
+}
+
+[data-design="quiet"][data-theme="dark"] .app-nav {
+  background: rgba(0, 0, 0, 0.8);
+  border-top-color: var(--border);
+}
+
+[data-design="quiet"] .nav-item {
+  border-color: transparent;
+  background: none;
+  color: var(--text-tertiary);
+}
+
+[data-design="quiet"] .nav-item:hover,
+[data-design="quiet"] .nav-item.active {
+  border-color: transparent;
+  background: none;
+  color: var(--text-primary);
+}
+
+[data-design="quiet"] .travel-map-wrap { margin: 0 -20px; }
 
 [data-design="quiet"] .home-footer-hint {
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   letter-spacing: 0;
   color: var(--text-tertiary);
 }
 
 /* Quiet has no emoji (they are stripped at paint time in app.js). These
    wrappers exist only to hold one, so they are hidden rather than left as
-   empty boxes. Monochrome marks that read as typography stay: the ♡ in the
-   empty-favourites state and the ✓ / ✗ swipe hints keep their elements. */
+   empty boxes. Monochrome marks that read as typography stay: the heart in
+   the empty-favourites state and the tick / cross swipe hints keep theirs. */
 [data-design="quiet"] .mood-header-icon,
 [data-design="quiet"] .mood-pill-emoji,
 [data-design="quiet"] .swipe-card-emoji,
@@ -3712,7 +4083,5 @@ button.ob-skip:hover { color: var(--teal); }
 [data-design="quiet"] .mode-icon,
 [data-design="quiet"] .accepted-icon,
 [data-design="quiet"] .history-icon,
+[data-design="quiet"] .fav-icon,
 [data-design="quiet"] .ob-emoji { display: none; }
-
-/* Without the icon above them these headers sat too low. */
-[data-design="quiet"] .mood-header { padding-top: 4px; }
