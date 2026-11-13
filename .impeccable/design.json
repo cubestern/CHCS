@@ -1,0 +1,372 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-13T08:28:00.028Z",
+  "title": "Design System: CHCS (Can't Handle Choosing Stuff)",
+  "extensions": {
+    "colorMeta": {
+      "deep-teal": {
+        "role": "primary",
+        "displayName": "Deep Teal",
+        "canonical": "#1B6B6D",
+        "tonalRamp": [
+          "#060D0D",
+          "#062D2E",
+          "#005052",
+          "#267375",
+          "#4D9799",
+          "#83B9BA",
+          "#B7D5D5",
+          "#E6F1F1"
+        ]
+      },
+      "night-teal": {
+        "role": "primary",
+        "displayName": "Night Teal",
+        "canonical": "#2DBAB8",
+        "tonalRamp": [
+          "#030E0D",
+          "#00302F",
+          "#005656",
+          "#007978",
+          "#009E9C",
+          "#65C0BD",
+          "#A9D8D7",
+          "#E2F2F2"
+        ]
+      },
+      "antique-gold": {
+        "role": "secondary",
+        "displayName": "Antique Gold",
+        "canonical": "#C4993C",
+        "tonalRamp": [
+          "#0F0A03",
+          "#362200",
+          "#623C00",
+          "#875E00",
+          "#AC821E",
+          "#CAA968",
+          "#DECBA8",
+          "#F4EEE1"
+        ]
+      },
+      "antique-gold-text": {
+        "role": "secondary",
+        "displayName": "Antique Gold Text",
+        "canonical": "#9F7C31",
+        "tonalRamp": [
+          "#0F0B04",
+          "#342300",
+          "#5E3F00",
+          "#826009",
+          "#A78339",
+          "#C6AA74",
+          "#DCCCAE",
+          "#F3EEE3"
+        ]
+      },
+      "night-gold": {
+        "role": "secondary",
+        "displayName": "Night Gold",
+        "canonical": "#D4A843",
+        "tonalRamp": [
+          "#0F0A03",
+          "#362200",
+          "#633C00",
+          "#875E00",
+          "#AC8208",
+          "#CAA963",
+          "#DECCA5",
+          "#F4EEE0"
+        ]
+      },
+      "cream-field": {
+        "role": "neutral",
+        "displayName": "Cream Field",
+        "canonical": "#F3EDE5",
+        "tonalRamp": [
+          "#0C0B0A",
+          "#282623",
+          "#49443E",
+          "#6A655E",
+          "#8E8881",
+          "#B1ADA7",
+          "#D0CDCA",
+          "#EFEEED"
+        ]
+      },
+      "paper-card": {
+        "role": "neutral",
+        "displayName": "Paper Card",
+        "canonical": "#FEFCF9",
+        "tonalRamp": [
+          "#0B0B0B",
+          "#272625",
+          "#464542",
+          "#676663",
+          "#8B8986",
+          "#AFAEAB",
+          "#CECDCC",
+          "#EFEEEE"
+        ]
+      },
+      "warm-ink": {
+        "role": "neutral",
+        "displayName": "Warm Ink",
+        "canonical": "#1A1814",
+        "tonalRamp": [
+          "#0B0B0A",
+          "#272624",
+          "#474540",
+          "#686661",
+          "#8B8984",
+          "#B0AEA9",
+          "#CFCDCB",
+          "#EFEEED"
+        ]
+      },
+      "espresso-slab": {
+        "role": "neutral",
+        "displayName": "Espresso Slab",
+        "canonical": "#1A1714",
+        "tonalRamp": [
+          "#0B0B0B",
+          "#282624",
+          "#484441",
+          "#696562",
+          "#8C8884",
+          "#B0ADAA",
+          "#CFCDCB",
+          "#EFEEEE"
+        ]
+      },
+      "quiet-ink": {
+        "role": "neutral",
+        "displayName": "Quiet Ink",
+        "canonical": "#111111",
+        "tonalRamp": [
+          "#0B0B0B",
+          "#262626",
+          "#454545",
+          "#666666",
+          "#898989",
+          "#AEAEAE",
+          "#CECECE",
+          "#EEEEEE"
+        ]
+      },
+      "quiet-field": {
+        "role": "neutral",
+        "displayName": "Quiet Field",
+        "canonical": "#F2F2F2",
+        "tonalRamp": [
+          "#0B0B0B",
+          "#262626",
+          "#454545",
+          "#666666",
+          "#898989",
+          "#AEAEAE",
+          "#CECECE",
+          "#EEEEEE"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "The hero pick title, in italic, on the espresso slab."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "The home greeting with one italic gold word, and mood and result headings."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Italic category names on the home grid."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Descriptions and pitches."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Section markers and the hero kicker: small, bold, widely tracked, uppercase."
+      },
+      "quiet-display": {
+        "displayName": "Quiet Display",
+        "purpose": "The single largest serif line on a quiet screen."
+      },
+      "quiet-body": {
+        "displayName": "Quiet Body",
+        "purpose": "All structural text in the quiet layer, in system sans."
+      }
+    },
+    "shadows": [
+      {
+        "name": "rest",
+        "value": "0 1px 3px rgba(90, 70, 40, 0.05)",
+        "purpose": "The barely-there warm lift on elegant surfaces."
+      },
+      {
+        "name": "lift",
+        "value": "0 12px 40px rgba(90, 70, 40, 0.08), 0 2px 6px rgba(90, 70, 40, 0.04)",
+        "purpose": "Hover and the swipe card."
+      },
+      {
+        "name": "quiet-hairline",
+        "value": "0 1px 2px rgba(0, 0, 0, 0.05)",
+        "purpose": "The whole shadow budget of the quiet layer in light. None in dark."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-settle",
+        "value": "cubic-bezier(0.22, 1, 0.36, 1)",
+        "purpose": "Cards, pills and the hero action: a quick start that settles softly."
+      },
+      {
+        "name": "ease-state",
+        "value": "ease 0.25s",
+        "purpose": "Chips and nav glyph state changes."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "narrow",
+        "value": "360px (max-width)"
+      },
+      {
+        "name": "wide",
+        "value": "481px (min-width)"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Hero Card",
+      "kind": "custom",
+      "refersTo": "hero-card",
+      "description": "The espresso slab that carries the daily pick, identical for everyone on a given day.",
+      "html": "<div class=\"ds-hero\"><span class=\"ds-hero-label\">TONIGHT’S FILM</span><h3 class=\"ds-hero-title\">Paterson</h3><p class=\"ds-hero-desc\">A bus driver writes poems in a secret notebook and drives the same route every day.</p><button class=\"ds-hero-btn\">Show me <svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M5 12h14M13 6l6 6-6 6\"/></svg></button></div>",
+      "css": ".ds-hero{background:linear-gradient(155deg,#2A2420 0%,#1A1714 60%,#231E18 100%);color:#FFF8F0;border-radius:var(--radius-xl,22px);padding:40px 30px 34px;font-family:var(--font-body,\"DM Sans\",sans-serif);max-width:360px}.ds-hero-label{display:inline-block;font-size:.7rem;font-weight:700;letter-spacing:2.5px;color:var(--gold,#C4993C);margin-bottom:16px}.ds-hero-title{font-family:var(--font-display,Fraunces,Georgia,serif);font-style:italic;font-weight:400;font-size:2rem;line-height:1.2;letter-spacing:-.3px;margin:0 0 10px}.ds-hero-desc{font-size:.85rem;line-height:1.5;color:rgba(255,255,255,.55);margin:0 0 24px}.ds-hero-btn{display:inline-flex;align-items:center;gap:8px;background:var(--gold,#C4993C);color:#1A1714;font-weight:600;font-size:.82rem;padding:12px 28px;border:0;border-radius:50px;cursor:pointer;transition:transform .3s cubic-bezier(.22,1,.36,1),box-shadow .3s cubic-bezier(.22,1,.36,1),background .3s}.ds-hero-btn:hover{transform:translateY(-2px);background:var(--gold-hover,#B08830);box-shadow:0 6px 24px rgba(196,153,60,.2)}.ds-hero-btn:focus-visible{outline:2px solid #FFF8F0;outline-offset:3px}"
+    },
+    {
+      "name": "Accept Button",
+      "kind": "button",
+      "refersTo": "button-accept",
+      "description": "The primary act of choosing: take this pick.",
+      "html": "<button class=\"ds-accept\">Yes, this one</button>",
+      "css": ".ds-accept{background:var(--teal,#1B6B6D);color:#fff;border:1.5px solid var(--teal,#1B6B6D);border-radius:50px;padding:14px 28px;font:600 .9rem var(--font-body,\"DM Sans\",sans-serif);cursor:pointer;transition:all .3s cubic-bezier(.22,1,.36,1)}.ds-accept:hover{background:var(--teal-hover,#15585A);border-color:var(--teal-hover,#15585A);transform:translateY(-2px);box-shadow:0 6px 24px rgba(27,107,109,.15)}.ds-accept:focus-visible{outline:2px solid var(--teal,#1B6B6D);outline-offset:3px}"
+    },
+    {
+      "name": "Reject Button",
+      "kind": "button",
+      "refersTo": "button-accept",
+      "description": "The free-tier \"nah, next\" action: transparent, with a soft red only on hover.",
+      "html": "<button class=\"ds-reject\">Nah, next</button>",
+      "css": ".ds-reject{background:transparent;color:var(--text-secondary,#6B6359);border:1.5px solid var(--border,#DDD6CC);border-radius:50px;padding:14px 28px;font:600 .9rem var(--font-body,\"DM Sans\",sans-serif);cursor:pointer;transition:all .25s ease}.ds-reject:hover{border-color:#C0564E;color:#C0564E;background:rgba(220,80,70,.06)}.ds-reject:focus-visible{outline:2px solid #C0564E;outline-offset:3px}"
+    },
+    {
+      "name": "Outline Button",
+      "kind": "button",
+      "refersTo": "button-accept",
+      "description": "A secondary action that fills teal on hover.",
+      "html": "<button class=\"ds-outline\">Plan my week</button>",
+      "css": ".ds-outline{background:transparent;color:var(--teal,#1B6B6D);border:1.5px solid var(--teal,#1B6B6D);border-radius:50px;padding:12px 26px;font:600 .85rem var(--font-body,\"DM Sans\",sans-serif);cursor:pointer;transition:all .25s ease}.ds-outline:hover{background:var(--teal,#1B6B6D);color:#fff;transform:translateY(-1px);box-shadow:0 4px 20px rgba(27,107,109,.15)}.ds-outline:focus-visible{outline:2px solid var(--teal,#1B6B6D);outline-offset:3px}"
+    },
+    {
+      "name": "Filter Chip",
+      "kind": "chip",
+      "refersTo": "chip-active",
+      "description": "A pill filter. Idle is quiet, active fills teal (ink in quiet).",
+      "html": "<span class=\"ds-chip-row\"><button class=\"ds-chip\">Easy</button><button class=\"ds-chip ds-chip-active\">Vegetarian</button></span>",
+      "css": ".ds-chip-row{display:flex;gap:8px}.ds-chip{display:inline-flex;align-items:center;padding:8px 18px;border-radius:50px;font:600 .76rem var(--font-body,\"DM Sans\",sans-serif);background:var(--vibe-bg,#EBE3D8);color:var(--vibe-text,#6B6359);border:1.5px solid transparent;cursor:pointer;white-space:nowrap;transition:all .25s ease}.ds-chip:hover{border-color:var(--teal,#1B6B6D);color:var(--teal,#1B6B6D)}.ds-chip-active,.ds-chip-active:hover{background:var(--teal,#1B6B6D);color:#fff;border-color:transparent}.ds-chip:focus-visible{outline:2px solid var(--teal,#1B6B6D);outline-offset:2px}"
+    },
+    {
+      "name": "Category Card",
+      "kind": "card",
+      "refersTo": "card-category",
+      "description": "A flat card with a tinted glyph disc and an italic serif title, in the two-column home grid.",
+      "html": "<div class=\"ds-cat\"><span class=\"ds-cat-icon\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"3\" width=\"18\" height=\"18\" rx=\"2\"/><path d=\"M7 3v18M17 3v18M3 8h4M3 16h4M17 8h4M17 16h4\"/></svg></span><h4 class=\"ds-cat-title\">Movies</h4><p class=\"ds-cat-desc\">What should I watch?</p></div>",
+      "css": ".ds-cat{background:var(--bg-card,#FEFCF9);border:1px solid var(--border-subtle,#EBE5DC);border-radius:var(--radius,16px);padding:22px 20px;max-width:180px;text-align:left;cursor:pointer;transition:all .3s cubic-bezier(.22,1,.36,1)}.ds-cat:hover{background:var(--bg-card-hover,#FAF6F1);border-color:var(--border,#DDD6CC);box-shadow:0 1px 3px rgba(90,70,40,.05)}.ds-cat-icon{display:flex;align-items:center;justify-content:center;width:42px;height:42px;border-radius:50%;margin-bottom:14px;background:var(--teal-soft,rgba(27,107,109,.08));color:var(--teal,#1B6B6D);border:1.5px solid rgba(27,107,109,.2)}.ds-cat-title{font-family:var(--font-display,Fraunces,Georgia,serif);font-style:italic;font-weight:500;font-size:1.15rem;margin:0 0 4px;color:var(--text-primary,#1A1814)}.ds-cat-desc{font:.72rem/1.4 var(--font-body,\"DM Sans\",sans-serif);color:var(--text-secondary,#6B6359);margin:0}.ds-cat:focus-visible{outline:2px solid var(--teal,#1B6B6D);outline-offset:2px}"
+    },
+    {
+      "name": "Mood Pill (active)",
+      "kind": "custom",
+      "refersTo": "card-category",
+      "description": "A centred card for picking a mood. Active gains a teal border, wash and glow ring.",
+      "html": "<div class=\"ds-mood\">Cosy</div>",
+      "css": ".ds-mood{display:flex;flex-direction:column;align-items:center;padding:22px 14px;min-width:110px;background:var(--teal-soft,rgba(27,107,109,.08));border:1.5px solid var(--teal,#1B6B6D);border-radius:var(--radius,16px);font:500 1.1rem var(--font-display,Fraunces,Georgia,serif);color:var(--text-primary,#1A1814);box-shadow:0 0 0 3px rgba(27,107,109,.15);cursor:pointer}"
+    },
+    {
+      "name": "Nav Glyph (active)",
+      "kind": "nav",
+      "refersTo": "nav-item",
+      "description": "A 44px circular bottom-bar button. Active gets a teal ring and soft teal fill.",
+      "html": "<button class=\"ds-nav\" aria-label=\"Home\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z\"/></svg></button>",
+      "css": ".ds-nav{display:flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:50%;background:var(--teal-soft,rgba(27,107,109,.08));color:var(--teal,#1B6B6D);border:1.5px solid var(--teal,#1B6B6D);cursor:pointer;transition:all .25s ease}.ds-nav:focus-visible{outline:2px solid var(--teal,#1B6B6D);outline-offset:3px}"
+    },
+    {
+      "name": "Category Row (quiet)",
+      "kind": "custom",
+      "refersTo": "card-category-quiet",
+      "description": "The quiet layer's grouped-list row: outlined glyph, sans title over detail, trailing chevron.",
+      "html": "<div class=\"ds-row\"><span class=\"ds-row-icon\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"3\" width=\"18\" height=\"18\" rx=\"2\"/><path d=\"M7 3v18M17 3v18M3 8h4M3 16h4M17 8h4M17 16h4\"/></svg></span><span class=\"ds-row-text\"><b>Movies</b><small>What should I watch?</small></span><span class=\"ds-row-chev\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M9 6l6 6-6 6\"/></svg></span></div>",
+      "css": ".ds-row{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:14px;background:#fff;border:1px solid #ECECEC;border-radius:18px;padding:14px 16px;max-width:360px;box-shadow:0 1px 2px rgba(0,0,0,.05);font-family:-apple-system,BlinkMacSystemFont,\"Segoe UI\",system-ui,sans-serif;color:#111;cursor:pointer}.ds-row-icon{display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:50%;border:1px solid #E0E0E0}.ds-row-text{display:flex;flex-direction:column}.ds-row-text b{font-size:.92rem;font-weight:600}.ds-row-text small{font-size:.73rem;color:#6D6D72}.ds-row-chev{color:#8A8A8E}.ds-row:hover{background:#F7F7F7}.ds-row:focus-visible{outline:2px solid #111;outline-offset:2px}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Quiet Concierge",
+    "overview": "CHCS is a host that narrows the field and hands you one thing. It never shows a feed or a leaderboard, and it never counts anything on your behalf. The screen is a single 480px column, and every view is built so the eye lands on exactly one decision: tonight's pick, a mood, a card to accept. Everything else is set back, lower in contrast, smaller, and wider in tracking, so that choosing is the only emphatic act on the page.\n\nThe default system, **elegant**, is warm and editorial. A cream field, paper-white cards with hairline borders, an italic serif voice for names and headlines, and one dark espresso slab for the daily pick. Deep teal carries action and state, antique gold carries the single moment of invitation on the dark slab. A variant system, **quiet**, strips the hue out entirely and rebuilds the same layouts in native-feeling greyscale. Both layers work in light and dark, giving four renderings of every screen, and each must hold up on its own.\n\nThe app speaks with the confidence of someone who has already decided for you. Copy is short and warm (\"What are we deciding today?\", \"A new pick every day\"). Retention comes from something new appearing, never from a counter, a streak or a badge.",
+    "keyCharacteristics": [
+      "One column, 480px maximum, one dominant element per screen.",
+      "Warm and literary in elegant, monochrome and native in quiet.",
+      "Italic serif for names and the single largest line, sans for everything structural.",
+      "Depth by hairline border first, shadow second, motion last.",
+      "Emphasis is rationed: gold or ink marks the act of choosing and nothing else."
+    ],
+    "rules": [
+      {
+        "name": "The Rationed Emphasis Rule",
+        "body": "Per screen, exactly one thing is gold (elegant) or ink-filled (quiet). If two things compete for it, one of them is wrong.",
+        "section": "colors"
+      },
+      {
+        "name": "The Ink Flip Rule",
+        "body": "In quiet, teal and gold are the same token as ink, so any rule that sets a label or button colour from them must be checked on the ink slab, where it would otherwise go black on black.",
+        "section": "colors"
+      },
+      {
+        "name": "The One Serif Line Rule",
+        "body": "In quiet, only the single largest line on a screen is serif. Category titles, duo banner titles, stats and small headings go back to sans.",
+        "section": "typography"
+      },
+      {
+        "name": "The Quiet Label Rule",
+        "body": "Labels get quieter through tracking and size, never through a lighter weight. They stay bold and small.",
+        "section": "typography"
+      },
+      {
+        "name": "The Hairline Before Shadow Rule",
+        "body": "A card that needs to separate from its field gets a border before it gets a shadow. Shadows appear on state, not at rest.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "**Do** let one element per screen carry the emphasis: the hero action, the accept button or the active mood.",
+      "**Do** build every view so it holds up in all four renderings: elegant and quiet, each in light and dark.",
+      "**Do** route every colour through the tokens, and check both layers when a rule touches teal or gold.",
+      "**Do** keep labels small, bold and widely tracked, and let size and tracking, not weight, do the quieting.",
+      "**Do** keep functional text at 11px or larger and at 4.5:1 (3:1 for large text), measured on the real background and not on the flat token.",
+      "**Do** make anything that behaves like a button or link a real `<button>` or `<a>`, so it is reachable without a mouse.",
+      "**Do** reward a returning user with something new, such as a fresh daily pick, rather than a count."
+    ],
+    "donts": [
+      "**Don't** add streaks, badges, \"don't break the chain\" mechanics or stat tiles to the home screen. These are confirmed rejections, not preferences.",
+      "**Don't** introduce any hue in quiet. Its only emphasis is ink.",
+      "**Don't** use emoji in quiet. Views must paint through the shared screen setter so emoji are stripped there.",
+      "**Don't** put a shadow on a card at rest in elegant, or any shadow at all on dark quiet.",
+      "**Don't** set a second serif line on a quiet screen. Category titles and small headings are sans.",
+      "**Don't** use em-dashes in any copy, comment or doc."
+    ]
+  }
+}
