@@ -324,17 +324,21 @@ class CHCSApp {
         </div>
         <h3 class="section-title">${t('Browse')}</h3>
         <div class="category-grid stagger-in">
-          ${Object.values(CATEGORIES).map(c => `
-            <div class="category-card ${c.cssClass}${c.active ? '' : ' coming-soon'}"
-                 ${c.active ? `onclick="app.${showFnFor[c.id]}()"` : ''}>
+          ${Object.values(CATEGORIES).map(c => {
+            // Live categories are real links (Tab, Enter and screen readers reach them, and
+            // the path is already a route). A coming-soon card is not interactive, so it stays a div.
+            const tag = c.active ? 'a' : 'div';
+            const link = c.active ? ` href="/${c.id}" onclick="return app._link(event, '${showFnFor[c.id]}')"` : '';
+            return `
+            <${tag} class="category-card ${c.cssClass}${c.active ? '' : ' coming-soon'}"${link}>
               <div class="category-icon">${c.icon}</div>
               <h4>${t(c.name)}</h4>
               <p>${c.active ? t(c.question) : ''}</p>
               ${c.active ? '' : `<span class="coming-soon-badge">${t('Coming soon')}</span>`}
-            </div>
-          `).join('')}
+            </${tag}>`;
+          }).join('')}
         </div>
-        <div class="duo-banner" onclick="app.showDuo()">
+        <a class="duo-banner" href="/duo" onclick="return app._link(event, 'showDuo')">
           <div class="duo-banner-icon">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
           </div>
@@ -343,7 +347,7 @@ class CHCSApp {
             <p>${t("Can't agree either? Swipe together, first match wins.")}</p>
           </div>
           <svg class="mode-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
-        </div>
+        </a>
         ${this._installHintHTML()}
         <p class="home-footer-hint">${t('New features and suggestions added weekly.')}</p>
       </section>`;
@@ -363,6 +367,15 @@ class CHCSApp {
     this._path = path;
     if (location.pathname !== path) history.pushState({}, '', path);
     this._setMeta(path, title);
+  }
+
+  // Click handler for in-app links. A plain click is handled here, without a page load.
+  // A modified click (new tab, new window) is left to the browser and the rewrite in vercel.json.
+  _link(e, fn) {
+    if (e.defaultPrevented || e.button || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return true;
+    e.preventDefault();
+    this[fn]();
+    return false;
   }
 
   // Without this every deep link would keep advertising the home page as its

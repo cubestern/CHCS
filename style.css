@@ -5,7 +5,10 @@
   --bg-card-hover: #FAF6F1;
   --text-primary: #1A1814;
   --text-secondary: #6B6359;
-  --text-tertiary: #A9A29A;
+  /* Was #A9A29A, 2.2:1 on the cream field. This is 4.75:1 flat and about 4.6:1 on the washed
+     body background, still a step lighter than the secondary tone, so small labels separate
+     mostly by size and tracking rather than by tone. */
+  --text-tertiary: #6C6863;
   --border: #DDD6CC;
   --border-subtle: #EBE5DC;
   --shadow-xs: 0 1px 2px rgba(90, 70, 40, 0.04);
@@ -30,6 +33,9 @@
   --gold-hover: #B08830;
   --gold-soft: rgba(196, 153, 60, 0.1);
   --gold-glow: rgba(196, 153, 60, 0.2);
+  /* Gold as text on the cream field. --gold is 2.3:1 there; this is 3.3:1, above the 3:1
+     large-text floor with room for the body background's tinted wash. */
+  --gold-text: #9F7C31;
   /* Alias */
   --accent: var(--teal);
   --accent-hover: var(--teal-hover);
@@ -59,14 +65,15 @@
   --bg-card-hover: #252220;
   --text-primary: #F0EBE4;
   --text-secondary: #9E9589;
-  --text-tertiary: #5E5850;
+  --text-tertiary: #817D77;
   --border: #2A2724;
   --border-subtle: #222018;
   --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.2);
   --shadow: 0 2px 12px rgba(0, 0, 0, 0.25), 0 1px 3px rgba(0, 0, 0, 0.15);
   --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.35), 0 2px 8px rgba(0, 0, 0, 0.2);
   --shadow-xl: 0 20px 60px rgba(0, 0, 0, 0.5), 0 4px 14px rgba(0, 0, 0, 0.25);
-  --hero-bg: linear-gradient(155deg, #0D0B09 0%, #171411 60%, #0F0D0A 100%);
+  /* Lifted off the field. The old stops sat within 1.01:1 of --bg, so the slab vanished. */
+  --hero-bg: linear-gradient(155deg, #2B2520 0%, #211D18 60%, #29231D 100%);
   --hero-text: #F0EBE4;
   --teal: #2DBAB8;
   --teal-hover: #38D0CE;
@@ -76,6 +83,7 @@
   --gold-hover: #E0B850;
   --gold-soft: rgba(212, 168, 67, 0.1);
   --gold-glow: rgba(212, 168, 67, 0.15);
+  --gold-text: var(--gold);
   --accent: var(--teal);
   --accent-hover: var(--teal-hover);
   --accent-soft: var(--teal-soft);
@@ -227,7 +235,7 @@ button {
 
 .hero-label {
   font-family: var(--font-body);
-  font-size: 0.62rem;
+  font-size: 0.7rem;
   font-weight: 700;
   letter-spacing: 2.5px;
   text-transform: uppercase;
@@ -331,7 +339,7 @@ button {
 /* ========== SECTION TITLE: Small caps ========== */
 .section-title {
   font-family: var(--font-body);
-  font-size: 0.68rem;
+  font-size: 0.7rem;
   font-weight: 700;
   letter-spacing: 2.5px;
   text-transform: uppercase;
@@ -357,9 +365,14 @@ button {
   overflow: hidden;
   box-shadow: var(--shadow);
   text-align: center;
+  /* A real link (see renderHome): it keeps the card's own colour and takes no underline. */
+  display: block;
+  color: inherit;
+  text-decoration: none;
 }
 
 .category-card:hover {
+  text-decoration: none;
   background: var(--bg-card-hover);
   transform: translateY(-3px);
   box-shadow: var(--shadow-lg);
@@ -2361,7 +2374,7 @@ button {
 
 .home-greeting-label {
   display: block;
-  font-size: 0.62rem;
+  font-size: 0.7rem;
   font-weight: 700;
   letter-spacing: 2.5px;
   text-transform: uppercase;
@@ -2380,7 +2393,7 @@ button {
 
 .home-greeting-title em {
   font-style: italic;
-  color: var(--gold);
+  color: var(--gold-text);
 }
 
 /* ========== DUO BANNER (home) ========== */
@@ -2398,6 +2411,9 @@ button {
   cursor: pointer;
   box-shadow: var(--shadow);
   transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  /* A real link, like the category cards. */
+  color: inherit;
+  text-decoration: none;
 }
 
 .duo-banner:hover {
@@ -2405,6 +2421,14 @@ button {
   background: var(--bg-card-hover);
   transform: translateY(-2px);
   box-shadow: var(--shadow-lg);
+  text-decoration: none;
+}
+
+/* Keyboard focus for the two link-cards on home. --teal is ink in the quiet layer. */
+.category-card:focus-visible,
+.duo-banner:focus-visible {
+  outline: 2px solid var(--teal);
+  outline-offset: 3px;
 }
 
 .duo-banner-icon {
@@ -2869,9 +2893,11 @@ button {
   position: relative;
   z-index: 1;
   margin-top: 14px;
-  font-size: 0.68rem;
+  font-size: 0.7rem;
   letter-spacing: 0.4px;
-  opacity: 0.5;
+  /* One colour, no opacity. A tint plus element opacity multiplied together, which
+     put the quiet note near 1.9:1. This is a tint of the slab's own text colour. */
+  color: rgba(255, 248, 240, 0.6);
 }
 
 /* ========== ABOUT ========== */
@@ -3440,6 +3466,10 @@ button.ob-skip:hover { color: var(--teal); }
 
 [data-design="elegant"] .hero-card { padding: 40px 30px 34px; }
 
+/* In dark the slab is nearly the field's own value, so it needs an edge as well as a lift.
+   A hairline, not a shadow: depth by edge first. */
+[data-design="elegant"][data-theme="dark"] .hero-card { box-shadow: inset 0 0 0 1px rgba(255, 248, 240, 0.09); }
+
 [data-design="elegant"] .hero-title {
   font-size: 2rem;
   font-weight: 400;
@@ -3527,7 +3557,7 @@ button.ob-skip:hover { color: var(--teal); }
   --bg-card-hover: #F7F7F7;
   --text-primary: #111111;
   --text-secondary: #6D6D72;
-  --text-tertiary: #8A8A8E;
+  --text-tertiary: #6E6E72;
   --border: #E0E0E0;
   --border-subtle: #ECECEC;
 
@@ -3541,6 +3571,7 @@ button.ob-skip:hover { color: var(--teal); }
   --gold-hover: #000000;
   --gold-soft: rgba(0, 0, 0, 0.05);
   --gold-glow: rgba(0, 0, 0, 0.06);
+  --gold-text: var(--gold);
 
   --vibe-bg: transparent;
   --vibe-bg-active: #111111;
@@ -3583,7 +3614,7 @@ button.ob-skip:hover { color: var(--teal); }
   --bg-card-hover: #262628;
   --text-primary: #FFFFFF;
   --text-secondary: rgba(255, 255, 255, 0.62);
-  --text-tertiary: rgba(255, 255, 255, 0.42);
+  --text-tertiary: rgba(255, 255, 255, 0.5);
   --border: #2C2C2E;
   --border-subtle: #232325;
 
@@ -3596,6 +3627,7 @@ button.ob-skip:hover { color: var(--teal); }
   --gold-hover: #F0F0F0;
   --gold-soft: rgba(255, 255, 255, 0.08);
   --gold-glow: rgba(255, 255, 255, 0.1);
+  --gold-text: var(--gold);
 
   --vibe-bg: transparent;
   --vibe-bg-active: #FFFFFF;
@@ -3626,7 +3658,7 @@ button.ob-skip:hover { color: var(--teal); }
 /* ----- Display type: one serif italic line per screen, sans for the rest ---- */
 [data-design="quiet"] .home-greeting-label {
   font-weight: 700;
-  font-size: 0.6rem;
+  font-size: 0.7rem;
   letter-spacing: 0.14em;
   color: var(--text-tertiary);
 }
@@ -3661,7 +3693,7 @@ button.ob-skip:hover { color: var(--teal); }
 [data-design="quiet"] .section-title,
 [data-design="quiet"] .filter-label {
   font-weight: 700;
-  font-size: 0.63rem;
+  font-size: 0.7rem;
   letter-spacing: 0.14em;
   color: var(--text-tertiary);
   margin-bottom: 12px;
@@ -3679,7 +3711,7 @@ button.ob-skip:hover { color: var(--teal); }
 [data-design="quiet"] .hero-label {
   color: rgba(255, 255, 255, 0.55);
   font-weight: 700;
-  font-size: 0.6rem;
+  font-size: 0.7rem;
   letter-spacing: 0.14em;
   margin-bottom: 8px;
 }
@@ -3714,7 +3746,7 @@ button.ob-skip:hover { color: var(--teal); }
   opacity: 0.9;
 }
 
-[data-design="quiet"] .hero-daily-note { color: rgba(255, 255, 255, 0.4); }
+[data-design="quiet"] .hero-daily-note { color: rgba(255, 255, 255, 0.55); }
 
 /* In dark the slab is a raised card, so its text uses the normal scale. */
 [data-design="quiet"][data-theme="dark"] .hero-card { border: 1px solid var(--border); }
@@ -3765,7 +3797,7 @@ button.ob-skip:hover { color: var(--teal); }
 [data-design="quiet"] .coming-soon-badge { grid-area: desc; }
 
 [data-design="quiet"] .category-card p {
-  font-size: 0.73rem;
+  font-size: 0.75rem;
   color: var(--text-secondary);
 }
 
@@ -3820,7 +3852,7 @@ button.ob-skip:hover { color: var(--teal); }
 [data-design="quiet"] .duo-banner { padding: 12px 14px; }
 [data-design="quiet"] .duo-banner-icon { width: 34px; height: 34px; }
 [data-design="quiet"] .duo-banner-text h4 { font-size: 0.92rem; }
-[data-design="quiet"] .duo-banner-text p { font-size: 0.73rem; }
+[data-design="quiet"] .duo-banner-text p { font-size: 0.75rem; }
 
 /* ----- Moods: ink fill marks the chosen one ----- */
 [data-design="quiet"] .mood-pill { padding: 20px 14px; }
